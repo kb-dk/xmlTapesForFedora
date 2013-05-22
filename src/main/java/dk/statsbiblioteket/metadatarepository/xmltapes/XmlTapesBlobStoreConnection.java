@@ -56,5 +56,6 @@ public class XmlTapesBlobStoreConnection extends AbstractBlobStoreConnection {
     @Override
     public void sync() throws IOException, UnsupportedOperationException {
         this.ensureOpen();
+        archive.sync();
     }
 }

@@ -2,6 +2,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes;
 
 import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,17 +18,26 @@ import java.net.URISyntaxException;
  */
 public class XmlTapesTestSuite extends TCKTestSuite {
 
-    public XmlTapesTestSuite(BlobStore store, URI storeId, boolean isTransactional, boolean isIdGenSupp) throws IOException {
-        super(store, storeId, isTransactional, isIdGenSupp);
+
+
+
+    public XmlTapesTestSuite() throws IOException, URISyntaxException {
+        super(getPrivateStore(), getPrivateStoreId(), false, false);
+
     }
 
-    protected XmlTapesTestSuite() throws URISyntaxException, IOException {
-        this(new XmlTapesBlobStore(
-                Thread.currentThread().getContextClassLoader().getResource("empty.tar").toURI())
-                , Thread.currentThread().getContextClassLoader().getResource("empty.tar").toURI()
-                , false
-                , false);
+    private static URI getPrivateStoreId() throws URISyntaxException {
+        URI archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile().toURI();
+        return archiveFolder;
     }
+
+    private static BlobStore getPrivateStore() throws URISyntaxException, IOException {
+        File archiveFolder = new File(getPrivateStoreId());
+        FileUtils.cleanDirectory(archiveFolder);
+        FileUtils.touch(new File(archiveFolder, "empty"));
+        return new XmlTapesBlobStore(getPrivateStoreId());
+    }
+
 
     @Override
     protected URI getInvalidId() {

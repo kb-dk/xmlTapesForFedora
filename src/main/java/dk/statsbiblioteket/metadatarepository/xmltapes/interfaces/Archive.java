@@ -1,5 +1,7 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.interfaces;
 
+import de.schlichtherle.truezip.fs.FsSyncException;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,4 +71,9 @@ public interface Archive {
      * @return
      */
     Iterator<URI> listIds(String filterPrefix);
+
+    /**
+     * Sync all changes to disk
+     */
+    void sync() throws FsSyncException;
 }

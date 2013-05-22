@@ -1,13 +1,20 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
+import de.schlichtherle.truezip.file.TVFS;
 import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
+import org.akubraproject.BlobStore;
+import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Before;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -29,13 +36,32 @@ public class ZipArchiveTest {
 
     @Before
     public void setUp() throws Exception {
-        archive = new ZipArchive(Thread.currentThread().getContextClassLoader().getResource("empty.tar").toURI());
+
+        URI store = getPrivateStoreId();
+
+        archive = new ZipArchive(store);
         OutputStream outputStream = archive.createNew(testFile1, 0);
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         writer.write(contents);
         writer.close();
 
     }
+
+
+    private static URI getPrivateStoreId() throws URISyntaxException {
+        URI archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile().toURI();
+        return archiveFolder;
+    }
+
+
+    @After
+    public void clean() throws URISyntaxException, IOException{
+        TVFS.umount();
+        File archiveFolder = new File(getPrivateStoreId());
+        FileUtils.cleanDirectory(archiveFolder);
+        FileUtils.touch(new File(archiveFolder,"empty"));
+    }
+
 
     @org.junit.Test
     public void testGetInputStream() throws Exception {

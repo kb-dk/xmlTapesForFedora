@@ -5,6 +5,7 @@ import de.schlichtherle.truezip.file.TFile;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
+import java.util.SortedSet;
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,7 +22,7 @@ public interface Index {
      * @param id the id to look up
      * @return the list of locations, newest is in the end
      */
-    public List<TFile> getLocations(URI id);
+    public SortedSet<TFile> getLocations(URI id);
 
     /**
      * Add a new location (version) to a id
