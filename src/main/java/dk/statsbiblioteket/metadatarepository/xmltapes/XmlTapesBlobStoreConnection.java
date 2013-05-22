@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;
 import org.akubraproject.UnsupportedIdException;
@@ -8,13 +9,8 @@ import org.akubraproject.impl.StreamManager;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,23 +21,27 @@ import java.util.zip.ZipFile;
  */
 public class XmlTapesBlobStoreConnection extends AbstractBlobStoreConnection {
 
-    private ZipArchive archive;
+    private Archive archive;
 
-    protected XmlTapesBlobStoreConnection(BlobStore owner, StreamManager streamManager, ZipArchive archive) {
+
+
+    protected XmlTapesBlobStoreConnection(BlobStore owner, StreamManager streamManager, Archive archive) {
         super(owner, streamManager);
         this.archive = archive;
     }
 
     @Override
     public Blob getBlob(URI blobId, Map<String, String> hints) throws IOException, UnsupportedIdException, UnsupportedOperationException {
+        this.ensureOpen();
         if (blobId == null){
             throw new UnsupportedOperationException("Blobid was null, and we cannot create IDs");
         }
-        return new XmlTapesBlob(this,blobId,archive);
+        return new XmlTapesBlob(this,blobId,archive,streamManager);
     }
 
     @Override
     public Iterator<URI> listBlobIds(String filterPrefix) throws IOException {
+        this.ensureOpen();
         return archive.listIds(filterPrefix);
     }
 
@@ -55,6 +55,6 @@ public class XmlTapesBlobStoreConnection extends AbstractBlobStoreConnection {
 
     @Override
     public void sync() throws IOException, UnsupportedOperationException {
-        //To change body of implemented methods use File | Settings | File Templates.
+        this.ensureOpen();
     }
 }

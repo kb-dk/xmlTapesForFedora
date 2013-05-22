@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
 import org.junit.Before;
 
 import java.io.BufferedReader;
@@ -21,14 +22,14 @@ import static org.junit.Assert.assertTrue;
  */
 public class ZipArchiveTest {
 
-    ZipArchive archive;
+    Archive archive;
 
     URI testFile1 = URI.create("testFile1");
     String contents = "testFile 1 is here now";
 
     @Before
     public void setUp() throws Exception {
-        archive = new ZipArchive(Thread.currentThread().getContextClassLoader().getResource("empty.zip").toURI());
+        archive = new ZipArchive(Thread.currentThread().getContextClassLoader().getResource("empty.tar").toURI());
         OutputStream outputStream = archive.createNew(testFile1, 0);
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         writer.write(contents);

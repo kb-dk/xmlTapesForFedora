@@ -4,20 +4,20 @@ import de.schlichtherle.truezip.file.TArchiveDetector;
 import de.schlichtherle.truezip.file.TFile;
 import de.schlichtherle.truezip.file.TFileInputStream;
 import de.schlichtherle.truezip.file.TFileOutputStream;
+import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Index;
+import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.IndexMapImpl;
+import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.StoreLock;
+import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.TapeOutputStream;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -26,53 +26,39 @@ import java.util.Map;
  * Time: 11:14 AM
  * To change this template use File | Settings | File Templates.
  */
-public class ZipArchive {
+public class ZipArchive implements Archive {
 
-    private  de.schlichtherle.truezip.file.TFile zipfile;
 
-    private final Object writeLock = new Object();
+    private final StoreLock writeLock = new StoreLock();
 
-    private final Map<URI,ReadLock> readLocks = new HashMap<URI,ReadLock>();
+    private final Index index;
+    private final TFile zipfile;
 
 
     public ZipArchive(URI id) throws IOException {
 
+        index = new IndexMapImpl();
         zipfile = new TFile(new File(id),TArchiveDetector.ALL);
 
     }
 
+    @Override
     public String toFilename(URI id){
         return id.toString()+"@"+System.currentTimeMillis();
     }
 
 
     private TFile findFile(final URI id){
-        TFile[] matchingFiles = zipfile.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                if (name.startsWith(id.toString())) {
-                    return true;
-                }
-
-                return false;
-            }
-        });
-        if (matchingFiles == null || matchingFiles.length == 0){
+        List<TFile> files = index.getLocations(id);
+        if (files != null){
+        return files.get(files.size()-1);
+        } else {
             return null;
         }
-        Arrays.sort(matchingFiles,new Comparator<TFile>() {
-            @Override
-            public int compare(TFile o1, TFile o2) {
-                return o2.getName().compareTo(o1.getName());
-            }
-        });
-        TFile newestFile = matchingFiles[0];
-        return newestFile;
     }
 
-    public InputStream getInputStream(final URI id) throws IOException {
-        ReadLock lock = readLock(id);
-        try {
+    @Override
+    public InputStream getInputStream(final URI id) throws FileNotFoundException {
 
             TFile newestFile = findFile(id);
             if (newestFile == null){
@@ -81,93 +67,48 @@ public class ZipArchive {
 
             return new TFileInputStream(newestFile);
 
-        }finally {
-            releaseLock(lock);
-        }
+
     }
 
-    public boolean exist(URI id) throws IOException {
-        try {
-        InputStream stream = getInputStream(id);
-        if (stream == null){
-            return false;
-        } else {
-            stream.close();
-            return true;
-        }
-        } catch (FileNotFoundException e){
-            return false;
-        }
+    @Override
+    public boolean exist(URI id)  {
+
+        return index.getLocations(id) != null;
     }
 
-    public long getSize(URI id) {
-        ReadLock lock = readLock(id);
-        try {
+    @Override
+    public long getSize(URI id) throws FileNotFoundException {
             TFile newestFile = findFile(id);
+            if (newestFile == null){
+                throw new FileNotFoundException();
+            }
             return newestFile.length();
-        }finally {
-            releaseLock(lock);
-        }
     }
 
+    @Override
     public OutputStream createNew(URI id, long estimatedSize) throws IOException {
-        ReadLock lock = readLock(id);
-        try {
             TFile toCreate = new TFile(zipfile, toFilename(id));
             if (toCreate.exists()){
                 throw new RuntimeException();
             }
             toCreate.getParentFile().mkdirs();
-            return new TFileOutputStream(toCreate,false);
+            index.addLocation(id,toCreate);
 
-        }finally {
-            releaseLock(lock);
-        }
+            TFileOutputStream tFileOutputStream = new TFileOutputStream(toCreate, false);
+            return new TapeOutputStream(tFileOutputStream,writeLock);
+
+
 
     }
 
+    @Override
     public void removeFromIndex(URI id) {
-        //To change body of created methods use File | Settings | File Templates.
-    }
-
-    public  ReadLock readLock(URI... ids) {
-        ReadLock myLock = new ReadLock(ids);
-
-        HashSet<URI> toLock = new HashSet<URI>(Arrays.asList(ids));
-        while (!toLock.isEmpty()){
-            HashSet<URI> locked = new HashSet<URI>();
-            for (URI uri : toLock) {
-                synchronized (readLocks){
-                    if ( ! readLocks.containsKey(uri)){
-                        readLocks.put(uri,myLock);
-                        locked.add(uri);
-                    }
-                }
-            }
-            for (URI uri : locked) {
-                toLock.remove(uri);
-            }
-        }
-        return myLock;
+        index.remove(id);
     }
 
 
-    public synchronized ReadLock writeLock(URI... ids) {
-
-        return new ReadLock(ids);
-    }
-
-    public void releaseLock(ReadLock lock) {
-        for (URI id : lock.getIds()) {
-            synchronized (readLocks){
-                if (readLocks.get(id) == lock){
-                    readLocks.remove(id);
-                }
-            }
-        }
-    }
-
+    @Override
     public Iterator<URI> listIds(String filterPrefix) {
-        return null;  //To change body of created methods use File | Settings | File Templates.
+        return index.getIds(filterPrefix);
     }
 }

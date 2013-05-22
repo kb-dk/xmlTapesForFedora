@@ -27,7 +27,7 @@ public class XmlTapesBlobStoreTest {
 
     @Before
     public void setUp() throws Exception {
-        URI uri = Thread.currentThread().getContextClassLoader().getResource("empty.zip").toURI();
+        URI uri = Thread.currentThread().getContextClassLoader().getResource("empty.tar").toURI();
         connection = new XmlTapesBlobStore(uri).openConnection(null, null);
 
     }
@@ -49,8 +49,12 @@ public class XmlTapesBlobStoreTest {
         IOUtils.copyLarge(resourceAsStream,outputStream);
         resourceAsStream.close();
         outputStream.close();
-        String storedContents = IOUtils.toString(blob1.openInputStream());
+        InputStream inputStream = blob1.openInputStream();
+        String storedContents = IOUtils.toString(inputStream);
+        inputStream.close();
         assertThat(storedContents, is(contents));
+
+
 
 
     }

@@ -19,13 +19,21 @@
         <dependency>
             <groupId>org.akubraproject</groupId>
             <artifactId>akubra-core</artifactId>
-            <version>0.3</version>
+            <version>0.4.0</version>
         </dependency>
+
+
+        <dependency>
+            <groupId>org.akubraproject</groupId>
+            <artifactId>akubra-tck</artifactId>
+            <version>0.4.0</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.akubraproject</groupId>
             <artifactId>akubra-map</artifactId>
-            <version>0.3</version>
+            <version>0.4.0</version>
             <scope>provided</scope>
         </dependency>
 
@@ -47,7 +55,7 @@
         </dependency>
         <dependency>
             <groupId>de.schlichtherle.truezip</groupId>
-            <artifactId>truezip-driver-zip</artifactId>
+            <artifactId>truezip-driver-tar</artifactId>
             <version>7.7.2</version>
         </dependency>
         <dependency>

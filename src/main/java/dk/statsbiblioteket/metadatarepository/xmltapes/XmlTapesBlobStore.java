@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
 import org.akubraproject.BlobStoreConnection;
 import org.akubraproject.impl.AbstractBlobStore;
 import org.akubraproject.impl.StreamManager;
@@ -19,7 +20,7 @@ import java.util.Map;
 public class XmlTapesBlobStore extends AbstractBlobStore {
 
     private final StreamManager manager = new StreamManager();
-    private final ZipArchive archive;
+    private final Archive archive;
     /**
      * Create a new blob store.
      *
