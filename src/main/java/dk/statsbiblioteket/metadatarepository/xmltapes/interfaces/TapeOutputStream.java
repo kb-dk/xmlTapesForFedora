@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.interfaces;
 
+import de.schlichtherle.truezip.file.TVFS;
 import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.StoreLock;
 
 import java.io.IOException;
@@ -42,6 +43,7 @@ public class TapeOutputStream extends OutputStream{
     @Override
     public void flush() throws IOException {
         delegate.flush();
+        TVFS.sync();
     }
 
     @Override
