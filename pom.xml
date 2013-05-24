@@ -15,25 +15,60 @@
     <artifactId>xmltapes</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <akubra.version>0.4.0</akubra.version>
+
+    </properties>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2.2</version>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/assembly/assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                        <!-- this is used for inheritance merges -->
+                        <phase>package</phase>
+                        <!-- append to the packaging phase. -->
+                        <goals>
+                            <goal>single</goal>
+                            <!-- goals == mojos -->
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>org.akubraproject</groupId>
             <artifactId>akubra-core</artifactId>
-            <version>0.4.0</version>
+            <version>${akubra.version}</version>
+            <scope>provided</scope>
         </dependency>
 
 
         <dependency>
             <groupId>org.akubraproject</groupId>
             <artifactId>akubra-tck</artifactId>
-            <version>0.4.0</version>
+            <version>${akubra.version}</version>
+            <scope>test</scope>
         </dependency>
 
 
         <dependency>
             <groupId>org.akubraproject</groupId>
             <artifactId>akubra-map</artifactId>
-            <version>0.4.0</version>
+            <version>${akubra.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -43,21 +78,23 @@
             <version>2.4</version>
         </dependency>
 
+
         <dependency>
-            <groupId>de.schlichtherle.truezip</groupId>
-            <artifactId>truezip-kernel</artifactId>
-            <version>7.7.2</version>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.1.0</version>
+            <type>jar</type>
+            <scope>compile</scope>
         </dependency>
+
+
+
         <dependency>
-            <groupId>de.schlichtherle.truezip</groupId>
-            <artifactId>truezip-file</artifactId>
-            <version>7.7.2</version>
-        </dependency>
-        <dependency>
-            <groupId>de.schlichtherle.truezip</groupId>
-            <artifactId>truezip-driver-tar</artifactId>
-            <version>7.7.2</version>
-        </dependency>
+           <groupId>org.kamranzafar</groupId>
+           <artifactId>jtar</artifactId>
+           <version>2.2</version>
+         </dependency>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>

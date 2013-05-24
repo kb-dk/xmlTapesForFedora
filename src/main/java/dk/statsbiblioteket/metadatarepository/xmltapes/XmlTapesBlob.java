@@ -56,7 +56,7 @@ public class XmlTapesBlob extends AbstractBlob {
     }
 
     @Override
-    public long getSize() throws  MissingBlobException {
+    public long getSize() throws IOException {
         ensureOpen();
         try {
             return archive.getSize(getId());
@@ -74,7 +74,7 @@ public class XmlTapesBlob extends AbstractBlob {
     @Override
     public void delete() throws IOException {
         ensureOpen();
-        archive.removeFromIndex(getId());
+        archive.remove(getId());
     }
 
     @Override
@@ -92,6 +92,7 @@ public class XmlTapesBlob extends AbstractBlob {
         }
 
 
+
         OutputStream them = newBlob.openOutputStream(this.getSize(), true);
         InputStream my = openInputStream();
         IOUtils.copyLarge(my, them);
@@ -99,5 +100,9 @@ public class XmlTapesBlob extends AbstractBlob {
         my.close();
         this.delete();
         return newBlob;
+    }
+
+    public String toString(){
+        return getId().toString();
     }
 }

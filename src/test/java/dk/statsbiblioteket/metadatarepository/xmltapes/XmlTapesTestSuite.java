@@ -26,16 +26,21 @@ public class XmlTapesTestSuite extends TCKTestSuite {
 
     }
 
-    private static URI getPrivateStoreId() throws URISyntaxException {
+    private static URI getStoreLocation() throws URISyntaxException {
         URI archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile().toURI();
         return archiveFolder;
     }
 
+    private static URI getPrivateStoreId() throws URISyntaxException {
+        URI archiveFolder = URI.create("test:storageForTapes");
+        return archiveFolder;
+    }
+
     private static BlobStore getPrivateStore() throws URISyntaxException, IOException {
-        File archiveFolder = new File(getPrivateStoreId());
+        File archiveFolder = new File(getStoreLocation());
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));
-        return new XmlTapesBlobStore(getPrivateStoreId());
+        return new XmlTapesBlobStore(getPrivateStoreId(),getStoreLocation());
     }
 
 

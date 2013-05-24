@@ -1,11 +1,9 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.interfaces;
 
-import de.schlichtherle.truezip.file.TFile;
 
 import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedSet;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,14 +20,14 @@ public interface Index {
      * @param id the id to look up
      * @return the list of locations, newest is in the end
      */
-    public SortedSet<TFile> getLocations(URI id);
+    public List<Entry> getLocations(URI id);
 
     /**
      * Add a new location (version) to a id
      * @param id the id to ammend
      * @param location the new location
      */
-    public void addLocation(URI id, TFile location);
+    public void addLocation(URI id, Entry location);
 
     /**
      * Remove an id and all associated locations from the index
@@ -42,5 +40,7 @@ public interface Index {
      * @param filterPrefix the prefix
      * @return a list of IDs, random order
      */
-    public Iterator<URI> getIds(String filterPrefix);
+    public Iterator<URI> listIds(String filterPrefix);
+
+    void clear();
 }

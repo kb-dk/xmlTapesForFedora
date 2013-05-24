@@ -1,6 +1,5 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
-import de.schlichtherle.truezip.file.TVFS;
 import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
 import org.akubraproject.BlobStore;
 import org.apache.commons.io.FileUtils;
@@ -56,7 +55,6 @@ public class ZipArchiveTest {
 
     @After
     public void clean() throws URISyntaxException, IOException{
-        TVFS.umount();
         File archiveFolder = new File(getPrivateStoreId());
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder,"empty"));

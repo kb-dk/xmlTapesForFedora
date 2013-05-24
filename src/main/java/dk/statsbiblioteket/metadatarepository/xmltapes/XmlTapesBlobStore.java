@@ -26,10 +26,10 @@ public class XmlTapesBlobStore extends AbstractBlobStore {
      *
      * @param id the store's id
      */
-    protected XmlTapesBlobStore(URI id) throws IOException {
+    protected XmlTapesBlobStore(URI id, URI location) throws IOException {
         super(id);
 
-        archive = new ZipArchive(id);
+        archive = new ZipArchive(location);
     }
 
     @Override

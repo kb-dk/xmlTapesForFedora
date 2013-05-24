@@ -1,6 +1,5 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.interfaces;
 
-import de.schlichtherle.truezip.fs.FsSyncException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -31,7 +30,7 @@ public interface Archive {
      * @return an inputstream to read from
      * @throws FileNotFoundException if the file was not found in the store
      */
-    InputStream getInputStream(URI id) throws FileNotFoundException;
+    InputStream getInputStream(URI id) throws FileNotFoundException, IOException;
 
     /**
      * Check if the blob exists in the store
@@ -46,7 +45,7 @@ public interface Archive {
      * @return the length
      * @throws FileNotFoundException if the file was not found in the store
      */
-    long getSize(URI id) throws FileNotFoundException;
+    long getSize(URI id) throws IOException;
 
     /**
      * Create a new blob and open an outputstream to populate it
@@ -62,7 +61,7 @@ public interface Archive {
      * Remove the blob from the index, so that it will not be in the archive anymore
      * @param id the id to remove
      */
-    void removeFromIndex(URI id);
+    void remove(URI id);
 
 
     /**
@@ -75,5 +74,5 @@ public interface Archive {
     /**
      * Sync all changes to disk
      */
-    void sync() throws FsSyncException;
+    void sync();
 }

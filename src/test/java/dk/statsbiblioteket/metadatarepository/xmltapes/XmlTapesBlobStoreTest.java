@@ -1,7 +1,5 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
-import de.schlichtherle.truezip.file.TVFS;
-import de.schlichtherle.truezip.fs.FsSyncException;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;
 import org.akubraproject.BlobStoreConnection;
@@ -48,11 +46,13 @@ public class XmlTapesBlobStoreTest {
 
     public BlobStore getPrivateStore() throws URISyntaxException, IOException {
         clean();
-        return new XmlTapesBlobStore(getPrivateStoreId());
+        return new XmlTapesBlobStore(URI.create("test:tapestorage"),getPrivateStoreId());
     }
     @After
     public void clean() throws IOException, URISyntaxException {
-        TVFS.umount();
+        if (connection != null){
+            connection.close();
+        }
         File archiveFolder = new File(getPrivateStoreId());
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));
