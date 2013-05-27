@@ -1,7 +1,7 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
-import org.akubraproject.BlobStore;
+import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -32,13 +32,16 @@ public class ZipArchiveTest {
 
     URI testFile1 = URI.create("testFile1");
     String contents = "testFile 1 is here now";
+    private long tapeSize = 1024*1024;
 
     @Before
     public void setUp() throws Exception {
 
         URI store = getPrivateStoreId();
 
-        archive = new ZipArchive(store);
+        archive = new ZipArchive(store, tapeSize);
+        archive.setIndex(new RedisIndex("localhost",6379));
+        archive.init();
         OutputStream outputStream = archive.createNew(testFile1, 0);
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         writer.write(contents);
@@ -57,7 +60,7 @@ public class ZipArchiveTest {
     public void clean() throws URISyntaxException, IOException{
         File archiveFolder = new File(getPrivateStoreId());
         FileUtils.cleanDirectory(archiveFolder);
-        FileUtils.touch(new File(archiveFolder,"empty"));
+        FileUtils.touch(new File(archiveFolder, "empty"));
     }
 
 

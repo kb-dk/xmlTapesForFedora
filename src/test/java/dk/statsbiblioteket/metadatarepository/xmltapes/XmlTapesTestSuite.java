@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;
 import org.apache.commons.io.FileUtils;
@@ -32,16 +33,29 @@ public class XmlTapesTestSuite extends TCKTestSuite {
     }
 
     private static URI getPrivateStoreId() throws URISyntaxException {
-        URI archiveFolder = URI.create("test:storageForTapes");
-        return archiveFolder;
+        URI name = URI.create("test:storageForTapes");
+        return name;
     }
 
-    private static BlobStore getPrivateStore() throws URISyntaxException, IOException {
+    public static BlobStore getPrivateStore() throws URISyntaxException, IOException {
+        clean();
+
+        XmlTapesBlobStore store = new XmlTapesBlobStore(getPrivateStoreId());
+
+        store.setArchive(new ZipArchive(getStoreLocation(),1024*1024));
+        store.getArchive().setIndex(new RedisIndex("localhost",6379));
+        store.getArchive().init();
+        return store;
+    }
+
+
+    public static void clean() throws IOException, URISyntaxException {
         File archiveFolder = new File(getStoreLocation());
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));
-        return new XmlTapesBlobStore(getPrivateStoreId(),getStoreLocation());
+
     }
+
 
 
     @Override

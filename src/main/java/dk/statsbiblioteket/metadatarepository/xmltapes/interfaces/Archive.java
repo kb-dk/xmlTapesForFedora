@@ -75,4 +75,12 @@ public interface Archive {
      * Sync all changes to disk
      */
     void sync();
+
+    Index getIndex();
+
+    void setIndex(Index index);
+
+    void init() throws IOException;
 }
+
+

@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;
 import org.akubraproject.BlobStoreConnection;
@@ -46,7 +47,13 @@ public class XmlTapesBlobStoreTest {
 
     public BlobStore getPrivateStore() throws URISyntaxException, IOException {
         clean();
-        return new XmlTapesBlobStore(URI.create("test:tapestorage"),getPrivateStoreId());
+
+        XmlTapesBlobStore store = new XmlTapesBlobStore(URI.create("test:tapestorage"));
+
+        store.setArchive(new ZipArchive(getPrivateStoreId(),1024*1024));
+        store.getArchive().setIndex(new RedisIndex("localhost",6379));
+        store.getArchive().init();
+        return store;
     }
     @After
     public void clean() throws IOException, URISyntaxException {

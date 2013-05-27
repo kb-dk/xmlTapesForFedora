@@ -29,14 +29,14 @@ import java.util.List;
 public class ZipArchive implements Archive {
 
 
-    private static final long SIZE_LIMIT = 20*1024;
+    private final long SIZE_LIMIT;
     private static final long EOFSIZE = 1024;
     private static final long BLOCKSIZE = 10 * EOFSIZE;
     private final StoreLock writeLock = new StoreLock();
 
-    private final Index index;
     private final File archiveTapes;
     private File newestTape;
+    private Index index;
 
 
     private synchronized File closeAndStartNewTape() throws IOException {
@@ -63,12 +63,13 @@ public class ZipArchive implements Archive {
     }
 
 
-    public ZipArchive(URI id) throws IOException {
-        index = new RedisIndex("localhost",6379);
+    public ZipArchive(URI location, long tapeSize) throws IOException {
+        SIZE_LIMIT = tapeSize;
+        archiveTapes = new File(location);
+    }
+
+    public void init() throws IOException {
         index.clear();
-
-
-        archiveTapes = new File(id);
         File[] tapes = archiveTapes.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -107,6 +108,7 @@ public class ZipArchive implements Archive {
         }
 
     }
+
 
     private URI toURI(TarEntry entry) {
         return toURI(entry.getName());
@@ -218,6 +220,13 @@ public class ZipArchive implements Archive {
     public void sync() {}
 
 
+    public void setIndex(Index index) {
+        this.index = index;
+    }
+
+    public Index getIndex() {
+        return index;
+    }
 
 
 }

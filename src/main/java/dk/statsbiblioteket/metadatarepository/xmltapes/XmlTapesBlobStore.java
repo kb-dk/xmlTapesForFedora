@@ -1,6 +1,8 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Index;
+import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.BlobStoreConnection;
 import org.akubraproject.impl.AbstractBlobStore;
 import org.akubraproject.impl.StreamManager;
@@ -20,16 +22,15 @@ import java.util.Map;
 public class XmlTapesBlobStore extends AbstractBlobStore {
 
     private final StreamManager manager = new StreamManager();
-    private final Archive archive;
+    private Archive archive;
+
     /**
      * Create a new blob store.
      *
      * @param id the store's id
      */
-    protected XmlTapesBlobStore(URI id, URI location) throws IOException {
+    protected XmlTapesBlobStore(URI id) throws IOException {
         super(id);
-
-        archive = new ZipArchive(location);
     }
 
     @Override
@@ -39,5 +40,15 @@ public class XmlTapesBlobStore extends AbstractBlobStore {
         }
         return new XmlTapesBlobStoreConnection(this,manager,archive);
 
+    }
+
+
+
+    public void setArchive(Archive archive) {
+        this.archive = archive;
+    }
+
+    public Archive getArchive() {
+        return archive;
     }
 }
