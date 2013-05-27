@@ -1,5 +1,7 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes;
+package dk.statsbiblioteket.metadatarepository.xmltapes.testng;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore;
+import dk.statsbiblioteket.metadatarepository.xmltapes.ZipArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;

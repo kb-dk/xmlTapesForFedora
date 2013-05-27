@@ -1,10 +1,12 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes;
+package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.ZipArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,13 +21,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Created with IntelliJ IDEA.
- * User: abr
- * Date: 5/21/13
- * Time: 9:29 AM
- * To change this template use File | Settings | File Templates.
- */
+
 public class ZipArchiveTest {
 
     Archive archive;
@@ -64,7 +60,7 @@ public class ZipArchiveTest {
     }
 
 
-    @org.junit.Test
+    @Test
     public void testGetInputStream() throws Exception {
 
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(archive.getInputStream(testFile1)));
@@ -74,18 +70,18 @@ public class ZipArchiveTest {
 
     }
 
-    @org.junit.Test
+    @Test
     public void testExist() throws Exception {
         assertTrue(archive.exist(testFile1));
 
     }
 
-    @org.junit.Test
+    @Test
     public void testGetSize() throws Exception {
         assertThat(archive.getSize(testFile1),is((long)contents.length()));
     }
 
-    @org.junit.Test
+    @Test
     public void testCreateNew() throws Exception {
 
         assertTrue(archive.exist(testFile1));

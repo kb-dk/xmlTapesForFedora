@@ -29,7 +29,7 @@ public class XmlTapesBlobStore extends AbstractBlobStore {
      *
      * @param id the store's id
      */
-    protected XmlTapesBlobStore(URI id) throws IOException {
+    public XmlTapesBlobStore(URI id) throws IOException {
         super(id);
     }
 
