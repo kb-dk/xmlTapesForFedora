@@ -1,7 +1,7 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.ZipArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;
@@ -52,7 +52,7 @@ public class XmlTapesBlobStoreTest {
 
         XmlTapesBlobStore store = new XmlTapesBlobStore(URI.create("test:tapestorage"));
 
-        store.setArchive(new ZipArchive(getPrivateStoreId(),1024*1024));
+        store.setArchive(new TapeArchive(getPrivateStoreId(),1024*1024));
         store.getArchive().setIndex(new RedisIndex("localhost", 6379));
         store.getArchive().init();
         return store;

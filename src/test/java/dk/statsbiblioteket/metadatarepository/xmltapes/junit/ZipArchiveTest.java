@@ -1,7 +1,7 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.ZipArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -35,7 +35,7 @@ public class ZipArchiveTest {
 
         URI store = getPrivateStoreId();
 
-        archive = new ZipArchive(store, tapeSize);
+        archive = new TapeArchive(store, tapeSize);
         archive.setIndex(new RedisIndex("localhost",6379));
         archive.init();
         OutputStream outputStream = archive.createNew(testFile1, 0);

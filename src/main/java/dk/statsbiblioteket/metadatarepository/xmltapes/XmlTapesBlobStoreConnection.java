@@ -1,6 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;
 import org.akubraproject.UnsupportedIdException;
@@ -45,17 +45,9 @@ public class XmlTapesBlobStoreConnection extends AbstractBlobStoreConnection {
         return archive.listIds(filterPrefix);
     }
 
-    private Object acquireReadLock() {
-        return null;  //To change body of created methods use File | Settings | File Templates.
-    }
-
-    private void releaseReadLock(Object lock) {
-
-    }
 
     @Override
     public void sync() throws IOException, UnsupportedOperationException {
         this.ensureOpen();
-        archive.sync();
     }
 }

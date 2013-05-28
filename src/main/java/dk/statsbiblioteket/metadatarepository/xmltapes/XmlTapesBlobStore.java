@@ -1,8 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Index;
-import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import org.akubraproject.BlobStoreConnection;
 import org.akubraproject.impl.AbstractBlobStore;
 import org.akubraproject.impl.StreamManager;

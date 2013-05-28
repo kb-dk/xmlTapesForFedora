@@ -1,9 +1,8 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.interfaces;
+package dk.statsbiblioteket.metadatarepository.xmltapes.common.index;
 
 
 import java.net.URI;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -16,11 +15,11 @@ public interface Index {
 
 
     /**
-     * Return the TFile locations of the given id.
+     * Return the TFile locatios of the given id.
      * @param id the id to look up
-     * @return the list of locations, newest is in the end
+     * @return the location of the object
      */
-    public List<Entry> getLocations(URI id);
+    public Entry getLocation(URI id);
 
     /**
      * Add a new location (version) to a id

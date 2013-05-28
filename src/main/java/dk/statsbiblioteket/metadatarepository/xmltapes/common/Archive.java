@@ -1,5 +1,8 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.interfaces;
+package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
+
+
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -17,12 +20,6 @@ import java.util.Iterator;
  */
 public interface Archive {
 
-    /**
-     * Convert the URI identifier to a valid unique filename
-     * @param id the uri
-     * @return a valid filename
-     */
-    String toFilename(URI id);
 
     /**
      * Open an inputstream to read the given blob
@@ -71,15 +68,20 @@ public interface Archive {
      */
     Iterator<URI> listIds(String filterPrefix);
 
-    /**
-     * Sync all changes to disk
-     */
-    void sync();
 
+
+    /**
+     * Get the index representation that this archive will use
+     * @return
+     */
     Index getIndex();
 
     void setIndex(Index index);
 
+    /**
+     * Initialises the index from the
+     * @throws IOException
+     */
     void init() throws IOException;
 }
 

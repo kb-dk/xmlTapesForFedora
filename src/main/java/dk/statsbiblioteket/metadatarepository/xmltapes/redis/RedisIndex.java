@@ -1,17 +1,13 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Entry;
-import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Index;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Response;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * Created with IntelliJ IDEA.
@@ -30,18 +26,17 @@ public class RedisIndex implements Index {
     }
 
     @Override
-    public List<Entry> getLocations(URI id) {
-        List<String> files = jedis.lrange(id.toString(), 0, -1);
-        ArrayList<Entry> result = new ArrayList<Entry>();
-        for (String file : files) {
-            result.add(Entry.deserialize(file));
+    public Entry getLocation(URI id) {
+        String file = jedis.get(id.toString());
+        if (file == null || file.equals("nil")){
+            return null;
         }
-        return result;
+        return Entry.deserialize(file);
     }
 
     @Override
     public void addLocation(URI id, Entry location) {
-        jedis.lpush(id.toString(), location.serialize());
+        jedis.set(id.toString(), location.serialize());
     }
 
     @Override
@@ -51,6 +46,7 @@ public class RedisIndex implements Index {
 
     @Override
     public Iterator<URI> listIds(String filterPrefix) {
+        //This does not perfor
         Set<String> keys = jedis.keys(filterPrefix + "*");
         return new URIIterator(keys.iterator());
 

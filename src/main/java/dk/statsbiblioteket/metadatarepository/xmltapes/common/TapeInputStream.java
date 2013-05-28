@@ -1,7 +1,4 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.interfaces;
-
-import org.kamranzafar.jtar.TarEntry;
-import org.kamranzafar.jtar.TarInputStream;
+package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,4 +1,4 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.interfaces;
+package dk.statsbiblioteket.metadatarepository.xmltapes.common.index;
 
 import java.io.File;
 import java.util.regex.Pattern;
@@ -14,31 +14,25 @@ public class Entry {
 
 
     public static final String SEPARATOR_CHAR = "@";
-    private String filename;
     private File tape;
     private long offset;
 
-    public Entry(File tape, String fileName, long offset) {
+    public Entry(File tape, long offset) {
         this.tape = tape;
-        filename = fileName;
         this.offset = offset;
     }
 
     public String serialize() {
-        return tape.toString()+ SEPARATOR_CHAR + filename + SEPARATOR_CHAR +offset;
+        return tape.toString()+ SEPARATOR_CHAR   +offset;
     }
 
     public static Entry deserialize(String file) {
         String[] splits = file.split(Pattern.quote(SEPARATOR_CHAR));
         File tapeFile = new File(splits[0]);
-        String filename = splits[1];
-        long offset = Long.parseLong(splits[2]);
-        return new Entry(tapeFile,filename,offset);
+        long offset = Long.parseLong(splits[1]);
+        return new Entry(tapeFile,offset);
     }
 
-    public String getFilename() {
-        return filename;
-    }
 
     public File getTape() {
         return tape;

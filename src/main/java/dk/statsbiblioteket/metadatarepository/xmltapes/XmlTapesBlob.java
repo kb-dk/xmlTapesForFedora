@@ -1,6 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.interfaces.Archive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStoreConnection;
 import org.akubraproject.DuplicateBlobException;
