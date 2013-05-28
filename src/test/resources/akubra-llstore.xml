@@ -61,7 +61,7 @@
 
     <bean name="tarTapeObjectStore" class="dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive" init-method="init"
           singleton="true">
-        <constructor-arg value="file:/home/abr/fcrepo362/data/tapeObjectStore" type="java.net.URI"/>
+        <constructor-arg value="file:/CHANGEME/tapeObjectStore" type="java.net.URI"/>
         <constructor-arg value="10485760" type="long"/>  <!--10 MB-->
         <property name="index" ref="redisIndex"/>
     </bean>
@@ -88,7 +88,7 @@
     <bean name="fsDatastreamStore" class="org.akubraproject.fs.FSBlobStore"
           singleton="true">
         <constructor-arg value="urn:example.org:fsDatastreamStore" />
-        <constructor-arg value="/home/abr/fcrepo362/data/datastreamStore"/>
+        <constructor-arg value="/CHANGEME/datastreamStore"/>
     </bean>
 
     <bean name="fsDatastreamStoreMapper"
