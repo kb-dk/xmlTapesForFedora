@@ -263,6 +263,7 @@ public class TapeArchive implements Archive {
         //close tape
         TarOutputStream tarStream = new TarOutputStream(new FileOutputStream(newestTape, true));
         tarStream.close();
+        index.setIndexed(newestTape.getName());
 
         //Create the new Tape
         return createNewTape();
