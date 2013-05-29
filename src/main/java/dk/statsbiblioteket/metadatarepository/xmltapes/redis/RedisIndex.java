@@ -48,18 +48,19 @@ public class RedisIndex implements Index {
     public Iterator<URI> listIds(String filterPrefix) {
         //This does not perfor
         Set<String> keys = jedis.keys(filterPrefix + "*");
+        keys.remove("tapes");
         return new URIIterator(keys.iterator());
 
     }
 
     @Override
     public boolean isIndexed(String tapename) {
-        return jedis.exists(tapename);
+        return jedis.sismember("tapes",tapename);
     }
 
     @Override
     public void setIndexed(String tapename) {
-        jedis.set(tapename,System.currentTimeMillis()+"");
+        jedis.sadd("tapes",tapename);
     }
 
     @Override
