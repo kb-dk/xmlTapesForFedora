@@ -9,6 +9,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.kamranzafar.jtar.TarEntry;
+import org.kamranzafar.jtar.TarHeader;
 import org.kamranzafar.jtar.TarInputStream;
 import org.kamranzafar.jtar.TarOutputStream;
 
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -119,14 +121,14 @@ public class TapeArchive implements Archive {
         //verify
         try {
 
-            while ((failedEntry = tarstream.getNextEntry()) != null){
+            while ((failedEntry = tarstream.getNextEntry()) != null) {
             }
             tarstream.close();
-        } catch (IOException e){//verification failed, read what we can and write it back
+        } catch (IOException e) {//verification failed, read what we can and write it back
             //failedEntry should be the one that failed
 
 
-            File tempTape =  File.createTempFile("tempTape",".tar");
+            File tempTape = File.createTempFile("tempTape", ".tar");
             tempTape.deleteOnExit();
             tarout = new TarOutputStream(new FileOutputStream(tempTape));
             //close and reopen
@@ -135,8 +137,8 @@ public class TapeArchive implements Archive {
 
             //fix
             TarEntry entry;
-            while ((entry = tarstream.getNextEntry()) != null){
-                if (equals(failedEntry,entry)){
+            while ((entry = tarstream.getNextEntry()) != null) {
+                if (equals(failedEntry, entry)) {
                     break;
                 }
                 tarout.putNextEntry(entry);
@@ -146,12 +148,15 @@ public class TapeArchive implements Archive {
             IOUtils.closeQuietly(tarout);
 
             //move existing out of the way
-            File temp2 =  File.createTempFile("tempTape",".tar");
+            File temp2 = File.createTempFile("tempTape", ".tar");
             temp2.deleteOnExit();
 
-            FileUtils.moveFile(newestTape,temp2);
-            FileUtils.moveFile(tempTape,newestTape);
+            FileUtils.moveFile(newestTape, temp2);
+            FileUtils.moveFile(tempTape, newestTape);
             FileUtils.deleteQuietly(temp2);
+
+            //And since we close the fixed tape now, we create a new one to hold further stuff
+            createNewTape();
 
         } finally {
             IOUtils.closeQuietly(tarstream);
@@ -187,7 +192,7 @@ public class TapeArchive implements Archive {
         boolean indexedSoFar = true;
 
         for (File tape : tapes) {
-            if (indexedSoFar && index.isIndexed(tape.getName())){
+            if (indexedSoFar && index.isIndexed(tape.getName())) {
 
             } else {
                 indexedSoFar = false;
@@ -206,10 +211,10 @@ public class TapeArchive implements Archive {
 
         while ((entry = tis.getNextEntry()) != null) {
             URI id = TapeUtils.toURI(entry);
-            if (entry.getSize() > 0) {
-                index.addLocation(id, new Entry(tape, offset));
-            } else {
+            if (entry.getSize() == 0 && entry.getName().endsWith(TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED)) {
                 index.remove(id);
+            } else {
+                index.addLocation(id, new Entry(tape, offset));
             }
             offset += entry.getSize();
         }
@@ -357,11 +362,11 @@ public class TapeArchive implements Archive {
      */
     @Override
     public synchronized OutputStream createNew(URI id, long estimatedSize) throws IOException {
-        writeLock.lock(this); //Ensure that nobody will be writing when we calculate the size and start a new tape archive
+        writeLock.lock(Thread.currentThread()); //Ensure that nobody will be writing when we calculate the size and start a new tape archive
         if (calculateTarSize(newestTape) > SIZE_LIMIT) {
             closeAndStartNewTape();
         }
-        writeLock.unlock(this);
+
         Entry toCreate = new Entry(newestTape, newestTape.length());
         return new TapeOutputStream(new BufferedOutputStream(new FileOutputStream(newestTape, true)), toCreate, id, index, writeLock);
 
@@ -381,9 +386,21 @@ public class TapeArchive implements Archive {
 
     @Override
     public synchronized void remove(URI id) throws IOException {
-        OutputStream outstream = createNew(id, 0);
-        outstream.close();
-        index.remove(id);
+        writeLock.lock(Thread.currentThread());
+        if (calculateTarSize(newestTape) > SIZE_LIMIT) {
+            closeAndStartNewTape();
+        }
+        Entry toCreate = new Entry(newestTape, newestTape.length());
+
+        TapeOutputStream out = new TapeOutputStream(
+                new BufferedOutputStream(
+                        new FileOutputStream(newestTape, true)
+                ),
+                toCreate,
+                id,
+                index,
+                writeLock);
+        out.delete();
     }
 
 

@@ -12,6 +12,7 @@ public class TapeUtils {
 
 
     public static final String NAME_SEPARATOR = "#";
+    public static final String DELETED = "DELETED";
 
     public static URI toURI(TarEntry entry) {
         return toURI(entry.getName());
@@ -30,5 +31,9 @@ public class TapeUtils {
 
     public static String toFilename(URI id) {
         return id.toString() + NAME_SEPARATOR + System.currentTimeMillis();
+    }
+
+    public static String toDeleteFilename(URI id) {
+        return id.toString() + NAME_SEPARATOR + System.currentTimeMillis()+ NAME_SEPARATOR + DELETED;
     }
 }

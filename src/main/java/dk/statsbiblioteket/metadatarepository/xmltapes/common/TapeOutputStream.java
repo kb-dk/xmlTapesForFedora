@@ -54,7 +54,7 @@ public class TapeOutputStream extends TarOutputStream {
         buffer = new LinkedList<ByteBuffer>();
         buffer.add(ByteBuffer.allocate(CAPACITY));
 
-        this.writeLock.lock(this);
+        this.writeLock.lock(Thread.currentThread());
 
     }
 
@@ -112,7 +112,7 @@ public class TapeOutputStream extends TarOutputStream {
         out.close();
         index.addLocation(id, this.entry); //Update the index to the newly written entry
         closed = true; //Now we cannot write anymore
-        writeLock.unlock(this); //unlock the storage system, we are done
+        writeLock.unlock(Thread.currentThread()); //unlock the storage system, we are done
     }
 
     /**
@@ -128,4 +128,18 @@ public class TapeOutputStream extends TarOutputStream {
     }
 
 
+    /**
+     * Close the stream and mark this entry as a "delete" record.
+     */
+    public synchronized void delete() throws IOException {
+        closing = true;//From now on, writes go the the delegate, not the buffer
+        TarHeader tarHeader = TarHeader.createHeader(TapeUtils.toDeleteFilename(id),0,System.currentTimeMillis()/1000,false);
+        TarEntry entry = new TarEntry(tarHeader);
+        putNextEntry(entry);
+        closeCurrentEntry();
+        out.close();
+        index.remove(id);
+        closed = true; //Now we cannot write anymore
+        writeLock.unlock(Thread.currentThread()); //unlock the storage system, we are done
+    }
 }
