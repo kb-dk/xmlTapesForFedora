@@ -36,7 +36,7 @@ public class TapeArchiveTest {
         URI store = getPrivateStoreId();
 
         archive = new TapeArchive(store, tapeSize);
-        archive.setIndex(new RedisIndex("localhost",6379));
+        archive.setIndex(new RedisIndex("localhost",6379,3));
         archive.rebuild();
         OutputStream outputStream = archive.createNew(testFile1, 0);
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);

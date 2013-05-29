@@ -38,8 +38,10 @@ public class RedisIndex implements Index {
 
     private Jedis jedis;
 
-    public RedisIndex(String host, int port) {
+    public RedisIndex(String host, int port, int database) {
         jedis = new Jedis(host, port);
+        jedis.select(database);
+
 
     }
 

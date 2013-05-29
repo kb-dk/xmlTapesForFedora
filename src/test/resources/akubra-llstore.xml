@@ -71,6 +71,7 @@
           singleton="true">
         <constructor-arg value="localhost" />
         <constructor-arg value="6379"/>
+        <constructor-arg value="1000"/><!--Database name-->
     </bean>
 
 

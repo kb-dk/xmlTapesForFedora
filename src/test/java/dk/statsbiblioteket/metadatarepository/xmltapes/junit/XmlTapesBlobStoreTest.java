@@ -53,7 +53,7 @@ public class XmlTapesBlobStoreTest {
         XmlTapesBlobStore store = new XmlTapesBlobStore(URI.create("test:tapestorage"));
 
         store.setArchive(new TapeArchive(getPrivateStoreId(),1024*1024));
-        store.getArchive().setIndex(new RedisIndex("localhost", 6379));
+        store.getArchive().setIndex(new RedisIndex("localhost", 6379,5));
         store.getArchive().rebuild();
         return store;
     }
