@@ -83,7 +83,7 @@ public interface Archive {
      * Initialises the index from the
      * @throws IOException
      */
-    void init() throws IOException;
+    void rebuild() throws IOException;
 }
 
 

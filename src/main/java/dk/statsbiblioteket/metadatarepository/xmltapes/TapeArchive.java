@@ -6,6 +6,8 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.StoreLock;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeInputStream;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeOutputStream;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.kamranzafar.jtar.TarEntry;
 import org.kamranzafar.jtar.TarInputStream;
 import org.kamranzafar.jtar.TarOutputStream;
@@ -92,36 +94,127 @@ public class TapeArchive implements Archive {
 
     }
 
+    /**
+     * Initialise the system.
+     * Find the "HEAD" tar, scan it for errors, and add all from in to the index again
+     * Check that all the tapes have been indexed
+     */
+    public void init() throws IOException {
+        File[] tapes = getTapes();
+        verifyAndFix(newestTape);
+
+        // Iterate through all the tapes in sorted order to rebuild the index
+        rebuildWhatsNeeded(tapes);
+
+
+    }
+
+    private void verifyAndFix(File newestTape) throws IOException {
+        TarInputStream tarstream = new TarInputStream(new FileInputStream(newestTape));
+
+
+        TarOutputStream tarout = null;
+
+        TarEntry failedEntry = null;
+        //verify
+        try {
+
+            while ((failedEntry = tarstream.getNextEntry()) != null){
+            }
+            tarstream.close();
+        } catch (IOException e){//verification failed, read what we can and write it back
+            //failedEntry should be the one that failed
+
+
+            File tempTape =  File.createTempFile("tempTape",".tar");
+            tempTape.deleteOnExit();
+            tarout = new TarOutputStream(new FileOutputStream(tempTape));
+            //close and reopen
+            IOUtils.closeQuietly(tarstream);
+            tarstream = new TarInputStream(new FileInputStream(newestTape));
+
+            //fix
+            TarEntry entry;
+            while ((entry = tarstream.getNextEntry()) != null){
+                if (equals(failedEntry,entry)){
+                    break;
+                }
+                tarout.putNextEntry(entry);
+                IOUtils.copyLarge(tarstream, tarout, 0, entry.getSize());
+            }
+            IOUtils.closeQuietly(tarstream);
+            IOUtils.closeQuietly(tarout);
+
+            //move existing out of the way
+            File temp2 =  File.createTempFile("tempTape",".tar");
+            temp2.deleteOnExit();
+
+            FileUtils.moveFile(newestTape,temp2);
+            FileUtils.moveFile(tempTape,newestTape);
+            FileUtils.deleteQuietly(temp2);
+
+        } finally {
+            IOUtils.closeQuietly(tarstream);
+            IOUtils.closeQuietly(tarout);
+
+        }
+
+
+    }
+
+    private boolean equals(TarEntry failedEntry, TarEntry entry) {
+        return failedEntry.getName().equals(entry.getName())
+                &&
+                failedEntry.getSize() == entry.getSize();
+
+    }
+
 
     /**
      * Clear the index and rebuild it
      *
      * @throws IOException
      */
-    public void init() throws IOException {
-        // Clear the index
+    public void rebuild() throws IOException {
+        // Clear the index and then rebuild it
         index.clear();
-        File[] tapes = getTapes();
-        // Iterate through all the tapes in sorted order to rebuild the index
+
+        init();
+
+    }
+
+    private void rebuildWhatsNeeded(File[] tapes) throws IOException {
+        boolean indexedSoFar = true;
+
         for (File tape : tapes) {
+            if (indexedSoFar && index.isIndexed(tape.getName())){
 
-            // Create a TarInputStream
-            TarInputStream tis = new TarInputStream(new BufferedInputStream(new FileInputStream(tape)));
-            TarEntry entry;
-
-            long offset = 0;
-
-            while ((entry = tis.getNextEntry()) != null) {
-                URI id = TapeUtils.toURI(entry);
-                if (entry.getSize() > 0) {
-                    index.addLocation(id, new Entry(tape, offset));
-                } else {
-                    index.remove(id);
-                }
-                offset += entry.getSize();
+            } else {
+                indexedSoFar = false;
+                indexTape(tape);
             }
-            tis.close();
         }
+    }
+
+    private synchronized void indexTape(File tape) throws IOException {
+
+        // Create a TarInputStream
+        TarInputStream tis = new TarInputStream(new BufferedInputStream(new FileInputStream(tape)));
+        TarEntry entry;
+
+        long offset = 0;
+
+        while ((entry = tis.getNextEntry()) != null) {
+            URI id = TapeUtils.toURI(entry);
+            if (entry.getSize() > 0) {
+                index.addLocation(id, new Entry(tape, offset));
+            } else {
+                index.remove(id);
+            }
+            offset += entry.getSize();
+        }
+        tis.close();
+        index.setIndexed(tape.getName());
 
     }
 

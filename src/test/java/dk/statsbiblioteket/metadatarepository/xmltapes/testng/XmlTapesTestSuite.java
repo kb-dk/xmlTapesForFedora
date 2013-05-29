@@ -46,7 +46,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
 
         store.setArchive(new TapeArchive(getStoreLocation(),1024*1024));
         store.getArchive().setIndex(new RedisIndex("localhost",6379));
-        store.getArchive().init();
+        store.getArchive().rebuild();
         return store;
     }
 

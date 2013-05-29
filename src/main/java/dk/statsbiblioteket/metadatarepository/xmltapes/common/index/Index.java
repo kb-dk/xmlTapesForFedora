@@ -41,5 +41,10 @@ public interface Index {
      */
     public Iterator<URI> listIds(String filterPrefix);
 
+
+    public boolean isIndexed(String tapename);
+    public void setIndexed(String tapename);
+
+
     void clear();
 }

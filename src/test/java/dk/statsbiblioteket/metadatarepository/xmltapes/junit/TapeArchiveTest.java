@@ -22,7 +22,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 
-public class ZipArchiveTest {
+public class TapeArchiveTest {
 
     Archive archive;
 
@@ -37,7 +37,7 @@ public class ZipArchiveTest {
 
         archive = new TapeArchive(store, tapeSize);
         archive.setIndex(new RedisIndex("localhost",6379));
-        archive.init();
+        archive.rebuild();
         OutputStream outputStream = archive.createNew(testFile1, 0);
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         writer.write(contents);

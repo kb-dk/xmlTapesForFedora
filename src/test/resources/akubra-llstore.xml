@@ -59,7 +59,7 @@
 
     </bean>
 
-    <bean name="tarTapeObjectStore" class="dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive" init-method="init"
+    <bean name="tarTapeObjectStore" class="dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive" init-method="rebuild"
           singleton="true">
         <constructor-arg value="file:/CHANGEME/tapeObjectStore" type="java.net.URI"/>
         <constructor-arg value="10485760" type="long"/>  <!--10 MB-->

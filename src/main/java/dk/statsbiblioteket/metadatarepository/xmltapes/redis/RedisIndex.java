@@ -53,6 +53,16 @@ public class RedisIndex implements Index {
     }
 
     @Override
+    public boolean isIndexed(String tapename) {
+        return jedis.exists(tapename);
+    }
+
+    @Override
+    public void setIndexed(String tapename) {
+        jedis.set(tapename,System.currentTimeMillis()+"");
+    }
+
+    @Override
     public void clear() {
         jedis.flushDB();
     }
