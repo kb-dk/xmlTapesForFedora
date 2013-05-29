@@ -41,8 +41,9 @@ public interface Archive {
      * @param id the id of the blob
      * @return the length
      * @throws FileNotFoundException if the file was not found in the store
+     * @throws IOException if the file could not be read from the archive
      */
-    long getSize(URI id) throws IOException;
+    long getSize(URI id) throws FileNotFoundException, IOException;
 
     /**
      * Create a new blob and open an outputstream to populate it
@@ -58,7 +59,7 @@ public interface Archive {
      * Remove the blob from the index, so that it will not be in the archive anymore
      * @param id the id to remove
      */
-    void remove(URI id);
+    void remove(URI id) throws IOException;
 
 
     /**

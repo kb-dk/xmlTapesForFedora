@@ -102,7 +102,7 @@ public class TapeOutputStream extends TarOutputStream {
     public synchronized void close() throws IOException {
         closing = true;//From now on, writes go the the delegate, not the buffer
         long size = calcSizeOfBuffers();
-        TarHeader tarHeader = TarHeader.createHeader(TapeUtils.toFilename(id),size,System.currentTimeMillis(),false);
+        TarHeader tarHeader = TarHeader.createHeader(TapeUtils.toFilename(id),size,System.currentTimeMillis()/1000,false);
         TarEntry entry = new TarEntry(tarHeader);
         putNextEntry(entry);
         for (ByteBuffer byteBuffer : buffer) {

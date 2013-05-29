@@ -5,11 +5,8 @@ import org.kamranzafar.jtar.TarEntry;
 import java.net.URI;
 
 /**
- * Created with IntelliJ IDEA.
- * User: abr
- * Date: 5/27/13
- * Time: 4:49 PM
- * To change this template use File | Settings | File Templates.
+ * Static utility methods to convert between index entries, fedora URIs and tar Entries and tar filenames
+ * //TODO the rest of the methods
  */
 public class TapeUtils {
 

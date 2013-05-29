@@ -23,14 +23,14 @@ public class Entry {
     }
 
     public String serialize() {
-        return tape.toString()+ SEPARATOR_CHAR   +offset;
+        return tape.toString() + SEPARATOR_CHAR + offset;
     }
 
     public static Entry deserialize(String file) {
         String[] splits = file.split(Pattern.quote(SEPARATOR_CHAR));
         File tapeFile = new File(splits[0]);
         long offset = Long.parseLong(splits[1]);
-        return new Entry(tapeFile,offset);
+        return new Entry(tapeFile, offset);
     }
 
 

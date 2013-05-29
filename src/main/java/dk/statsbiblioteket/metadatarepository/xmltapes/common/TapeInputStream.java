@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Exists to ensure that you run out of bytes when reading over the edge of the tar file entry. This is not checked
+ * Exists to ensure that input stream will not provide content after the last byte in the tar entry. This is not checked
  * otherwise.
  */
 public class TapeInputStream extends InputStream {
