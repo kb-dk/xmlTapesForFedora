@@ -6,19 +6,17 @@ archive="$1"
 scanfolder="$2"
 
 function getName(){
-   local raw=$@
+   local raw="$@"
    basename "$raw" | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' | xargs echo -n -e
    echo -n '#'
    date '+%s000'
 }
 
 function append(){
-  local raw=$@
+  local raw="$@"
   filename=$(getName "$raw")
-  mkdir -p $(dirname "$filename")
-  cp "$raw" "$filename"
-  tar -r -f "$archive" "$filename"
-  rm "$filename"
+  echo "$filename"
+  tar -r -P -f "$archive" "$raw" --transform="s|.*|$filename|"
 }
 
 
