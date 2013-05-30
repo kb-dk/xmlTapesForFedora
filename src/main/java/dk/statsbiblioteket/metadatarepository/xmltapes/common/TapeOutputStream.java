@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,7 +32,9 @@ public class TapeOutputStream extends TarOutputStream {
     boolean closing = false;
     boolean closed = false;
 
-    private List<ByteBuffer> buffer;
+    private LinkedList<ByteBuffer> buffer;
+
+    private ByteBuffer lastBuffer;
 
     /**
      * Create a new TapeOutputStream
@@ -53,50 +54,65 @@ public class TapeOutputStream extends TarOutputStream {
         this.writeLock = writeLock;
         buffer = new LinkedList<ByteBuffer>();
         buffer.add(ByteBuffer.allocate(CAPACITY));
+        lastBuffer = buffer.getLast();
 
         this.writeLock.lock(Thread.currentThread());
 
     }
 
 
+
+    private void beforeWrite(int len) throws IOException {
+        if (closed){
+            throw new IOException("Stream closed");
+        }
+        if (closing){
+            return;
+        }
+
+        if (len > lastBuffer.remaining()){ //close this buffer and allocate a new one fitting the size min CAPACITY
+            int size = (len > CAPACITY ? len : CAPACITY);
+            ByteBuffer byteBuffer = ByteBuffer.allocate(size);
+            buffer.add(byteBuffer);
+            lastBuffer = byteBuffer;
+        }
+    }
+
+    @Override
+    public  void write(int b) throws IOException {
+        beforeWrite(1);
+        if (closing){
+            super.write(b);
+            return;
+        }
+        lastBuffer.put((byte) b);
+    }
+
+
+    @Override
+    public  void write(byte[] b) throws IOException {
+        write(b, 0, b.length);
+    }
+
     /**
-     * Write a single byte the the stream.
-     * If the stream is open, put the byte in the buffer
-     * If the stream is closing, write the byte to delegate
+     * Write a set of  bytes to the stream.
+     * If the stream is open, put the bytes in the buffer, if nessesary allocate more buffers
+     * If the stream is closing, write the bytes to super
      * if the stream is closed, throw IOException
      * @param b the byte to write
      * @throws IOException
      */
     @Override
-    public synchronized void write(int b) throws IOException {
-
-        if (closed){
-            throw new IOException("Stream closed");
-        }
-
+    public synchronized void write(byte[] b, int off, int len) throws IOException {
+        beforeWrite(len);
         if (closing){
-            super.write(b);
+            super.write(b, off, len);
             return;
         }
+        lastBuffer.put(b,off,len);
 
-        ByteBuffer lastBuffer = getBuffer();
-        lastBuffer.put((byte) b);
+
     }
-
-    /**
-     * Get the latest buffer. If the buffer does not have at least one available, allocate a new buffer.
-     * @return
-     */
-    private ByteBuffer getBuffer() {
-        ByteBuffer lastBuffer = buffer.get(buffer.size() - 1);
-        if (lastBuffer.remaining() <= 0){
-            ByteBuffer byteBuffer = ByteBuffer.allocate(CAPACITY);
-            buffer.add(byteBuffer);
-            lastBuffer = byteBuffer;
-        }
-        return lastBuffer;
-    }
-
 
     @Override
     public synchronized void close() throws IOException {
@@ -108,7 +124,20 @@ public class TapeOutputStream extends TarOutputStream {
         TarEntry entry = new TarEntry(tarHeader);
         putNextEntry(entry);
         for (ByteBuffer byteBuffer : buffer) {
-            super.write(byteBuffer.array(),0,byteBuffer.position());
+            if (byteBuffer.hasArray()){
+                write(byteBuffer.array(), 0, byteBuffer.position());
+            } else {
+                byte[] temp = new byte[4*1024];
+
+                int remaining = byteBuffer.limit(byteBuffer.position()).rewind().remaining();;
+                while (remaining > 0){
+                    int length = (remaining > temp.length ? remaining : temp.length);
+                    byteBuffer.get(temp,0,length);
+                    write(temp,0,length);
+                    remaining = byteBuffer.remaining();
+                }
+
+            }
         }
         closeCurrentEntry();
         out.close();

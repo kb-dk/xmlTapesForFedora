@@ -294,7 +294,7 @@ public class TapeArchive implements Archive {
             throw new FileNotFoundException("File " + id.toString() + "not found");
         }
 
-        return getContentInputStream(newestFile);
+        return getContentInputStream(newestFile, id);
 
 
     }
@@ -306,11 +306,15 @@ public class TapeArchive implements Archive {
      * @return an inputstream to the data
      * @throws IOException
      */
-    private InputStream getContentInputStream(Entry entry) throws IOException {
+    private InputStream getContentInputStream(Entry entry, URI id) throws IOException {
         TarInputStream tapeInputstream = getTarInputStream(entry);
 
         TarEntry tarEntry = tapeInputstream.getNextEntry();
-        return new TapeInputStream(tapeInputstream, tarEntry.getSize());
+        if (tarEntry != null && tarEntry.getName().startsWith(id.toString())){
+            return tapeInputstream;
+        } else {
+            throw new IOException("Could not find entry in archive file");
+        }
     }
 
     /**
