@@ -36,4 +36,11 @@ public class TapeUtils {
     public static String toDeleteFilename(URI id) {
         return id.toString() + NAME_SEPARATOR + System.currentTimeMillis()+ NAME_SEPARATOR + DELETED;
     }
+
+    public static long getTimestamp(TarEntry entry) {
+        String name = entry.getName();
+        String[] splits = name.split(NAME_SEPARATOR);
+        return Long.parseLong(splits[1]);
+    }
+
 }

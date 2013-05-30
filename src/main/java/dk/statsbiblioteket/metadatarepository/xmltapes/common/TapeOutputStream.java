@@ -101,8 +101,10 @@ public class TapeOutputStream extends TarOutputStream {
     @Override
     public synchronized void close() throws IOException {
         closing = true;//From now on, writes go the the delegate, not the buffer
+        long timestamp = System.currentTimeMillis();
         long size = calcSizeOfBuffers();
-        TarHeader tarHeader = TarHeader.createHeader(TapeUtils.toFilename(id),size,System.currentTimeMillis()/1000,false);
+
+        TarHeader tarHeader = TarHeader.createHeader(TapeUtils.toFilename(id),size,timestamp/1000,false);
         TarEntry entry = new TarEntry(tarHeader);
         putNextEntry(entry);
         for (ByteBuffer byteBuffer : buffer) {
@@ -110,7 +112,7 @@ public class TapeOutputStream extends TarOutputStream {
         }
         closeCurrentEntry();
         out.close();
-        index.addLocation(id, this.entry); //Update the index to the newly written entry
+        index.addLocation(id, this.entry,timestamp); //Update the index to the newly written entry
         closed = true; //Now we cannot write anymore
         writeLock.unlock(Thread.currentThread()); //unlock the storage system, we are done
     }

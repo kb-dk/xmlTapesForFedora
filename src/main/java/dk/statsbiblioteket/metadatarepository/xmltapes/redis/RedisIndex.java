@@ -55,12 +55,12 @@ public class RedisIndex implements Index {
     }
 
     @Override
-    public void addLocation(URI id, Entry location) {
+    public void addLocation(URI id, Entry location, long timestamp) {
         String hashcode = getHash(id);
         Transaction trans = jedis.multi();
 
         trans.sadd(BUCKETS,hashcode);
-        trans.zadd(hashcode, 1, id.toString());
+        trans.zadd(hashcode, timestamp, id.toString());
 
         trans.set(id.toString(), location.serialize());
         trans.exec();

@@ -211,10 +211,11 @@ public class TapeArchive implements Archive {
 
         while ((entry = tis.getNextEntry()) != null) {
             URI id = TapeUtils.toURI(entry);
+            long timestamp = TapeUtils.getTimestamp(entry);
             if (entry.getSize() == 0 && entry.getName().endsWith(TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED)) {
                 index.remove(id);
             } else {
-                index.addLocation(id, new Entry(tape, offset));
+                index.addLocation(id, new Entry(tape, offset),timestamp);
             }
             offset += entry.getSize();
         }
@@ -222,6 +223,8 @@ public class TapeArchive implements Archive {
         index.setIndexed(tape.getName());
 
     }
+
+
 
     /**
      * Get all the tapes in sorted order
