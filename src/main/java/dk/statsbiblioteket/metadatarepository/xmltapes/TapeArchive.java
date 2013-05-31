@@ -8,6 +8,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeInputStream;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.CountingInputStream;
 import org.kamranzafar.jtar.TarEntry;
 import org.kamranzafar.jtar.TarHeader;
 import org.kamranzafar.jtar.TarInputStream;
@@ -204,12 +205,13 @@ public class TapeArchive implements Archive {
     private synchronized void indexTape(File tape) throws IOException {
 
         // Create a TarInputStream
-        TarInputStream tis = new TarInputStream(new BufferedInputStream(new FileInputStream(tape)));
-        TarEntry entry;
+        CountingInputStream countingInputStream = new CountingInputStream(new BufferedInputStream(new FileInputStream(tape)));
+        TarInputStream tis = new TarInputStream(countingInputStream);
 
         long offset = 0;
 
-        while ((entry = tis.getNextEntry()) != null) {
+        TarEntry entry = tis.getNextEntry();
+        while (entry != null) {
             URI id = TapeUtils.toURI(entry);
             long timestamp = TapeUtils.getTimestamp(entry);
             if (entry.getSize() == 0 && entry.getName().endsWith(TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED)) {
@@ -217,7 +219,8 @@ public class TapeArchive implements Archive {
             } else {
                 index.addLocation(id, new Entry(tape, offset),timestamp);
             }
-            offset += entry.getSize();
+            entry = tis.getNextEntry();
+            offset = countingInputStream.getByteCount()-RECORDSIZE;
         }
         tis.close();
         index.setIndexed(tape.getName());
