@@ -332,6 +332,7 @@ public class TapeArchive implements Archive {
                 new BufferedInputStream(
                         new FileInputStream(
                                 entry.getTape())));
+        tapeInputstream.setDefaultSkip(true);
         long skipped = 0;
         while (skipped < entry.getOffset()) {
             skipped += tapeInputstream.skip(entry.getOffset() - skipped);
