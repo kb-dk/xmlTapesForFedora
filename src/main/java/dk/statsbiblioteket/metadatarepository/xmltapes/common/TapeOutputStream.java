@@ -12,7 +12,6 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * This is a special outputstream. This class ensures that bytes written are buffered in memory, and only written to
@@ -62,7 +61,8 @@ public class TapeOutputStream extends TarOutputStream {
 
 
 
-    private void beforeWrite(int len) throws IOException {
+
+    protected void checkWriting(int len) throws IOException {
         if (closed){
             throw new IOException("Stream closed");
         }
@@ -80,7 +80,7 @@ public class TapeOutputStream extends TarOutputStream {
 
     @Override
     public  void write(int b) throws IOException {
-        beforeWrite(1);
+        checkWriting(1);
         if (closing){
             super.write(b);
             return;
@@ -104,7 +104,7 @@ public class TapeOutputStream extends TarOutputStream {
      */
     @Override
     public synchronized void write(byte[] b, int off, int len) throws IOException {
-        beforeWrite(len);
+        checkWriting(len);
         if (closing){
             super.write(b, off, len);
             return;
