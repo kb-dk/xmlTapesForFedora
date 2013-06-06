@@ -2,22 +2,12 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
-import redis.clients.jedis.BuilderFactory;
-import redis.clients.jedis.Client;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Protocol;
-import redis.clients.jedis.Response;
+import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Transaction;
-import redis.clients.jedis.exceptions.JedisConnectionException;
-import redis.clients.jedis.exceptions.JedisDataException;
-import redis.clients.util.RedisInputStream;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -35,12 +25,17 @@ import java.util.Set;
 public class RedisIndex implements Index {
 
     public static final String BUCKETS = "buckets";
+    private static final int INDEX_LEVELS = 4;
 
     private Jedis jedis;
+
+
+
 
     public RedisIndex(String host, int port, int database) {
         jedis = new Jedis(host, port);
         jedis.select(database);
+
 
 
     }
@@ -82,7 +77,7 @@ public class RedisIndex implements Index {
     }
 
     private String getHash(URI id) {
-        return id.hashCode()+"";
+        return Hasher.getHash(id.toString()).substring(0,INDEX_LEVELS);
     }
 
     @Override
