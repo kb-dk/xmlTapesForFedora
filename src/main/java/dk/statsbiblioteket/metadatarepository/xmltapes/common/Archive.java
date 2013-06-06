@@ -79,8 +79,15 @@ public interface Archive {
 
     void setIndex(Index index);
 
+
     /**
-     * Initialises the index from the
+     * Initialise the archive
+     * @throws IOException
+     */
+    public void init() throws IOException ;
+
+    /**
+     * Initialises and rebuild the index
      * @throws IOException
      */
     void rebuild() throws IOException;
