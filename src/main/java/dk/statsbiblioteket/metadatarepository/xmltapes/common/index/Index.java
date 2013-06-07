@@ -3,6 +3,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.common.index;
 
 import java.net.URI;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -47,4 +48,10 @@ public interface Index {
 
 
     void clear();
+
+    public long iterate(long startTimestamp);
+
+    public Record getRecord(long iteratorKey);
+
+    public List<Record> getRecords(long iteratorKey, int amount);
 }

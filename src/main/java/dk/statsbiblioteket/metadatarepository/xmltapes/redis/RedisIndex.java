@@ -2,12 +2,20 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Record;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
+import redis.clients.jedis.Tuple;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -26,6 +34,7 @@ public class RedisIndex implements Index {
 
     public static final String BUCKETS = "buckets";
     private static final int INDEX_LEVELS = 4;
+    private static final int ITERATOR_LIFETIME = 60 * 60;
 
     private Jedis jedis;
 
@@ -104,4 +113,57 @@ public class RedisIndex implements Index {
     public void clear() {
         jedis.flushDB();
     }
+
+
+
+
+
+    @Override
+    public long iterate(long startTimestamp) {
+        String key = new String(String.valueOf(new Random(startTimestamp).nextLong()));
+        Set<String> buckets = jedis.smembers(BUCKETS);
+
+        jedis.zadd(key,0,"placeholder");
+        jedis.expire(key, ITERATOR_LIFETIME);
+        //could be somewhat big
+        jedis.zunionstore(key,
+                new ArrayList<String>(buckets).toArray(new String[buckets.size()]));
+
+        jedis.zremrangeByScore(key,"-inf","("+startTimestamp);
+        return Long.valueOf(key);
+    }
+
+    @Override
+    public Record getRecord(long iteratorKey) {
+        List<Record> records = getRecords(iteratorKey, 1);
+        if (records.isEmpty()){
+            throw new NoSuchElementException();
+        }
+        return records.get(0);
+    }
+
+    private Record toRecord(String element, double score) {
+        return new Record(element, (long) score);
+    }
+
+    @Override
+    public List<Record> getRecords(long iteratorKey, int amount) {
+        String key = iteratorKey+"";
+        Transaction multi = jedis.multi();
+
+        Response<Set<Tuple>> value = multi.zrangeWithScores(key, 0, amount-1);
+        multi.zremrangeByRank(key,0,amount-1);
+        multi.exec();
+        Set<Tuple> recordsFound = value.get();
+        List<Record> result = new ArrayList<Record>(recordsFound.size());
+        for (Tuple tuple : recordsFound) {
+            result.add(toRecord(tuple.getElement(),tuple.getScore()));
+        }
+        if (recordsFound.size() < amount){
+            jedis.del(key);
+        }
+        return result;
+    }
+
+
 }
