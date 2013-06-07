@@ -25,4 +25,12 @@ public class Record {
     public long getTimestamp() {
         return timestamp;
     }
+
+    @Override
+    public String toString() {
+        return "Record{" +
+                "id='" + id + '\'' +
+                ", timestamp=" + timestamp +
+                '}';
+    }
 }
