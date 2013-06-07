@@ -13,6 +13,8 @@ import org.kamranzafar.jtar.TarEntry;
 import org.kamranzafar.jtar.TarHeader;
 import org.kamranzafar.jtar.TarInputStream;
 import org.kamranzafar.jtar.TarOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -35,6 +37,9 @@ import java.util.Iterator;
  * This class implements the Archive in the fashion of tar tape archived
  */
 public class TapeArchive implements Archive {
+
+
+    private static final Logger log = LoggerFactory.getLogger(TapeArchive.class);
 
 
     public static final String TAPE = "tape";
@@ -85,6 +90,8 @@ public class TapeArchive implements Archive {
      * @param tapeSize the cuttoff size to use for new tapes
      */
     public TapeArchive(URI location, long tapeSize) throws IOException {
+
+        log.info("Initialising tape archive from {}",location);
         SIZE_LIMIT = tapeSize;
         archiveTapes = new File(location);
         File[] tapes = getTapes();
@@ -94,6 +101,7 @@ public class TapeArchive implements Archive {
         } else {
             newestTape = tapes[tapes.length - 1];
         }
+        log.debug("Newest tape is {}",newestTape);
 
     }
 
@@ -103,6 +111,7 @@ public class TapeArchive implements Archive {
      * Check that all the tapes have been indexed
      */
     public void init() throws IOException {
+        log.debug("Init called");
         File[] tapes = getTapes();
         verifyAndFix(newestTape);
 
@@ -114,6 +123,8 @@ public class TapeArchive implements Archive {
 
 
     private void verifyAndFix(File newestTape) throws IOException {
+        log.info("Verifying and fixing the content of the tape {}",newestTape);
+
         TarInputStream tarstream = new TarInputStream(new FileInputStream(newestTape));
 
 
@@ -126,9 +137,12 @@ public class TapeArchive implements Archive {
             while ((failedEntry = tarstream.getNextEntry()) != null) {
             }
             tarstream.close();
+            log.info("File {} verified correctly",newestTape);
         } catch (IOException e) {//verification failed, read what we can and write it back
             //failedEntry should be the one that failed
-
+            log.warn("Caught exception {}",e);
+            log.warn("Failed to verify {}. I will now copy all that can be read to new file and replace the broken tape",
+                    newestTape);
 
             File tempTape = File.createTempFile("tempTape", ".tar");
             tempTape.deleteOnExit();
@@ -156,6 +170,8 @@ public class TapeArchive implements Archive {
             FileUtils.moveFile(newestTape, temp2);
             FileUtils.moveFile(tempTape, newestTape);
             FileUtils.deleteQuietly(temp2);
+            log.info("The broken tape {} have now been replaced with what could be recovered.",newestTape);
+
 
             //And since we close the fixed tape now, we create a new one to hold further stuff
             createNewTape();
@@ -183,6 +199,7 @@ public class TapeArchive implements Archive {
      * @throws IOException
      */
     public void rebuild() throws IOException {
+        log.info("The index should be rebuild, so clearing it");
         // Clear the index and then rebuild it
         index.clear();
 
@@ -195,8 +212,9 @@ public class TapeArchive implements Archive {
 
         for (File tape : tapes) {
             if (indexedSoFar && index.isIndexed(tape.getName())) {
-
+                log.debug("File {} have already been indexed so is skipped",tape);
             } else {
+                log.debug("File {} should be reindexed",tape);
                 indexedSoFar = false;
                 indexTape(tape);
             }
@@ -267,6 +285,7 @@ public class TapeArchive implements Archive {
      * @throws IOException
      */
     private synchronized File closeAndStartNewTape() throws IOException {
+        log.debug("Closing the tape {} and starting a new one",newestTape);
         //close tape
         TarOutputStream tarStream = new TarOutputStream(new FileOutputStream(newestTape, true));
         tarStream.close();
@@ -286,6 +305,7 @@ public class TapeArchive implements Archive {
     private synchronized File createNewTape() throws IOException {
         newestTape = new File(archiveTapes, TAPE + System.currentTimeMillis() + TAR);
         newestTape.createNewFile();
+        log.debug("Starting the new tape {}",newestTape);
         return newestTape;
     }
 

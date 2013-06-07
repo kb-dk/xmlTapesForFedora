@@ -8,6 +8,8 @@ import org.akubraproject.MissingBlobException;
 import org.akubraproject.impl.AbstractBlob;
 import org.akubraproject.impl.StreamManager;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,6 +26,9 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 public class XmlTapesBlob extends AbstractBlob {
+
+    private static final Logger log = LoggerFactory.getLogger(XmlTapesBlob.class);
+
 
     private final Archive archive;
     private StreamManager streamManager;

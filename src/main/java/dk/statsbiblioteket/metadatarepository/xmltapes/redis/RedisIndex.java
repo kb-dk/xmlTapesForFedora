@@ -3,6 +3,8 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
@@ -32,6 +34,8 @@ import java.util.Set;
  */
 public class RedisIndex implements Index {
 
+    private static final Logger log = LoggerFactory.getLogger(RedisIndex.class);
+
     public static final String BUCKETS = "buckets";
     private static final int INDEX_LEVELS = 4;
     private static final int ITERATOR_LIFETIME = 60 * 60;
@@ -44,9 +48,7 @@ public class RedisIndex implements Index {
     public RedisIndex(String host, int port, int database) {
         jedis = new Jedis(host, port);
         jedis.select(database);
-
-
-
+        log.info("Redis database {} initialised on {}:{}",new Object[]{database,host,port});
     }
 
     @Override
@@ -91,6 +93,7 @@ public class RedisIndex implements Index {
 
     @Override
     public Iterator<URI> listIds(String filterPrefix) {
+        log.debug("Listing all ids for prefix '{}'",filterPrefix);
         if (filterPrefix == null) {
             filterPrefix = "";
         }
@@ -156,7 +159,7 @@ public class RedisIndex implements Index {
         String key = iteratorKey+"";
         Transaction multi = jedis.multi();
 
-        Response<Set<Tuple>> value = multi.zrangeWithScores(key, 0, amount-1);
+        Response<Set<Tuple>> value = multi.zrangeWithScores(key, 0, amount - 1);
         multi.zremrangeByRank(key,0,amount-1);
         multi.exec();
         Set<Tuple> recordsFound = value.get();

@@ -1,5 +1,7 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 
 import java.net.URI;
@@ -15,6 +17,9 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 public class RedisIterator implements Iterator<URI> {
+
+    private static final Logger log = LoggerFactory.getLogger(RedisIterator.class);
+
     private final Jedis jedis;
     private final Iterator<String> buckets;
     private final String filterPrefix;
@@ -29,6 +34,7 @@ public class RedisIterator implements Iterator<URI> {
 
 
     public RedisIterator(Jedis jedis, Set<String> buckets, String filterPrefix) {
+        log.debug("Initialising iterator for filterprefix {}",filterPrefix);
         this.jedis = jedis;
         this.buckets = buckets.iterator();
         this.filterPrefix = filterPrefix;
@@ -43,13 +49,16 @@ public class RedisIterator implements Iterator<URI> {
             return false;
         }
         while (currentSortedSet == null || !currentSortedSet.hasNext()){
+            log.debug("Time to read the next block from {} at offset ",currentBucket,currentOffset);
             currentSortedSet = jedis.zrange(currentBucket,currentOffset,currentOffset+bufferSize).iterator();
             currentOffset += bufferSize;
             if (!currentSortedSet.hasNext()){
+                log.debug("bucket {} is empty, getting content from the next",currentBucket);
                 if (buckets.hasNext()){
                     currentBucket = buckets.next();
                     currentOffset = 0;
                 } else {
+                    log.debug("We are not out of records");
                     return false;
                 }
             } else {

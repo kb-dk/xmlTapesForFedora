@@ -6,6 +6,8 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import org.kamranzafar.jtar.TarEntry;
 import org.kamranzafar.jtar.TarHeader;
 import org.kamranzafar.jtar.TarOutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -21,6 +23,9 @@ import java.util.LinkedList;
  * When the stream is closed and have written the record, the index is updated with the new location.
  */
 public class TapeOutputStream extends TarOutputStream {
+
+    private static final Logger log = LoggerFactory.getLogger(TapeOutputStream.class);
+
 
     private static final int CAPACITY = 1 * 1024 * 1024;
     private Entry entry;
@@ -47,6 +52,8 @@ public class TapeOutputStream extends TarOutputStream {
     public TapeOutputStream(OutputStream delegate, Entry entry, URI id, Index index, StoreLock writeLock)  {
         super(delegate);
 
+        log.trace("Opening an outputstream for the id {} and trying to acquire lock",id);
+
         this.entry = entry;
         this.id = id;
         this.index = index;
@@ -56,6 +63,8 @@ public class TapeOutputStream extends TarOutputStream {
         lastBuffer = buffer.getLast();
 
         this.writeLock.lock(Thread.currentThread());
+
+        log.trace("Store write lock acquired for id {}",id);
 
     }
 
@@ -71,10 +80,12 @@ public class TapeOutputStream extends TarOutputStream {
         }
 
         if (len > lastBuffer.remaining()){ //close this buffer and allocate a new one fitting the size min CAPACITY
+
             int size = (len > CAPACITY ? len : CAPACITY);
             ByteBuffer byteBuffer = ByteBuffer.allocate(size);
             buffer.add(byteBuffer);
             lastBuffer = byteBuffer;
+            log.debug("Allocating a new buffer of size {} for record {}",size,id);
         }
     }
 
@@ -116,6 +127,8 @@ public class TapeOutputStream extends TarOutputStream {
 
     @Override
     public synchronized void close() throws IOException {
+        log.trace("Closing the record {}",id);
+
         closing = true;//From now on, writes go the the delegate, not the buffer
         long timestamp = System.currentTimeMillis();
         long size = calcSizeOfBuffers();
