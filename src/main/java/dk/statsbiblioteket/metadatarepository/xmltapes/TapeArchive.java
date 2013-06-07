@@ -113,24 +113,6 @@ public class TapeArchive implements Archive {
     }
 
 
-    /**
-        * Initialise the system.
-        * Find the "HEAD" tar, scan it for errors, and add all from in to the index again
-        * Check that all the tapes have been indexed
-        */
-       public void testIndex() throws IOException {
-           init();
-           long key = index.iterate(0);
-           while (true){
-               try {
-                   System.out.println(index.getRecord(key));
-               } catch (Exception e){
-                   break;
-               }
-           }
-
-       }
-
     private void verifyAndFix(File newestTape) throws IOException {
         TarInputStream tarstream = new TarInputStream(new FileInputStream(newestTape));
 

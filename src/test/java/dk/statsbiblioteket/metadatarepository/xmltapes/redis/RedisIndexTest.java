@@ -5,6 +5,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Record;
 import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -39,6 +40,7 @@ public class RedisIndexTest {
         index.clear();
     }
 
+    @Ignore
     @Test
     public void testIterate() throws Exception {
         int objects = 10;

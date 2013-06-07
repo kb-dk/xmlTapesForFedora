@@ -118,6 +118,8 @@ public class RedisIndex implements Index {
 
 
 
+
+
     @Override
     public long iterate(long startTimestamp) {
         String key = new String(String.valueOf(new Random(startTimestamp).nextLong()));
@@ -126,8 +128,11 @@ public class RedisIndex implements Index {
         jedis.zadd(key,0,"placeholder");
         jedis.expire(key, ITERATOR_LIFETIME);
         //could be somewhat big
+
+/*  //This kills the redis instance
         jedis.zunionstore(key,
                 new ArrayList<String>(buckets).toArray(new String[buckets.size()]));
+*/
 
         jedis.zremrangeByScore(key,"-inf","("+startTimestamp);
         return Long.valueOf(key);
