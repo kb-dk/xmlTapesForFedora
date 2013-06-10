@@ -28,11 +28,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * To change this template use File | Settings | File Templates.
  */
 public class RedisIndexTest {
+    public static final String REDIS_HOST = "localhost";
+    public static final int REDIS_PORT = 6379;
+    public static final int REDIS_DATABASE = 4;
     RedisIndex index;
 
     @Before
     public void setUp() throws Exception {
-        index = new RedisIndex("localhost", 6379, 4);
+        index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);
     }
 
     @After

@@ -43,7 +43,11 @@ public class RedisIterator implements Iterator<URI> {
         }
     }
 
-
+    /**
+     * Get the next set of records from the current sorted set, or, if the current sorted set is empty, switch
+     * to the next sortedsett and get a a set of records
+     * @return
+     */
     private boolean refreshSortedSet(){
         if (currentBucket == null){
             return false;

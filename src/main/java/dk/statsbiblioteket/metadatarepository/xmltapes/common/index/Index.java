@@ -5,13 +5,6 @@ import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created with IntelliJ IDEA.
- * User: abr
- * Date: 5/22/13
- * Time: 11:26 AM
- * To change this template use File | Settings | File Templates.
- */
 public interface Index {
 
 

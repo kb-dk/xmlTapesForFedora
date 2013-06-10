@@ -122,10 +122,20 @@ public class TapeArchive implements Archive {
     }
 
 
-    private void verifyAndFix(File newestTape) throws IOException {
-        log.info("Verifying and fixing the content of the tape {}",newestTape);
+    /**
+     * Verify and fix the specified tape.
+     * The verification is done by reading through the tape. If all records can be read without IOExceptions, the
+     * tape is regarded as valid.
+     * If an IOException occurs, the tape is copied, record for record, to a new temp tape. This copy will, of course,
+     * stop when the IOException occurs. The invalid tape is then replaced with the temp tape, so the defect record
+     * and all following records are removed.
+     * @param tape the tape to verify and fix
+     * @throws IOException If writing the new tape failed.
+     */
+    private void verifyAndFix(File tape) throws IOException {
+        log.info("Verifying and fixing the content of the tape {}",tape);
 
-        TarInputStream tarstream = new TarInputStream(new FileInputStream(newestTape));
+        TarInputStream tarstream = new TarInputStream(new FileInputStream(tape));
 
 
         TarOutputStream tarout = null;
@@ -137,19 +147,19 @@ public class TapeArchive implements Archive {
             while ((failedEntry = tarstream.getNextEntry()) != null) {
             }
             tarstream.close();
-            log.info("File {} verified correctly",newestTape);
+            log.info("File {} verified correctly",tape);
         } catch (IOException e) {//verification failed, read what we can and write it back
             //failedEntry should be the one that failed
             log.warn("Caught exception {}",e);
             log.warn("Failed to verify {}. I will now copy all that can be read to new file and replace the broken tape",
-                    newestTape);
+                    tape);
 
             File tempTape = File.createTempFile("tempTape", ".tar");
             tempTape.deleteOnExit();
             tarout = new TarOutputStream(new FileOutputStream(tempTape));
             //close and reopen
             IOUtils.closeQuietly(tarstream);
-            tarstream = new TarInputStream(new FileInputStream(newestTape));
+            tarstream = new TarInputStream(new FileInputStream(tape));
 
             //fix
             TarEntry entry;
@@ -167,10 +177,10 @@ public class TapeArchive implements Archive {
             File temp2 = File.createTempFile("tempTape", ".tar");
             temp2.deleteOnExit();
 
-            FileUtils.moveFile(newestTape, temp2);
-            FileUtils.moveFile(tempTape, newestTape);
+            FileUtils.moveFile(tape, temp2);
+            FileUtils.moveFile(tempTape, tape);
             FileUtils.deleteQuietly(temp2);
-            log.info("The broken tape {} have now been replaced with what could be recovered.",newestTape);
+            log.info("The broken tape {} have now been replaced with what could be recovered.",tape);
 
 
             //And since we close the fixed tape now, we create a new one to hold further stuff

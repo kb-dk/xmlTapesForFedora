@@ -27,6 +27,9 @@ import static org.junit.Assert.assertTrue;
 
 public class TapeArchiveTest2 {
 
+    public static final String REDIS_HOST = "localhost";
+    public static final int REDIS_PORT = 6379;
+    public static final int REDIS_DATABASE = 3;
     Archive archive;
 
     URI testFile1 = URI.create("testFile1");
@@ -43,8 +46,8 @@ public class TapeArchiveTest2 {
         URI store = getPrivateStoreId();
 
         archive = new TapeArchive(store, tapeSize);
-        
-        index = new RedisIndex("localhost", 6379, 3);
+
+        index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);
         archive.setIndex(index);
         archive.rebuild();
         OutputStream outputStream = archive.createNew(testFile1, 0);

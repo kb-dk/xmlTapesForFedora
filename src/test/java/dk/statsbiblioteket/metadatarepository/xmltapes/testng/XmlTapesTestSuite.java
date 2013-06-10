@@ -22,7 +22,9 @@ import java.net.URISyntaxException;
 public class XmlTapesTestSuite extends TCKTestSuite {
 
 
-
+    public static final String REDIS_HOST = "localhost";
+    public static final int REDIS_PORT = 6379;
+    public static final int REDIS_DATABASE = 4;
 
     public XmlTapesTestSuite() throws IOException, URISyntaxException {
         super(getPrivateStore(), getPrivateStoreId(), false, false);
@@ -45,7 +47,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
         XmlTapesBlobStore store = new XmlTapesBlobStore(getPrivateStoreId());
 
         store.setArchive(new TapeArchive(getStoreLocation(),1024*1024));
-        store.getArchive().setIndex(new RedisIndex("localhost",6379,4));
+        store.getArchive().setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
         store.getArchive().rebuild();
         return store;
     }

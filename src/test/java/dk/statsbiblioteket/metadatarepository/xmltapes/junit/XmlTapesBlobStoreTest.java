@@ -32,6 +32,9 @@ import static org.junit.Assert.assertTrue;
  */
 public class XmlTapesBlobStoreTest {
 
+    public static final String REDIS_HOST = "localhost";
+    public static final int REDIS_PORT = 6379;
+    public static final int REDIS_DATABASE = 5;
     BlobStoreConnection connection;
 
     @Before
@@ -53,7 +56,7 @@ public class XmlTapesBlobStoreTest {
         XmlTapesBlobStore store = new XmlTapesBlobStore(URI.create("test:tapestorage"));
 
         store.setArchive(new TapeArchive(getPrivateStoreId(),1024*1024));
-        store.getArchive().setIndex(new RedisIndex("localhost", 6379,5));
+        store.getArchive().setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
         store.getArchive().rebuild();
         return store;
     }
