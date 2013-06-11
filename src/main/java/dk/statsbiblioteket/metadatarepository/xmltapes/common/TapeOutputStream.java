@@ -142,7 +142,7 @@ public class TapeOutputStream extends TarOutputStream {
             } else {
                 byte[] temp = new byte[4*1024];
 
-                int remaining = byteBuffer.limit(byteBuffer.position()).rewind().remaining();;
+                int remaining = byteBuffer.limit(byteBuffer.position()).rewind().remaining();
                 while (remaining > 0){
                     int length = (remaining > temp.length ? remaining : temp.length);
                     byteBuffer.get(temp,0,length);
