@@ -94,6 +94,12 @@ public class TapeArchive implements Archive {
         log.info("Initialising tape archive from {}",location);
         SIZE_LIMIT = tapeSize;
         archiveTapes = new File(location);
+        if ( !archiveTapes.exists()){
+            archiveTapes.mkdirs();
+        }
+        if (!archiveTapes.isDirectory()){
+            throw new IOException("Archive folder "+archiveTapes+" is not a directory");
+        }
         File[] tapes = getTapes();
 
         if (tapes.length == 0) {
