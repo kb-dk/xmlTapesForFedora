@@ -44,6 +44,8 @@ public class TapeArchive implements Archive {
 
     public static final String TAPE = "tape";
     public static final String TAR = ".tar";
+
+
     /**
      * The max size a tarball can grow to, before we start a new tape.
      */
@@ -53,10 +55,12 @@ public class TapeArchive implements Archive {
      * The size of a record
      */
     private static final long RECORDSIZE = 512;
+
     /**
      * The size of the two final records
      */
     private static final long EOFSIZE = 2 * RECORDSIZE;
+
     /**
      * Each block is 20 records
      */
@@ -82,6 +86,17 @@ public class TapeArchive implements Archive {
      */
     private Index index;
 
+    /**
+     * Verify that the newest tape can be read, and fix it if it cannot
+     */
+    private boolean fixErrors = false;
+
+
+
+
+
+
+    /*-----------------STARTUP and REBUILDING-------------------------*/
 
     /**
      * Instantiate a new Tape archive. This class should be a singleton, as the locking is controlled here
@@ -119,8 +134,9 @@ public class TapeArchive implements Archive {
     public void init() throws IOException {
         log.debug("Init called");
         File[] tapes = getTapes();
-        verifyAndFix(newestTape);
-
+        if (isFixErrors()){ //Only fixErrors if explicitly told to
+            verifyAndFix(newestTape); //Only check and fix the newest tape
+        }
         // Iterate through all the tapes in sorted order to rebuild the index
         rebuildWhatsNeeded(tapes);
 
@@ -143,7 +159,6 @@ public class TapeArchive implements Archive {
 
         TarInputStream tarstream = new TarInputStream(new FileInputStream(tape));
 
-
         TarOutputStream tarout = null;
 
         TarEntry failedEntry = null;
@@ -154,7 +169,8 @@ public class TapeArchive implements Archive {
             }
             tarstream.close();
             log.info("File {} verified correctly",tape);
-        } catch (IOException e) {//verification failed, read what we can and write it back
+        } catch (IOException e) {
+            //verification failed, read what we can and write it back
             //failedEntry should be the one that failed
             log.warn("Caught exception {}",e);
             log.warn("Failed to verify {}. I will now copy all that can be read to new file and replace the broken tape",
@@ -188,17 +204,13 @@ public class TapeArchive implements Archive {
             FileUtils.deleteQuietly(temp2);
             log.info("The broken tape {} have now been replaced with what could be recovered.",tape);
 
-
             //And since we close the fixed tape now, we create a new one to hold further stuff
             createNewTape();
 
         } finally {
             IOUtils.closeQuietly(tarstream);
             IOUtils.closeQuietly(tarout);
-
         }
-
-
     }
 
     private boolean equals(TarEntry failedEntry, TarEntry entry) {
@@ -218,27 +230,40 @@ public class TapeArchive implements Archive {
         log.info("The index should be rebuild, so clearing it");
         // Clear the index and then rebuild it
         index.clear();
-
         init();
-
     }
 
+    /**
+     * Iterate through the tapes and index them, if they are not already indexed. The newest tape will always be indexed
+     * but will never be marked as Indexed
+     * @param tapes the tapes, sorted from oldest to newest
+     * @throws IOException if reading a tape failed
+     */
     private void rebuildWhatsNeeded(File[] tapes) throws IOException {
         boolean indexedSoFar = true;
 
-        for (File tape : tapes) {
+        //Iterate through all but the newest tape
+        for (int i = 0; i < tapes.length-1; i++) {
+            File tape = tapes[i];
             if (indexedSoFar && index.isIndexed(tape.getName())) {
                 log.debug("File {} have already been indexed so is skipped",tape);
             } else {
                 log.debug("File {} should be reindexed",tape);
                 indexedSoFar = false;
                 indexTape(tape);
+                index.setIndexed(tape.getName());
             }
         }
+        //Index the newest tape, but do not mark it as indexed
+        indexTape(tapes[tapes.length-1]);
     }
 
+    /**
+     * Index the tape
+     * @param tape the tape to index
+     * @throws IOException
+     */
     private synchronized void indexTape(File tape) throws IOException {
-
         // Create a TarInputStream
         CountingInputStream countingInputStream = new CountingInputStream(new BufferedInputStream(new FileInputStream(tape)));
         TarInputStream tis = new TarInputStream(countingInputStream);
@@ -258,7 +283,6 @@ public class TapeArchive implements Archive {
             offset = countingInputStream.getByteCount()-RECORDSIZE;
         }
         tis.close();
-        index.setIndexed(tape.getName());
 
     }
 
@@ -292,6 +316,26 @@ public class TapeArchive implements Archive {
         });
         return tapes;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+    /*-------------------------WORKING WITH TAPES-----------------------------*/
+
+
+
+
+
+
+
 
 
     /**
@@ -458,6 +502,14 @@ public class TapeArchive implements Archive {
         return index.listIds(filterPrefix);
     }
 
+
+
+
+
+    /*--------------GETTERS AND SETTERS----------------------------*/
+
+
+
     public void setIndex(Index index) {
         this.index = index;
     }
@@ -467,4 +519,11 @@ public class TapeArchive implements Archive {
     }
 
 
+    public boolean isFixErrors() {
+        return fixErrors;
+    }
+
+    public void setFixErrors(boolean fixErrors) {
+        this.fixErrors = fixErrors;
+    }
 }
