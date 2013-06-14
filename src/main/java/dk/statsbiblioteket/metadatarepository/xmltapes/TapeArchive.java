@@ -252,10 +252,13 @@ public class TapeArchive implements Archive {
                 indexedSoFar = false;
                 indexTape(tape);
                 index.setIndexed(tape.getName());
+                log.debug("File {} have been indexed",tape);
             }
         }
+        log.debug("File {} should be reindexed",newestTape);
         //Index the newest tape, but do not mark it as indexed
-        indexTape(tapes[tapes.length-1]);
+        indexTape(newestTape);
+        log.debug("File {} have been indexed",newestTape);
     }
 
     /**
