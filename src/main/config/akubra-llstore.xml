@@ -63,6 +63,7 @@
         <!--10 MB-->
         <!--This is the reference to the index-->
         <property name="index" ref="redisIndex"/>
+        <property name="fixErrors" value="false"/>
     </bean>
 
 
