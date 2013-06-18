@@ -8,8 +8,9 @@
 set -e
 
 
-archive="$1"
-scanfolder="$2"
+
+sourceArchive="$1"
+targetArchive="$2"
 
 
 
@@ -24,18 +25,21 @@ function getName(){
 
 function append(){
   local raw="$@"
-  filename=$(getName "$raw")
+  filename=$(basename "$raw")
   echo "adding $filename"
   temp=$(mktemp)
   gzip -c "$raw" > "$temp"
-  tar -r -P -f "$archive" "$temp" --transform="s|.*|$filename.gz|"
+  tar -r -P -f "$targetArchive" "$temp" --transform="s|.*|info:fedora/$filename.gz|"
   rm "$temp"
 }
 
 
 
-echo "Starting and scanning folder $scanfolder"
-for file in $( find "$scanfolder" -type f ); do
+echo "Starting and scanning folder $sourceArchive"
+extractFolder=$(mktemp -d)
+tar -xf "$sourceArchive" -C "$extractFolder"
+for file in $( find "$extractFolder" -type f ); do
     append "$file"
 done
+rm -r "$extractFolder"
 
