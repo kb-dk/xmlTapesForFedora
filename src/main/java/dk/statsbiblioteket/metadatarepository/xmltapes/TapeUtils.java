@@ -18,11 +18,11 @@ public class TapeUtils {
         return toURI(entry.getName());
     }
 
-    public static URI toURI(String filename)  {
+    public static URI toURI(String filename) {
 
 
         int endIndex = filename.lastIndexOf(NAME_SEPARATOR);
-        if (endIndex < 0){
+        if (endIndex < 0) {
             endIndex = filename.length();
         }
         return URI.create(filename.substring(0, endIndex));
@@ -33,13 +33,18 @@ public class TapeUtils {
         return id.toString() + NAME_SEPARATOR + System.currentTimeMillis();
     }
 
+    public static String toFilenameGZ(URI id) {
+        return toFilename(id)+".gz";
+    }
+
+
     public static String toDeleteFilename(URI id) {
-        return id.toString() + NAME_SEPARATOR + System.currentTimeMillis()+ NAME_SEPARATOR + DELETED;
+        return id.toString() + NAME_SEPARATOR + System.currentTimeMillis() + NAME_SEPARATOR + DELETED;
     }
 
     public static long getTimestamp(TarEntry entry) {
         String name = entry.getName();
-        String[] splits = name.split(NAME_SEPARATOR);
+        String[] splits = name.split("[NAME_SEPARATOR\\.]");
         return Long.parseLong(splits[1]);
     }
 

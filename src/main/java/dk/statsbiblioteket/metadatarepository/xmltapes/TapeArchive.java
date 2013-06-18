@@ -4,13 +4,14 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.StoreLock;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeInputStream;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.utils.CountingOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
+import org.apache.commons.io.output.NullOutputStream;
 import org.kamranzafar.jtar.TarEntry;
-import org.kamranzafar.jtar.TarHeader;
 import org.kamranzafar.jtar.TarInputStream;
 import org.kamranzafar.jtar.TarOutputStream;
 import org.slf4j.Logger;
@@ -27,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -398,6 +398,9 @@ public class TapeArchive implements Archive {
 
         TarEntry tarEntry = tapeInputstream.getNextEntry();
         if (tarEntry != null && tarEntry.getName().startsWith(id.toString())){
+            if (tarEntry.getName().endsWith(".gz")){
+                return new GzipCompressorInputStream(tapeInputstream);
+            }
             return tapeInputstream;
         } else {
             throw new IOException("Could not find entry in archive file");
@@ -442,8 +445,12 @@ public class TapeArchive implements Archive {
     }
 
     private long getSize(Entry entry) throws IOException {
-        InputStream inputStream = getTarInputStream(entry);
-        return new TarInputStream(inputStream).getNextEntry().getSize();
+        TarInputStream inputStream = getTarInputStream(entry);
+        inputStream.getNextEntry();
+        GzipCompressorInputStream zipped = new GzipCompressorInputStream(inputStream);
+        CountingOutputStream out = new CountingOutputStream(new NullOutputStream());
+        IOUtils.copyLarge(zipped,out);
+        return out.getBytesWritten();
     }
 
     /**
@@ -464,7 +471,13 @@ public class TapeArchive implements Archive {
         }
 
         Entry toCreate = new Entry(newestTape, newestTape.length());
-        return new TapeOutputStream(new BufferedOutputStream(new FileOutputStream(newestTape, true)), toCreate, id, index, writeLock);
+        return new TapeOutputStream(
+                new BufferedOutputStream(
+                                new FileOutputStream(newestTape, true)),
+                toCreate,
+                id,
+                index,
+                writeLock);
 
 
     }

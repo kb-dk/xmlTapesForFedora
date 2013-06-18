@@ -3,12 +3,16 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 import dk.statsbiblioteket.metadatarepository.xmltapes.TapeUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.io.IOUtils;
 import org.kamranzafar.jtar.TarEntry;
 import org.kamranzafar.jtar.TarHeader;
 import org.kamranzafar.jtar.TarOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
@@ -131,15 +135,30 @@ public class TapeOutputStream extends TarOutputStream {
 
         closing = true;//From now on, writes go the the delegate, not the buffer
         long timestamp = System.currentTimeMillis();
-        long size = calcSizeOfBuffers();
+        ByteBuffer output = zipTheBuffer();
 
-        TarHeader tarHeader = TarHeader.createHeader(TapeUtils.toFilename(id),size,timestamp/1000,false);
+        long size = output.capacity();
+
+        TarHeader tarHeader = TarHeader.createHeader(TapeUtils.toFilenameGZ(id),size,timestamp/1000,false);
         TarEntry entry = new TarEntry(tarHeader);
         putNextEntry(entry);
+        IOUtils.write(output.array(),this);
+        closeCurrentEntry();
+        out.close();
+        index.addLocation(id, this.entry,timestamp); //Update the index to the newly written entry
+        closed = true; //Now we cannot write anymore
+        writeLock.unlock(Thread.currentThread()); //unlock the storage system, we are done
+    }
+
+    private ByteBuffer zipTheBuffer() throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        GzipCompressorOutputStream zipped = new GzipCompressorOutputStream(output);
         for (ByteBuffer byteBuffer : buffer) {
             if (byteBuffer.hasArray()){
-                write(byteBuffer.array(), 0, byteBuffer.position());
+                IOUtils.copyLarge(new ByteArrayInputStream(byteBuffer.array(), 0, byteBuffer.position())
+                        , zipped);
             } else {
+                //TODO
                 byte[] temp = new byte[4*1024];
 
                 int remaining = byteBuffer.limit(byteBuffer.position()).rewind().remaining();
@@ -152,11 +171,8 @@ public class TapeOutputStream extends TarOutputStream {
 
             }
         }
-        closeCurrentEntry();
-        out.close();
-        index.addLocation(id, this.entry,timestamp); //Update the index to the newly written entry
-        closed = true; //Now we cannot write anymore
-        writeLock.unlock(Thread.currentThread()); //unlock the storage system, we are done
+        zipped.close();
+        return ByteBuffer.wrap(output.toByteArray());
     }
 
     /**
