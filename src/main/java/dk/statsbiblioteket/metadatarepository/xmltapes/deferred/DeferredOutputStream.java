@@ -19,6 +19,7 @@ public class DeferredOutputStream extends OutputStream {
 
     private URI id;
     private long estimatedSize;
+    private long lastModified;
 
     private ByteArrayOutputStream contents;
 
@@ -64,6 +65,7 @@ public class DeferredOutputStream extends OutputStream {
     public void close() throws IOException {
         contents.close();
         closed = true;
+        lastModified = System.currentTimeMillis();
     }
 
     public boolean isClosed() {
@@ -76,5 +78,9 @@ public class DeferredOutputStream extends OutputStream {
 
     public long size(){
         return contents.size();
+    }
+
+    public long getLastModified() {
+        return lastModified;
     }
 }

@@ -1,6 +1,5 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.deferred;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 
