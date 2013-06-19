@@ -19,7 +19,7 @@ function getName(){
    basename "$raw" | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' | xargs echo -n -e
    echo -n '#'
    #Add the timestamp to the filename
-   date '+%s000'
+   date '+%s%3N'
 }
 
 function append(){
