@@ -19,15 +19,11 @@ public class CachedIterator implements Iterator<URI> {
     private final Set<URI> cachedIDs;
     private final Iterator<URI> it1;
     private final Iterator<URI> it2;
-    private Cache cache;
-    private final String filterPrefix;
 
     private URI next;
 
 
     public CachedIterator(Cache cache, Archive archive, String filterPrefix) {
-        this.cache = cache;
-        this.filterPrefix = filterPrefix;
 
         cachedIDs = cache.getIDs();
         if (filterPrefix != null){
