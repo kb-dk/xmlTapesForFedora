@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -43,7 +42,7 @@ public class TapeArchive implements Archive {
 
 
     public static final String TAPE = "tape";
-    public static final String TAR = ".tar";
+    public static final String TAR = ".tar.gz";
 
 
     /**
@@ -176,7 +175,7 @@ public class TapeArchive implements Archive {
             log.warn("Failed to verify {}. I will now copy all that can be read to new file and replace the broken tape",
                     tape);
 
-            File tempTape = File.createTempFile("tempTape", ".tar");
+            File tempTape = File.createTempFile("tempTape", TAR);
             tempTape.deleteOnExit();
             tarout = new TarOutputStream(new FileOutputStream(tempTape));
             //close and reopen
@@ -196,7 +195,7 @@ public class TapeArchive implements Archive {
             IOUtils.closeQuietly(tarout);
 
             //move existing out of the way
-            File temp2 = File.createTempFile("tempTape", ".tar");
+            File temp2 = File.createTempFile("tempTape", TAR);
             temp2.deleteOnExit();
 
             FileUtils.moveFile(tape, temp2);
@@ -252,7 +251,7 @@ public class TapeArchive implements Archive {
                 indexedSoFar = false;
                 indexTape(tape);
                 index.setIndexed(tape.getName());
-                log.debug("File {} have been indexed",tape);
+                log.info("File {} have been indexed", tape);
             }
         }
         log.debug("File {} should be reindexed",newestTape);
@@ -314,7 +313,7 @@ public class TapeArchive implements Archive {
         Arrays.sort(tapes, new Comparator<File>() {
             @Override
             public int compare(File o1, File o2) {
-                return new Long(o1.lastModified()).compareTo(o2.lastModified());
+                return o1.getName().compareTo(o2.getName());
             }
         });
         return tapes;
@@ -403,6 +402,7 @@ public class TapeArchive implements Archive {
             }
             return tapeInputstream;
         } else {
+            log.warn("Could not find entry {} for id {}, instead found {}",new Object[]{entry,id,tarEntry.getName()});
             throw new IOException("Could not find entry in archive file");
         }
     }
@@ -416,9 +416,8 @@ public class TapeArchive implements Archive {
      */
     private TarInputStream getTarInputStream(Entry entry) throws IOException {
         TarInputStream tapeInputstream = new TarInputStream(
-                new BufferedInputStream(
                         new FileInputStream(
-                                entry.getTape())));
+                                entry.getTape()));
         tapeInputstream.setDefaultSkip(true);
         long skipped = 0;
         while (skipped < entry.getOffset()) {
@@ -472,8 +471,7 @@ public class TapeArchive implements Archive {
 
         Entry toCreate = new Entry(newestTape, newestTape.length());
         return new TapeOutputStream(
-                new BufferedOutputStream(
-                                new FileOutputStream(newestTape, true)),
+                                new FileOutputStream(newestTape, true),
                 toCreate,
                 id,
                 index,
@@ -502,9 +500,8 @@ public class TapeArchive implements Archive {
         Entry toCreate = new Entry(newestTape, newestTape.length());
 
         TapeOutputStream out = new TapeOutputStream(
-                new BufferedOutputStream(
                         new FileOutputStream(newestTape, true)
-                ),
+                ,
                 toCreate,
                 id,
                 index,
