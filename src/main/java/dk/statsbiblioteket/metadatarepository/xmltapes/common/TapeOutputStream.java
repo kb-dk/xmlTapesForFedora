@@ -51,9 +51,15 @@ public class TapeOutputStream extends TarOutputStream {
      * @param id the fedora ID
      * @param index the index instance
      * @param writeLock the writelock object
+     * @param estimatedSize
 
      */
-    public TapeOutputStream(OutputStream delegate, Entry entry, URI id, Index index, StoreLock writeLock)  {
+    public TapeOutputStream(OutputStream delegate,
+                            Entry entry,
+                            URI id,
+                            Index index,
+                            StoreLock writeLock,
+                            long estimatedSize)  {
         super(delegate);
 
         log.trace("Opening an outputstream for the id {} and trying to acquire lock",id);
@@ -63,7 +69,7 @@ public class TapeOutputStream extends TarOutputStream {
         this.index = index;
         this.writeLock = writeLock;
         buffer = new LinkedList<ByteBuffer>();
-        buffer.add(ByteBuffer.allocate(CAPACITY));
+        buffer.add(ByteBuffer.allocate((int) Math.min(Math.max(estimatedSize, CAPACITY), Integer.MAX_VALUE)));
         lastBuffer = buffer.getLast();
 
         this.writeLock.lock(Thread.currentThread());

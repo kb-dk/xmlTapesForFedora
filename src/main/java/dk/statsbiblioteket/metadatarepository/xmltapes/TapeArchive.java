@@ -475,7 +475,8 @@ public class TapeArchive implements Archive {
                 toCreate,
                 id,
                 index,
-                writeLock);
+                writeLock,
+                estimatedSize);
 
 
     }
@@ -505,7 +506,7 @@ public class TapeArchive implements Archive {
                 toCreate,
                 id,
                 index,
-                writeLock);
+                writeLock, 0);
         out.delete();
     }
 
