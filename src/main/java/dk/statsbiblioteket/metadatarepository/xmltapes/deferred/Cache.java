@@ -10,9 +10,12 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
@@ -29,12 +32,14 @@ public class Cache {
 
     private static final Logger log = LoggerFactory.getLogger(Cache.class);
 
-
-    private static final long DELAY = 5000;
     Map<URI,DeferredOutputStream> cached;
     private Archive archive;
 
-    public Cache(Archive archive) {
+    public Cache(Archive archive){
+        this(archive,5000);
+    }
+
+    public Cache(Archive archive, long delay) {
         this.archive = archive;
         cached = new HashMap<URI, DeferredOutputStream>();
         Timer timer = new Timer();
@@ -47,7 +52,7 @@ public class Cache {
                     log.error("Failed to save object from cache",e);
                 }
             }
-        },DELAY,DELAY);
+        },delay,delay);
     }
 
     public synchronized DeferredOutputStream createNew(URI id, long estimatedSize) {
@@ -82,12 +87,19 @@ public class Cache {
     }
 
     private Collection<DeferredOutputStream> getAllClosed() {
-        Collection<DeferredOutputStream> result = new ArrayList<DeferredOutputStream>();
+        List<DeferredOutputStream> result = new ArrayList<DeferredOutputStream>();
         for (DeferredOutputStream deferredOutputStream : cached.values()) {
             if (deferredOutputStream.isClosed()){
                 result.add(deferredOutputStream);
             }
         }
+
+        Collections.sort(result,new Comparator<DeferredOutputStream>() {
+            @Override
+            public int compare(DeferredOutputStream o1, DeferredOutputStream o2) {
+                return Long.compare(o1.getLastModified(),o2.getEstimatedSize());
+            }
+        });
         return result;
     }
 
