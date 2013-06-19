@@ -3,9 +3,11 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Record;
+import org.apache.commons.pool.impl.GenericObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
@@ -39,37 +41,42 @@ public class RedisIndex implements Index {
     public static final String BUCKETS = "buckets";
     private static final int INDEX_LEVELS = 4;
     private static final int ITERATOR_LIFETIME = 60 * 60;
-
-    private Jedis jedis;
-
-
+    private final JedisPool pool;
 
 
     public RedisIndex(String host, int port, int database) {
-        jedis = new Jedis(host, port);
-        jedis.select(database);
+        GenericObjectPool.Config poolConfig = new GenericObjectPool.Config();
+        poolConfig.whenExhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_GROW;
+        pool = new JedisPool(new GenericObjectPool.Config(),host, port,0,null,database);
+
         log.info("Redis database {} initialised on {}:{}",new Object[]{database,host,port});
     }
 
     @Override
     public Entry getLocation(URI id) {
+        Jedis jedis = pool.getResource();
         String file = jedis.get(id.toString());
+        pool.returnResource(jedis);
         if (file == null || file.equals("nil")) {
+            log.debug("Requested id {} but was not found in index",id.toString());
             return null;
         }
+
         return Entry.deserialize(file);
     }
 
     @Override
     public void addLocation(URI id, Entry location, long timestamp) {
         String hashcode = getHash(id);
+        Jedis jedis = pool.getResource();
         Transaction trans = jedis.multi();
 
         trans.sadd(BUCKETS,hashcode);
-        trans.zadd(hashcode, timestamp, id.toString());
+        trans.zadd(hashcode, 1, id.toString());
 
         trans.set(id.toString(), location.serialize());
         trans.exec();
+        pool.returnResource(jedis);
     }
 
 
@@ -77,6 +84,7 @@ public class RedisIndex implements Index {
     public void remove(URI id) {
 
         String hashcode = getHash(id);
+        Jedis jedis = pool.getResource();
         Transaction trans = jedis.multi();
         trans.del(id.toString());
         trans.zrem(hashcode, id.toString());
@@ -85,6 +93,7 @@ public class RedisIndex implements Index {
             jedis.del(hashcode);
             jedis.srem(BUCKETS,hashcode);
         }
+        pool.returnResource(jedis);
     }
 
     private String getHash(URI id) {
@@ -97,24 +106,33 @@ public class RedisIndex implements Index {
         if (filterPrefix == null) {
             filterPrefix = "";
         }
+        Jedis jedis = pool.getResource();
         Set<String> buckets = jedis.smembers(BUCKETS);
-        return new RedisIterator(jedis,buckets,filterPrefix);
+        pool.returnResource(jedis);
+        return new RedisIterator(pool,buckets,filterPrefix);
 
     }
 
     @Override
     public boolean isIndexed(String tapename) {
-        return jedis.sismember("tapes", tapename);
+        Jedis jedis = pool.getResource();
+        Boolean result = jedis.sismember("tapes", tapename);
+        pool.returnResource(jedis);
+        return result;
     }
 
     @Override
     public void setIndexed(String tapename) {
+        Jedis jedis = pool.getResource();
         jedis.sadd("tapes", tapename);
+        pool.returnResource(jedis);
     }
 
     @Override
     public void clear() {
+        Jedis jedis = pool.getResource();
         jedis.flushDB();
+        pool.returnResource(jedis);
     }
 
 
@@ -126,6 +144,7 @@ public class RedisIndex implements Index {
     @Override
     public long iterate(long startTimestamp) {
         String key = new String(String.valueOf(new Random(startTimestamp).nextLong()));
+        Jedis jedis = pool.getResource();
         Set<String> buckets = jedis.smembers(BUCKETS);
 
         jedis.zadd(key,0,"placeholder");
@@ -138,6 +157,7 @@ public class RedisIndex implements Index {
 */
 
         jedis.zremrangeByScore(key,"-inf","("+startTimestamp);
+        pool.returnResource(jedis);
         return Long.valueOf(key);
     }
 
@@ -157,6 +177,7 @@ public class RedisIndex implements Index {
     @Override
     public List<Record> getRecords(long iteratorKey, int amount) {
         String key = iteratorKey+"";
+        Jedis jedis = pool.getResource();
         Transaction multi = jedis.multi();
 
         Response<Set<Tuple>> value = multi.zrangeWithScores(key, 0, amount - 1);
@@ -170,6 +191,7 @@ public class RedisIndex implements Index {
         if (recordsFound.size() < amount){
             jedis.del(key);
         }
+        pool.returnResource(jedis);
         return result;
     }
 

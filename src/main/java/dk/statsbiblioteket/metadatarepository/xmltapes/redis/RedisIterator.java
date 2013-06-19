@@ -3,6 +3,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.net.URI;
 import java.util.Iterator;
@@ -20,7 +21,7 @@ public class RedisIterator implements Iterator<URI> {
 
     private static final Logger log = LoggerFactory.getLogger(RedisIterator.class);
 
-    private final Jedis jedis;
+    private final JedisPool jedisPool;
     private final Iterator<String> buckets;
     private final String filterPrefix;
     private final int bufferSize = 1000;
@@ -33,9 +34,9 @@ public class RedisIterator implements Iterator<URI> {
     private String currentValue = null;
 
 
-    public RedisIterator(Jedis jedis, Set<String> buckets, String filterPrefix) {
+    public RedisIterator(JedisPool jedis, Set<String> buckets, String filterPrefix) {
         log.debug("Initialising iterator for filterprefix {}",filterPrefix);
-        this.jedis = jedis;
+        this.jedisPool = jedis;
         this.buckets = buckets.iterator();
         this.filterPrefix = filterPrefix;
         if (this.buckets.hasNext()){
@@ -54,7 +55,9 @@ public class RedisIterator implements Iterator<URI> {
         }
         while (currentSortedSet == null || !currentSortedSet.hasNext()){
             log.debug("Time to read the next block from {} at offset ",currentBucket,currentOffset);
+            Jedis jedis = jedisPool.getResource();
             currentSortedSet = jedis.zrange(currentBucket,currentOffset,currentOffset+bufferSize).iterator();
+            jedisPool.returnResource(jedis);
             currentOffset += bufferSize;
             if (!currentSortedSet.hasNext()){
                 log.debug("bucket {} is empty, getting content from the next",currentBucket);
