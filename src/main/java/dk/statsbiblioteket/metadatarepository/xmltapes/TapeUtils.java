@@ -44,7 +44,7 @@ public class TapeUtils {
 
     public static long getTimestamp(TarEntry entry) {
         String name = entry.getName();
-        String[] splits = name.split("[NAME_SEPARATOR\\.]");
+        String[] splits = name.split("["+NAME_SEPARATOR+"\\.]");
         return Long.parseLong(splits[1]);
     }
 
