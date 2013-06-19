@@ -94,7 +94,7 @@ public class TapeOutputStream extends TarOutputStream {
     }
 
     @Override
-    public  void write(int b) throws IOException {
+    public synchronized void write(int b) throws IOException {
         checkWriting(1);
         if (closing){
             super.write(b);
@@ -105,7 +105,7 @@ public class TapeOutputStream extends TarOutputStream {
 
 
     @Override
-    public  void write(byte[] b) throws IOException {
+    public synchronized void write(byte[] b) throws IOException {
         write(b, 0, b.length);
     }
 
