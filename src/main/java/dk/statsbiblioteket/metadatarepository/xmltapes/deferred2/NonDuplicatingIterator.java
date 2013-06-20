@@ -20,7 +20,7 @@ public class NonDuplicatingIterator implements Iterator<URI> {
     private final Iterator<URI> last;
     private final Collection<URI>[] collections;
 
-    private int currentCollection = 0;
+    private int currentCollection = -1;
 
     private Iterator<URI> currentIterator;
 
@@ -33,14 +33,16 @@ public class NonDuplicatingIterator implements Iterator<URI> {
         this.collections = collections;
 
         deletedIDs = new HashSet<URI>();
+        nextIterator();
     }
 
     private void loopUntilNext(){
-        next = null;
         while (next == null){
             if (!currentIterator.hasNext()){
                 if (! nextIterator()) {
                       throw new NoSuchElementException();
+                } else {
+                    continue;
                 }
             }
             next = currentIterator.next();
@@ -51,12 +53,12 @@ public class NonDuplicatingIterator implements Iterator<URI> {
             }
             if (deletedIDs.contains(next)){
                 next = null;
-                break;
+                continue;
             }
             for (int i = 0; i < currentCollection; i++){
                 if (collections[i].contains(next)){
                     next = null;
-                    break;
+                    continue;
                 }
             }
         }
@@ -92,7 +94,9 @@ public class NonDuplicatingIterator implements Iterator<URI> {
     @Override
     public URI next() {
         if (hasNext()){
-            return next;
+            URI temp = next;
+            next = null;
+            return temp;
         } else {
             throw new NoSuchElementException();
         }
