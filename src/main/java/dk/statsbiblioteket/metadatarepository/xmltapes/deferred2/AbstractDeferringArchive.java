@@ -18,10 +18,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -44,26 +42,17 @@ public abstract class AbstractDeferringArchive implements Archive{
 
     @Override
     public InputStream getInputStream(URI id) throws FileNotFoundException, IOException {
-        File deletedFile = getDeletedDeferredFile(id);
-        if (deletedFile.exists()){
-            throw new FileNotFoundException();
-        }
+
         File cacheFile = getDeferredFile(id);
+        //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
+        if (cacheFile.lastModified() > fortyYearHence()){
+            throw new FileNotFoundException("Deleted file");
+        }
         try {
             return new FileInputStream(cacheFile);
         } catch (FileNotFoundException e){
             return delegate.getInputStream(id);
         }
-    }
-
-    protected File getDeletedDeferredFile(URI id) {
-        try {
-            return new File(deferredDir,
-                    URLEncoder.encode(id.toString()+"#DELETED","UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
-        }
-
     }
 
     protected File getDeferredFile(URI id) {
@@ -94,20 +83,17 @@ public abstract class AbstractDeferringArchive implements Archive{
 
     @Override
     public boolean exist(URI id) {
-        File deletedFile = getDeletedDeferredFile(id);
-        if (deletedFile.exists()){
-            return false;
-        }
         File cacheFile = getDeferredFile(id);
-        return cacheFile.exists() || delegate.exist(id);
+        //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
+        if (cacheFile.exists() && cacheFile.lastModified() > fortyYearHence()){
+            return false;
+        } else {
+            return cacheFile.exists()  || delegate.exist(id);
+        }
     }
 
     @Override
     public long getSize(URI id) throws FileNotFoundException, IOException {
-        File deletedFile = getDeletedDeferredFile(id);
-        if (deletedFile.exists()){
-            throw new FileNotFoundException();
-        }
         File cacheFile = getDeferredFile(id);
         long size = cacheFile.length();
         if (cacheFile.exists()){
@@ -125,7 +111,9 @@ public abstract class AbstractDeferringArchive implements Archive{
         Collections.sort(cacheFiles, new Comparator<File>() {
             @Override
             public int compare(File o1, File o2) {
-                return Long.compare(o1.lastModified(), o2.lastModified());
+                long x = o1.lastModified();
+                long y = o2.lastModified();
+                return Long.compare(x, y);
             }
         });
         return cacheFiles;
@@ -133,20 +121,18 @@ public abstract class AbstractDeferringArchive implements Archive{
 
     protected Collection<URI> getCacheIDs(String filterPrefix) {
         //Get the cached files
-        List<File> cacheFiles = new ArrayList<File>(FileUtils.listFiles(getDeferredDir(), null, false));
-        // Sort them in last modified order
-        Collections.sort(cacheFiles, new Comparator<File>() {
-            @Override
-            public int compare(File o1, File o2) {
-                return Long.compare(o1.lastModified(), o2.lastModified());
-            }
-        });
-        Collection<URI> result = new HashSet<URI>(cacheFiles.size());
+        List<File> cacheFiles = getCacheFiles();
+        ArrayList<URI> result = new ArrayList<URI>();
         for (File cacheFile : cacheFiles) {
             URI id = getIDfromFile(cacheFile);
             if (id == null){
                 continue;
             }
+            //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
+            if (cacheFile.lastModified() > fortyYearHence()){
+                id = URI.create(id.toString()+"#DELETED");
+            }
+
             if (filterPrefix != null && id.toString().startsWith(filterPrefix)){
                 result.add(id);
             }
@@ -194,4 +180,13 @@ public abstract class AbstractDeferringArchive implements Archive{
     public Archive getDelegate() {
         return delegate;
     }
+
+    protected long fiftyYearHence(){
+        return System.currentTimeMillis()+50*31558464000L;
+    }
+
+    protected long fortyYearHence(){
+        return System.currentTimeMillis()+40*31558464000L;
+    }
+
 }

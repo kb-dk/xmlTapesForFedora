@@ -43,9 +43,11 @@ public class Cache extends AbstractDeferringArchive{
 
     @Override
     public void remove(URI id) throws IOException {
-        File tempFile = getTempFile(id);
-        CacheOutputStream value = new CacheOutputStream(tempFile, getDeletedDeferredFile(id));
-        value.close();
+        //HERE WE NEED TO SET THAT THE BLOB IS DEAD
+        File cacheFile = getDeferredFile(id);
+        cacheFile.delete();
+        cacheFile.createNewFile();
+        cacheFile.setLastModified(fiftyYearHence());
     }
 
 

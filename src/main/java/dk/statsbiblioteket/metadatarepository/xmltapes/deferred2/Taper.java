@@ -41,16 +41,18 @@ public class Taper extends AbstractDeferringArchive {
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
-            public void run() {
+            public synchronized void run() {
                 timerStopped = false;
+
+                if (closed){
+                    cancel();
+                    timerStopped = true;
+                    return;
+                }
                 try {
-                    if (closed){
-                        cancel();
-                        timerStopped = true;
-                    }
                     saveAll();
                 } catch (IOException e) {
-                    //log.error("Failed to save object from cache",e);
+                    throw new RuntimeException(e);
                 }
             }
         }, delay, delay);
@@ -75,13 +77,20 @@ public class Taper extends AbstractDeferringArchive {
         for (File cacheFile : cacheFiles) {
             File tapingFile = getTapingFile(cacheFile);
             URI id = getIDfromFile(cacheFile);
-            Files.move(cacheFile,tapingFile,true);
-            OutputStream tapeOut = getDelegate().createNew(id, tapingFile.length());
-            InputStream tapingIn = getInputStream(id);
-            IOUtils.copyLarge(tapingIn,tapeOut);
-            tapingIn.close();
-            tapeOut.close();
-            Files.delete(tapingFile);
+            //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
+            if (cacheFile.lastModified() > fortyYearHence()){
+                Files.delete(cacheFile);
+                getDelegate().remove(id);
+            } else {
+                Files.move(cacheFile,tapingFile,true);
+                OutputStream tapeOut = getDelegate().createNew(id, tapingFile.length());
+                InputStream tapingIn = getInputStream(id);
+                IOUtils.copyLarge(tapingIn,tapeOut);
+                tapingIn.close();
+                tapeOut.close();
+                Files.delete(tapingFile);
+            }
+
         }
     }
 
