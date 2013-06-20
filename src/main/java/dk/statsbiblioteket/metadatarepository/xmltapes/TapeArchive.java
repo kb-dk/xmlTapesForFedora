@@ -232,6 +232,11 @@ public class TapeArchive implements Archive {
         init();
     }
 
+    @Override
+    public void close() throws IOException {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     /**
      * Iterate through the tapes and index them, if they are not already indexed. The newest tape will always be indexed
      * but will never be marked as Indexed

@@ -91,6 +91,8 @@ public interface Archive {
      * @throws IOException
      */
     void rebuild() throws IOException;
+
+    void close() throws IOException;
 }
 
 
