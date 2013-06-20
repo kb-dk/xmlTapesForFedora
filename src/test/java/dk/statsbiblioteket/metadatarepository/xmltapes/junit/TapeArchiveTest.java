@@ -2,7 +2,8 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.deferred.DeferredStorage;
+import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
+import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -38,8 +39,18 @@ public class TapeArchiveTest {
     public void setUp() throws Exception {
 
         URI store = getPrivateStoreId();
+        File tapingStore = new File(new File(store), "tapingStore");
+        tapingStore.mkdirs();
+        File cachingDir = new File(new File(store), "cachingDir");
+        cachingDir.mkdirs();
+        File tempDir = new File(new File(store), "tempDir");
+        tempDir.mkdirs();
 
-        archive = new DeferredStorage(new TapeArchive(store, tapeSize));
+
+        TapeArchive tapeArchive = new TapeArchive(store, tapeSize);
+        Taper taper = new Taper(tapeArchive, tapingStore);
+        archive = new Cache(taper,cachingDir, tempDir);
+        taper.setCache((Cache) archive);
         archive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
         archive.rebuild();
         OutputStream outputStream = archive.createNew(testFile1, 0);
@@ -58,6 +69,7 @@ public class TapeArchiveTest {
 
     @After
     public void clean() throws URISyntaxException, IOException{
+        archive.close();
         File archiveFolder = new File(getPrivateStoreId());
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));
