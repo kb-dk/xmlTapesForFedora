@@ -500,6 +500,11 @@ public class TapeArchive implements Archive {
     @Override
     public synchronized void remove(URI id) throws IOException {
         writeLock.lock(Thread.currentThread());
+        Entry newestFile = index.getLocation(id);
+        if (newestFile == null) { //No reason to delete a file that does not exist in the index.
+            return;
+        }
+
         if (calculateTarSize(newestTape) > SIZE_LIMIT) {
             closeAndStartNewTape();
         }
