@@ -2,7 +2,6 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.testng;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.deferred.DeferredStorage;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;
@@ -47,7 +46,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
 
         XmlTapesBlobStore store = new XmlTapesBlobStore(getPrivateStoreId());
 
-        store.setArchive(new DeferredStorage(new TapeArchive(getStoreLocation(),1024*1024)));
+        store.setArchive((new TapeArchive(getStoreLocation(),1024*1024)));
         store.getArchive().setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
         store.getArchive().rebuild();
         return store;

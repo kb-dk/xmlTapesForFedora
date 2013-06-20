@@ -3,7 +3,6 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
-import dk.statsbiblioteket.metadatarepository.xmltapes.deferred.DeferredStorage;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -46,7 +45,7 @@ public class TapeArchiveTest2 {
 
         URI store = getPrivateStoreId();
 
-        archive =  new DeferredStorage(new TapeArchive(store, tapeSize));
+        archive =  (new TapeArchive(store, tapeSize));
 
         index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);
         archive.setIndex(index);
