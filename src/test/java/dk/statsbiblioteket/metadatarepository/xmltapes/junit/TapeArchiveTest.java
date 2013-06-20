@@ -68,7 +68,8 @@ public class TapeArchiveTest {
 
 
     @After
-    public void clean() throws URISyntaxException, IOException{
+    public void clean() throws URISyntaxException, IOException, InterruptedException {
+        Thread.sleep(10000);
         archive.close();
         File archiveFolder = new File(getPrivateStoreId());
         FileUtils.cleanDirectory(archiveFolder);

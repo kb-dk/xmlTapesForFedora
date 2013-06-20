@@ -2,6 +2,9 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
+import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;
@@ -36,6 +39,7 @@ public class XmlTapesBlobStoreTest {
     public static final int REDIS_PORT = 6379;
     public static final int REDIS_DATABASE = 5;
     BlobStoreConnection connection;
+    private Archive archive;
 
     @Before
     public void setUp() throws Exception {
@@ -55,7 +59,23 @@ public class XmlTapesBlobStoreTest {
 
         XmlTapesBlobStore store = new XmlTapesBlobStore(URI.create("test:tapestorage"));
 
-        store.setArchive((new TapeArchive(getPrivateStoreId(),1024*1024)));
+
+        File archiveFolder = new File(getPrivateStoreId());
+        File tapingStore = new File(archiveFolder, "tapingStore");
+        tapingStore.mkdirs();
+        File cachingDir = new File(archiveFolder, "cachingDir");
+        cachingDir.mkdirs();
+        File tempDir = new File(archiveFolder, "tempDir");
+        tempDir.mkdirs();
+
+
+        TapeArchive tapeArchive = new TapeArchive(getPrivateStoreId(), 1024L*1024);
+        Taper taper = new Taper(tapeArchive, tapingStore);
+
+        archive = new Cache(taper, cachingDir, tempDir);
+        taper.setCache((Cache) archive);
+
+        store.setArchive(archive);
         store.getArchive().setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
         store.getArchive().rebuild();
         return store;
@@ -64,6 +84,9 @@ public class XmlTapesBlobStoreTest {
     public void clean() throws IOException, URISyntaxException {
         if (connection != null){
             connection.close();
+        }
+        if (archive != null){
+            archive.close();
         }
         File archiveFolder = new File(getPrivateStoreId());
         FileUtils.cleanDirectory(archiveFolder);

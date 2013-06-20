@@ -3,6 +3,8 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
+import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
+import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -38,14 +40,23 @@ public class TapeArchiveTest2 {
     String contents = "testFile 1 is here now";
     private long tapeSize = 1024*1024;
     RedisIndex index;
-    
-    
+
+
     @Before
     public void setUp() throws Exception {
 
         URI store = getPrivateStoreId();
+        File tapingStore = new File(new File(store), "tapingStore");
+        tapingStore.mkdirs();
+        File cachingDir = new File(new File(store), "cachingDir");
+        cachingDir.mkdirs();
+        File tempDir = new File(new File(store), "tempDir");
+        tempDir.mkdirs();
 
-        archive =  (new TapeArchive(store, tapeSize));
+        TapeArchive tapeArchive = new TapeArchive(store, tapeSize);
+        Taper taper = new Taper(tapeArchive, tapingStore);
+        archive = new Cache(taper,cachingDir, tempDir);
+        taper.setCache((Cache) archive);
 
         index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);
         archive.setIndex(index);
@@ -55,18 +66,18 @@ public class TapeArchiveTest2 {
         writer.write(contents);
         writer.close();
 
-        
+
         outputStream = archive.createNew(testFile2, 0);
         writer = new OutputStreamWriter(outputStream);
         writer.write(contents);
         writer.close();
 
-        
+
         outputStream = archive.createNew(testFile3, 0);
         writer = new OutputStreamWriter(outputStream);
         writer.write(contents);
         writer.close();
-        
+
     }
 
 
@@ -78,6 +89,7 @@ public class TapeArchiveTest2 {
 
     @After
     public void clean() throws URISyntaxException, IOException{
+        archive.close();
         File archiveFolder = new File(getPrivateStoreId());
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));
