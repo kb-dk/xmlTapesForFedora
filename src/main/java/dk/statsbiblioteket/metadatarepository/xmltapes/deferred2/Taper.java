@@ -72,20 +72,31 @@ public class Taper extends AbstractDeferringArchive {
             return;
         }
         List<File> cacheFiles = cache.getCacheFiles();
-
-
         for (File cacheFile : cacheFiles) {
             File tapingFile = getTapingFile(cacheFile);
-            URI id = getIDfromFile(cacheFile);
+            Files.move(cacheFile,tapingFile,true);
+        }
+
+        /*Save the already enqueued files*/
+        tapeTheTapingFiles();
+
+
+
+    }
+
+
+    private void tapeTheTapingFiles() throws IOException {
+        List<File> tapingFiles = getCacheFiles();
+        for (File tapingFile : tapingFiles) {
+            URI id = getIDfromFile(tapingFile);
             //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
-            if (cacheFile.lastModified() > fortyYearHence()){
-                Files.delete(cacheFile);
+            if (tapingFile.lastModified() > fortyYearHence()){
                 getDelegate().remove(id);
+                Files.delete(tapingFile);
             } else {
-                Files.move(cacheFile,tapingFile,true);
                 OutputStream tapeOut = getDelegate().createNew(id, tapingFile.length());
                 InputStream tapingIn = getInputStream(id);
-                IOUtils.copyLarge(tapingIn,tapeOut);
+                IOUtils.copyLarge(tapingIn, tapeOut);
                 tapingIn.close();
                 tapeOut.close();
                 Files.delete(tapingFile);
