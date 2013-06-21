@@ -2,6 +2,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
@@ -29,7 +30,7 @@ public class TapeArchiveTest {
     public static final String REDIS_HOST = "localhost";
     public static final int REDIS_PORT = 6379;
     public static final int REDIS_DATABASE = 3;
-    Archive archive;
+    AbstractDeferringArchive archive;
 
     URI testFile1 = URI.create("testFile1");
     String contents = "testFile 1 is here now";
@@ -49,7 +50,9 @@ public class TapeArchiveTest {
 
         TapeArchive tapeArchive = new TapeArchive(store, tapeSize);
         Taper taper = new Taper(tapeArchive, tapingStore);
-        archive = new Cache(taper,cachingDir, tempDir);
+
+        archive = new Cache(cachingDir, tempDir);
+        archive.setDelegate(taper);
         taper.setCache((Cache) archive);
         archive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
         archive.rebuild();
@@ -69,7 +72,7 @@ public class TapeArchiveTest {
 
     @After
     public void clean() throws URISyntaxException, IOException, InterruptedException {
-        Thread.sleep(10000);
+        //Thread.sleep(5000);
         archive.close();
         File archiveFolder = new File(getPrivateStoreId());
         FileUtils.cleanDirectory(archiveFolder);

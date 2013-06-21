@@ -3,6 +3,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
@@ -39,7 +40,7 @@ public class XmlTapesBlobStoreTest {
     public static final int REDIS_PORT = 6379;
     public static final int REDIS_DATABASE = 5;
     BlobStoreConnection connection;
-    private Archive archive;
+    private AbstractDeferringArchive archive;
 
     @Before
     public void setUp() throws Exception {
@@ -72,7 +73,8 @@ public class XmlTapesBlobStoreTest {
         TapeArchive tapeArchive = new TapeArchive(getPrivateStoreId(), 1024L*1024);
         Taper taper = new Taper(tapeArchive, tapingStore);
 
-        archive = new Cache(taper, cachingDir, tempDir);
+        archive = new Cache(cachingDir, tempDir);
+        archive.setDelegate(taper);
         taper.setCache((Cache) archive);
 
         store.setArchive(archive);

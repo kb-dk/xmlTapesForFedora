@@ -3,6 +3,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
+import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
@@ -32,7 +33,7 @@ public class TapeArchiveTest2 {
     public static final String REDIS_HOST = "localhost";
     public static final int REDIS_PORT = 6379;
     public static final int REDIS_DATABASE = 3;
-    Archive archive;
+    AbstractDeferringArchive archive;
 
     URI testFile1 = URI.create("testFile1");
     URI testFile2 = URI.create("testFile2");
@@ -55,7 +56,8 @@ public class TapeArchiveTest2 {
 
         TapeArchive tapeArchive = new TapeArchive(store, tapeSize);
         Taper taper = new Taper(tapeArchive, tapingStore);
-        archive = new Cache(taper,cachingDir, tempDir);
+        archive = new Cache(cachingDir, tempDir);
+        archive.setDelegate(taper);
         taper.setCache((Cache) archive);
 
         index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);

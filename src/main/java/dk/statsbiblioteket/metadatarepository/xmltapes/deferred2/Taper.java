@@ -34,7 +34,9 @@ public class Taper extends AbstractDeferringArchive {
     private boolean timerStopped = true;
 
     public Taper(Archive tapeArchive, File tapingDir) {
-        super(tapeArchive, tapingDir);
+        super();
+        super.setDelegate(tapeArchive);
+        super.setDeferredDir(tapingDir);
 
 
 

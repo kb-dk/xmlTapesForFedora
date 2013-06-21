@@ -19,8 +19,9 @@ public class Cache extends AbstractDeferringArchive{
     private final File tempDir;
 
 
-    public Cache(Archive taper, File cacheDir, File tempDir) {
-        super(taper, cacheDir);
+    public Cache( File cacheDir, File tempDir) {
+        super();
+        super.setDeferredDir(cacheDir);
         this.tempDir = tempDir;
     }
 

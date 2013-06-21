@@ -31,14 +31,15 @@ import java.util.List;
 public abstract class AbstractDeferringArchive implements Archive{
 
 
-    private final Archive delegate;
-    private final File deferredDir;
+    private Archive delegate;
+    private  File deferredDir;
 
 
-    public AbstractDeferringArchive(Archive delegate, File deferredDir) {
-        this.delegate = delegate;
-        this.deferredDir = deferredDir;
+
+    public AbstractDeferringArchive() {
     }
+
+
 
     @Override
     public InputStream getInputStream(URI id) throws FileNotFoundException, IOException {
@@ -189,4 +190,11 @@ public abstract class AbstractDeferringArchive implements Archive{
         return System.currentTimeMillis()+40*31558464000L;
     }
 
+    public void setDelegate(Archive delegate) {
+        this.delegate = delegate;
+    }
+
+    public void setDeferredDir(File deferredDir) {
+        this.deferredDir = deferredDir;
+    }
 }

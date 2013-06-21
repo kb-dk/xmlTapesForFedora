@@ -3,6 +3,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.testng;
 import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
@@ -67,7 +68,8 @@ public class XmlTapesTestSuite extends TCKTestSuite {
         TapeArchive tapeArchive = new TapeArchive(getStoreLocation(), 1024L*1024);
         Taper taper = new Taper(tapeArchive, tapingStore);
 
-        archive = new Cache(taper, cachingDir, tempDir);
+        archive = new Cache(cachingDir, tempDir);
+        ((AbstractDeferringArchive)(archive)).setDelegate(taper);
         taper.setCache((Cache) archive);
 
         store.setArchive(archive);
