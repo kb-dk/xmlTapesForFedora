@@ -76,6 +76,7 @@ public class XmlTapesBlobStoreTest {
         archive = new Cache(cachingDir, tempDir);
         archive.setDelegate(taper);
         taper.setCache((Cache) archive);
+        taper.setDelay(500);
 
         store.setArchive(archive);
         store.getArchive().setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));

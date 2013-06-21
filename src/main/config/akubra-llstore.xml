@@ -77,6 +77,8 @@
         <constructor-arg value="/CHANGEME/tapingObjectStore"/>
         <!--The cache to get the objects to tape from-->
         <property name="cache" ref="cacheTapeObjectStore"/>
+        <!--The frequency in ms which the objects should be taped-->
+        <property name="delay" value="5000"/>
     </bean>
 
     <!--The guts of the tape system-->

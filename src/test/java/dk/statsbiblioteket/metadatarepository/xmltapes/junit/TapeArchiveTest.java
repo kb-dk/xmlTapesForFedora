@@ -51,9 +51,11 @@ public class TapeArchiveTest {
         TapeArchive tapeArchive = new TapeArchive(store, tapeSize);
         Taper taper = new Taper(tapeArchive, tapingStore);
 
+
         archive = new Cache(cachingDir, tempDir);
         archive.setDelegate(taper);
         taper.setCache((Cache) archive);
+        taper.setDelay(500);
         archive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
         archive.rebuild();
         OutputStream outputStream = archive.createNew(testFile1, 0);

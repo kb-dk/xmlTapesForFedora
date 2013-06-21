@@ -59,6 +59,7 @@ public class TapeArchiveTest2 {
         archive = new Cache(cachingDir, tempDir);
         archive.setDelegate(taper);
         taper.setCache((Cache) archive);
+        taper.setDelay(500);
 
         index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);
         archive.setIndex(index);

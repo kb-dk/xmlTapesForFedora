@@ -26,27 +26,33 @@ import java.util.regex.Pattern;
 public class Taper extends AbstractDeferringArchive {
 
 
-    private final long delay = 5000;
+    private final Timer timer;
+    private  long delay;
 
     private Cache cache;
 
     private boolean closed = false;
     private boolean timerStopped = true;
+    private TimerTask task;
 
     public Taper(Archive tapeArchive, File tapingDir) {
         super();
         super.setDelegate(tapeArchive);
         super.setDeferredDir(tapingDir);
+        timer = new Timer();
+    }
 
+    private void startTimer() {
 
-
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
+        if (task != null){
+            task.cancel();
+        }
+        task = new TimerTask() {
             @Override
             public synchronized void run() {
                 timerStopped = false;
 
-                if (closed){
+                if (closed) {
                     cancel();
                     timerStopped = true;
                     return;
@@ -57,8 +63,8 @@ public class Taper extends AbstractDeferringArchive {
                     throw new RuntimeException(e);
                 }
             }
-        }, delay, delay);
-
+        };
+        timer.schedule(task, delay, delay);
     }
 
     private File getTapingFile(File cacheResultFile)  {
@@ -144,6 +150,15 @@ public class Taper extends AbstractDeferringArchive {
         }
         getDelegate().close();
 
+    }
+
+    public long getDelay() {
+        return delay;
+    }
+
+    public void setDelay(long delay) {
+        this.delay = delay;
+        startTimer();
     }
 }
 
