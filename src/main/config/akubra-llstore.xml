@@ -47,9 +47,34 @@
           singleton="true">
         <constructor-arg value="urn:example.org:tapeObjectStore"/>
         <!--This parameter is the name of the storage. -->
-        <property name="archive" ref="tarTapeObjectStore"/>
+        <property name="archive" ref="cacheTapeObjectStore"/>
         <!--And this is the reference to the actual implementation-->
 
+    </bean>
+
+
+    <!--The cache tape object store holds the objects while it is being written and until the taper is ready
+    to tape the object-->
+    <bean name="cacheTapeObjectStore" class="dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache"
+          singleton="true">
+        <!--The delegate for read operations-->
+        <constructor-arg ref="taperTapeObjectStore"/>
+        <!--Where to store files while they are still being written-->
+        <constructor-arg value="/CHANGEME/cacheTempObjectStore"/>
+        <!--Where to store files until the taper is ready to tape them-->
+        <constructor-arg value="/CHANGEME/cacheObjectStore"/>
+        <!--The two adresses above must be on the same file system as we rely on atomic moves-->
+    </bean>
+
+    <!--The taper store holds the objects while they are being taped.-->
+    <bean name="taperTapeObjectStore" class="dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taper"
+          singleton="true">
+        <!--The delegate for reading and the store to tape the objects to-->
+        <constructor-arg ref="tarTapeObjectStore"/>
+        <!--Where to hold the objects while they are being taped-->
+        <constructor-arg value="/CHANGEME/tapingObjectStore"/>
+        <!--The cache to get the objects to tape from-->
+        <property name="cache" ref="cacheTapeObjectStore"/>
     </bean>
 
     <!--The guts of the tape system-->
@@ -65,6 +90,7 @@
         <property name="index" ref="redisIndex"/>
         <property name="fixErrors" value="false"/>
     </bean>
+
 
 
     <!--This is our Redis index-->
