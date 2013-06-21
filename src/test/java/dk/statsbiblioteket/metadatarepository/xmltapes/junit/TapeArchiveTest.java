@@ -49,7 +49,7 @@ public class TapeArchiveTest {
 
 
         TapeArchive tapeArchive = new TapeArchive(store, tapeSize);
-        Taper taper = new Taper(tapeArchive, tapingStore);
+        Taper taper = new Taper(tapeArchive, tapingStore,5000);
 
 
         archive = new Cache(cachingDir, tempDir);

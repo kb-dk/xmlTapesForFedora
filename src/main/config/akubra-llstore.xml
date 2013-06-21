@@ -57,10 +57,11 @@
     to tape the object-->
     <bean name="cacheTapeObjectStore" class="dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache"
           singleton="true">
-        <!--Where to store files while they are still being written-->
-        <constructor-arg value="/CHANGEME/cacheTempObjectStore"/>
         <!--Where to store files until the taper is ready to tape them-->
         <constructor-arg value="/CHANGEME/cacheObjectStore"/>
+        <!--Where to store files while they are still being written-->
+        <constructor-arg value="/CHANGEME/cacheTempObjectStore"/>
+
         <!--The two adresses above must be on the same file system as we rely on atomic moves-->
 
         <!--The delegate for read operations-->
@@ -75,10 +76,11 @@
         <constructor-arg ref="tarTapeObjectStore"/>
         <!--Where to hold the objects while they are being taped-->
         <constructor-arg value="/CHANGEME/tapingObjectStore"/>
+        <!--The frequency in ms which the objects should be taped-->
+        <constructor-arg value="5000"/>
+
         <!--The cache to get the objects to tape from-->
         <property name="cache" ref="cacheTapeObjectStore"/>
-        <!--The frequency in ms which the objects should be taped-->
-        <property name="delay" value="5000"/>
     </bean>
 
     <!--The guts of the tape system-->

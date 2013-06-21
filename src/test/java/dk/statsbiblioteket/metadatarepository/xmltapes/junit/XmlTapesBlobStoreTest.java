@@ -71,7 +71,7 @@ public class XmlTapesBlobStoreTest {
 
 
         TapeArchive tapeArchive = new TapeArchive(getPrivateStoreId(), 1024L*1024);
-        Taper taper = new Taper(tapeArchive, tapingStore);
+        Taper taper = new Taper(tapeArchive, tapingStore,5000);
 
         archive = new Cache(cachingDir, tempDir);
         archive.setDelegate(taper);

@@ -66,7 +66,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
 
 
         TapeArchive tapeArchive = new TapeArchive(getStoreLocation(), 1024L*1024);
-        Taper taper = new Taper(tapeArchive, tapingStore);
+        Taper taper = new Taper(tapeArchive, tapingStore,5000);
 
         archive = new Cache(cachingDir, tempDir);
         ((AbstractDeferringArchive)(archive)).setDelegate(taper);

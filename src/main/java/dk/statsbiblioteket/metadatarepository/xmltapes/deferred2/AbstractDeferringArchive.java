@@ -117,7 +117,7 @@ public abstract class AbstractDeferringArchive implements Archive{
             public int compare(File o1, File o2) {
                 long x = o1.lastModified();
                 long y = o2.lastModified();
-                return Long.compare(x, y);
+                return Long.valueOf(x).compareTo(y);
             }
         });
         return cacheFiles;
@@ -198,6 +198,11 @@ public abstract class AbstractDeferringArchive implements Archive{
     }
 
     public void setDeferredDir(File deferredDir) {
-        this.deferredDir = deferredDir;
+        try {
+            this.deferredDir = deferredDir.getCanonicalFile();
+            this.deferredDir.mkdirs();
+        } catch (IOException e) {
+            this.deferredDir = deferredDir;
+        }
     }
 }

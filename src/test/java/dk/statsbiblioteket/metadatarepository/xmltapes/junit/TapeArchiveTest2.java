@@ -55,7 +55,7 @@ public class TapeArchiveTest2 {
         tempDir.mkdirs();
 
         TapeArchive tapeArchive = new TapeArchive(store, tapeSize);
-        Taper taper = new Taper(tapeArchive, tapingStore);
+        Taper taper = new Taper(tapeArchive, tapingStore,5000);
         archive = new Cache(cachingDir, tempDir);
         archive.setDelegate(taper);
         taper.setCache((Cache) archive);

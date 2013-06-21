@@ -3,6 +3,8 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.deferred2;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.util.Files;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +27,8 @@ import java.util.regex.Pattern;
  */
 public class Taper extends AbstractDeferringArchive {
 
+    private static final Logger log = LoggerFactory.getLogger(Taper.class);
+
 
     private final Timer timer;
     private  long delay;
@@ -35,11 +39,12 @@ public class Taper extends AbstractDeferringArchive {
     private boolean timerStopped = true;
     private TimerTask task;
 
-    public Taper(Archive tapeArchive, File tapingDir) {
+    public Taper(Archive tapeArchive, File tapingDir, long delay) {
         super();
         super.setDelegate(tapeArchive);
         super.setDeferredDir(tapingDir);
         timer = new Timer();
+        setDelay(delay);
     }
 
     private void startTimer() {
@@ -51,7 +56,7 @@ public class Taper extends AbstractDeferringArchive {
             @Override
             public synchronized void run() {
                 timerStopped = false;
-
+                log.debug("Taping thread started");
                 if (closed) {
                     cancel();
                     timerStopped = true;
@@ -59,12 +64,12 @@ public class Taper extends AbstractDeferringArchive {
                 }
                 try {
                     saveAll();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                } catch (Exception e) {
+                    log.error("Failed to save objects",e);
                 }
             }
         };
-        timer.schedule(task, delay, delay);
+        timer.schedule(task, 0, delay);
     }
 
     private File getTapingFile(File cacheResultFile)  {

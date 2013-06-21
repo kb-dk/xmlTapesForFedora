@@ -2,6 +2,8 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.deferred2;
 
 import dk.statsbiblioteket.util.Files;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,6 +21,7 @@ import java.net.URI;
  */
 public class CacheOutputStream extends OutputStream {
 
+    private static final Logger log = LoggerFactory.getLogger(CacheOutputStream.class);
 
     private final FileOutputStream stream;
     private final File tempFile;
@@ -53,6 +56,11 @@ public class CacheOutputStream extends OutputStream {
     @Override
     public void close() throws IOException {
         stream.close();
-        Files.move(tempFile,cacheFile,true);
+        try {
+            Files.move(tempFile,cacheFile,true);
+        }
+        catch (Exception e){
+            log.warn("Tried to move temp to cache, caught Exception",e);
+        }
     }
 }
