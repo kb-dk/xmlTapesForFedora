@@ -8,11 +8,9 @@ import java.io.OutputStream;
 import java.net.URI;
 
 /**
- * Created with IntelliJ IDEA.
- * User: abr
- * Date: 6/20/13
- * Time: 11:54 AM
- * To change this template use File | Settings | File Templates.
+ * Cache is a fedora storage implementation that just holds files in a cache dir. Writes happen to the tempdir, and
+ * when the stream is closed, the file is moved to the cache dir. Read operations are resolved against the cache dir,
+ * and if not found delegated.
  */
 public class Cache extends AbstractDeferringArchive{
 
