@@ -48,8 +48,8 @@ public class RedisIndex implements Index {
 
     public RedisIndex(String host, int port, int database) {
         GenericObjectPool.Config poolConfig = new GenericObjectPool.Config();
-        poolConfig.whenExhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_GROW;
-        pool = new JedisPool(new GenericObjectPool.Config(),host, port,0,null,database);
+        poolConfig.whenExhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_BLOCK;
+        pool = new JedisPool(poolConfig,host, port,0,null,database);
 
         log.info("Redis database {} initialised on {}:{}",new Object[]{database,host,port});
     }
