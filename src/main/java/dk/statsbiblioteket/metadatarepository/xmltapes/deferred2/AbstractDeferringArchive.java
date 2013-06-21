@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.deferred2;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.TapeUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import org.apache.commons.io.FileUtils;
@@ -31,6 +32,8 @@ import java.util.List;
 public abstract class AbstractDeferringArchive implements Archive{
 
 
+    public static final String UTF_8 = "UTF-8";
+    public static final long YEARMILLIS = 31558464000L;
     private Archive delegate;
     private  File deferredDir;
 
@@ -59,7 +62,7 @@ public abstract class AbstractDeferringArchive implements Archive{
     protected File getDeferredFile(URI id) {
         try {
             return new File(deferredDir,
-                    URLEncoder.encode(id.toString(),"UTF-8"));
+                    URLEncoder.encode(id.toString(), UTF_8));
         } catch (UnsupportedEncodingException e) {
             throw new Error(e);
         }
@@ -70,7 +73,7 @@ public abstract class AbstractDeferringArchive implements Archive{
 
         try {
             String name = cacheFile.getName();
-            return new URI(URLDecoder.decode(name, "UTF-8"));
+            return new URI(URLDecoder.decode(name, UTF_8));
         } catch (URISyntaxException e) {
             return null;
         } catch (UnsupportedEncodingException e) {
@@ -131,7 +134,7 @@ public abstract class AbstractDeferringArchive implements Archive{
             }
             //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
             if (cacheFile.lastModified() > fortyYearHence()){
-                id = URI.create(id.toString()+"#DELETED");
+                id = URI.create(id.toString()+ TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED);
             }
 
             if (filterPrefix != null && id.toString().startsWith(filterPrefix)){
@@ -183,11 +186,11 @@ public abstract class AbstractDeferringArchive implements Archive{
     }
 
     protected long fiftyYearHence(){
-        return System.currentTimeMillis()+50*31558464000L;
+        return System.currentTimeMillis()+50* YEARMILLIS;
     }
 
     protected long fortyYearHence(){
-        return System.currentTimeMillis()+40*31558464000L;
+        return System.currentTimeMillis()+40* YEARMILLIS;
     }
 
     public void setDelegate(Archive delegate) {

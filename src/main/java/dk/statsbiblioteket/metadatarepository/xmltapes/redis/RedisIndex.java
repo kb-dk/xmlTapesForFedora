@@ -41,6 +41,8 @@ public class RedisIndex implements Index {
     public static final String BUCKETS = "buckets";
     private static final int INDEX_LEVELS = 4;
     private static final int ITERATOR_LIFETIME = 60 * 60;
+    public static final String TAPES_SET = "tapes";
+    public static final String PLACEHOLDER = "placeholder";
     private final JedisPool pool;
 
 
@@ -116,7 +118,7 @@ public class RedisIndex implements Index {
     @Override
     public boolean isIndexed(String tapename) {
         Jedis jedis = pool.getResource();
-        Boolean result = jedis.sismember("tapes", tapename);
+        Boolean result = jedis.sismember(TAPES_SET, tapename);
         pool.returnResource(jedis);
         return result;
     }
@@ -124,7 +126,7 @@ public class RedisIndex implements Index {
     @Override
     public void setIndexed(String tapename) {
         Jedis jedis = pool.getResource();
-        jedis.sadd("tapes", tapename);
+        jedis.sadd(TAPES_SET, tapename);
         pool.returnResource(jedis);
     }
 
@@ -147,7 +149,7 @@ public class RedisIndex implements Index {
         Jedis jedis = pool.getResource();
         Set<String> buckets = jedis.smembers(BUCKETS);
 
-        jedis.zadd(key,0,"placeholder");
+        jedis.zadd(key,0, PLACEHOLDER);
         jedis.expire(key, ITERATOR_LIFETIME);
         //could be somewhat big
 

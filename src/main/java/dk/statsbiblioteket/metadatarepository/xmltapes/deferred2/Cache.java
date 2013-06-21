@@ -16,6 +16,7 @@ import java.net.URI;
  */
 public class Cache extends AbstractDeferringArchive{
 
+    public static final String TEMP_PREFIX = "temp";
     private final File tempDir;
 
 
@@ -26,7 +27,7 @@ public class Cache extends AbstractDeferringArchive{
     }
 
     private File getTempFile(URI id) throws IOException {
-        File tempfile = File.createTempFile(id.toString(), "temp", tempDir);
+        File tempfile = File.createTempFile(id.toString(), TEMP_PREFIX, tempDir);
         tempfile.deleteOnExit();
         return tempfile;
     }

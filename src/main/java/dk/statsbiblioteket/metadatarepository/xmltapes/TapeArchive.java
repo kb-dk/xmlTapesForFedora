@@ -43,6 +43,7 @@ public class TapeArchive implements Archive {
 
     public static final String TAPE = "tape";
     public static final String TAR = ".tar.gz";
+    public static final String TEMP_TAPE = "tempTape";
 
 
     /**
@@ -175,7 +176,7 @@ public class TapeArchive implements Archive {
             log.warn("Failed to verify {}. I will now copy all that can be read to new file and replace the broken tape",
                     tape);
 
-            File tempTape = File.createTempFile("tempTape", TAR);
+            File tempTape = File.createTempFile(TEMP_TAPE, TAR);
             tempTape.deleteOnExit();
             tarout = new TarOutputStream(new FileOutputStream(tempTape));
             //close and reopen
@@ -195,7 +196,7 @@ public class TapeArchive implements Archive {
             IOUtils.closeQuietly(tarout);
 
             //move existing out of the way
-            File temp2 = File.createTempFile("tempTape", TAR);
+            File temp2 = File.createTempFile(TEMP_TAPE, TAR);
             temp2.deleteOnExit();
 
             FileUtils.moveFile(tape, temp2);
@@ -402,7 +403,7 @@ public class TapeArchive implements Archive {
 
         TarEntry tarEntry = tapeInputstream.getNextEntry();
         if (tarEntry != null && tarEntry.getName().startsWith(id.toString())){
-            if (tarEntry.getName().endsWith(".gz")){
+            if (tarEntry.getName().endsWith(TapeUtils.GZ)){
                 return new GzipCompressorInputStream(tapeInputstream);
             }
             return tapeInputstream;

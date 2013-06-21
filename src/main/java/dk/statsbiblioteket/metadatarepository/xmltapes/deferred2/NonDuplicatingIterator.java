@@ -1,5 +1,7 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.deferred2;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.TapeUtils;
+
 import java.net.URI;
 import java.util.Collection;
 import java.util.HashSet;
@@ -46,9 +48,11 @@ public class NonDuplicatingIterator implements Iterator<URI> {
                 }
             }
             next = currentIterator.next();
-            if (next.toString().endsWith("#DELETED")){
+            if (next.toString().endsWith(TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED)){
 
-                next = URI.create(next.toString().replaceAll(Pattern.quote("#DELETED"), ""));
+                next = URI.create(next.toString().replaceAll(Pattern.quote(
+                        TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED),
+                        ""));
                 deletedIDs.add(next);
             }
             if (deletedIDs.contains(next)){

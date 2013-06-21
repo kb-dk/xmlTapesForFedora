@@ -13,6 +13,7 @@ public class TapeUtils {
 
     public static final String NAME_SEPARATOR = "#";
     public static final String DELETED = "DELETED";
+    public static final String GZ = ".gz";
 
     public static URI toURI(TarEntry entry) {
         return toURI(entry.getName());
@@ -34,7 +35,7 @@ public class TapeUtils {
     }
 
     public static String toFilenameGZ(URI id) {
-        return toFilename(id)+".gz";
+        return toFilename(id)+ GZ;
     }
 
 
