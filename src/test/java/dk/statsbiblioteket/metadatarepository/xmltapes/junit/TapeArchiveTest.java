@@ -4,7 +4,6 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
-import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -40,8 +39,6 @@ public class TapeArchiveTest {
     public void setUp() throws Exception {
 
         URI store = getPrivateStoreId();
-        File tapingStore = new File(new File(store), "tapingStore");
-        tapingStore.mkdirs();
         File cachingDir = new File(new File(store), "cachingDir");
         cachingDir.mkdirs();
         File tempDir = new File(new File(store), "tempDir");
@@ -49,13 +46,11 @@ public class TapeArchiveTest {
 
 
         TapeArchive tapeArchive = new TapeArchive(store, tapeSize);
-        Taper taper = new Taper(tapeArchive, tapingStore,5000);
+
 
 
         archive = new Cache(cachingDir, tempDir);
-        archive.setDelegate(taper);
-        taper.setCache((Cache) archive);
-        taper.setDelay(500);
+        archive.setDelegate(tapeArchive);
         archive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
         archive.rebuild();
         OutputStream outputStream = archive.createNew(testFile1, 0);

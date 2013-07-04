@@ -21,7 +21,7 @@ public class LockPool {
     public synchronized void acquireLock(String key){
         while ( ! acquireLockNonBlocking(key)){
             try {
-                Thread.sleep(100);
+                wait(100);
             } catch (InterruptedException e) {
 
             }

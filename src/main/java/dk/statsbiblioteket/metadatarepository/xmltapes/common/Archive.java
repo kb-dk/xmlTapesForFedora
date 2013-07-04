@@ -34,7 +34,7 @@ public interface Archive {
      * @param id the id to check
      * @return true of the blob is in the store
      */
-    boolean exist(URI id);
+    boolean exist(URI id) throws IOException;
 
     /**
      * Return the length of a blob

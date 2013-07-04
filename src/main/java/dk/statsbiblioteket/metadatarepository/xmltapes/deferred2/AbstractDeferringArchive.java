@@ -37,9 +37,11 @@ public abstract class AbstractDeferringArchive implements Archive{
     private Archive delegate;
     private  File deferredDir;
 
+    protected final LockPool lockPool;
 
 
     public AbstractDeferringArchive() {
+        lockPool = new LockPool();
     }
 
 
@@ -108,9 +110,12 @@ public abstract class AbstractDeferringArchive implements Archive{
 
 
 
-    protected List<File> getCacheFiles() {
+    protected synchronized List<File> getAndLockCacheFiles() {
         //Get the cached files
         List<File> cacheFiles = new ArrayList<File>(FileUtils.listFiles(getDeferredDir(), null, false));
+        for (File cacheFile : cacheFiles) {
+            lockPool.acquireLock(cacheFile.getName());
+        }
         // Sort them in last modified order
         Collections.sort(cacheFiles, new Comparator<File>() {
             @Override
@@ -125,14 +130,13 @@ public abstract class AbstractDeferringArchive implements Archive{
 
     protected Collection<URI> getCacheIDs(String filterPrefix) {
         //Get the cached files
-        List<File> cacheFiles = getCacheFiles();
+        List<File> cacheFiles = getAndLockCacheFiles();
         ArrayList<URI> result = new ArrayList<URI>();
         for (File cacheFile : cacheFiles) {
             URI id = getIDfromFile(cacheFile);
             if (id == null){
                 continue;
             }
-            //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
             if (isDeleted(cacheFile)){
                 id = URI.create(id.toString()+ TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED);
             }
@@ -140,6 +144,7 @@ public abstract class AbstractDeferringArchive implements Archive{
             if (filterPrefix != null && id.toString().startsWith(filterPrefix)){
                 result.add(id);
             }
+            lockPool.releaseLock(cacheFile.getName());
         }
         return result;
     }

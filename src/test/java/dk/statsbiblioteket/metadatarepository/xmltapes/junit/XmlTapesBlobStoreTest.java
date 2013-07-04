@@ -5,7 +5,6 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
-import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;
@@ -62,8 +61,6 @@ public class XmlTapesBlobStoreTest {
 
 
         File archiveFolder = new File(getPrivateStoreId());
-        File tapingStore = new File(archiveFolder, "tapingStore");
-        tapingStore.mkdirs();
         File cachingDir = new File(archiveFolder, "cachingDir");
         cachingDir.mkdirs();
         File tempDir = new File(archiveFolder, "tempDir");
@@ -71,12 +68,9 @@ public class XmlTapesBlobStoreTest {
 
 
         TapeArchive tapeArchive = new TapeArchive(getPrivateStoreId(), 1024L*1024);
-        Taper taper = new Taper(tapeArchive, tapingStore,5000);
 
         archive = new Cache(cachingDir, tempDir);
-        archive.setDelegate(taper);
-        taper.setCache((Cache) archive);
-        taper.setDelay(500);
+        archive.setDelegate(tapeArchive);
 
         store.setArchive(archive);
         store.getArchive().setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));

@@ -5,7 +5,6 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
-import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;
@@ -57,8 +56,6 @@ public class XmlTapesTestSuite extends TCKTestSuite {
 
 
         File archiveFolder = new File(getStoreLocation());
-        File tapingStore = new File(archiveFolder, "tapingStore");
-        tapingStore.mkdirs();
         File cachingDir = new File(archiveFolder, "cachingDir");
         cachingDir.mkdirs();
         File tempDir = new File(archiveFolder, "tempDir");
@@ -66,12 +63,9 @@ public class XmlTapesTestSuite extends TCKTestSuite {
 
 
         TapeArchive tapeArchive = new TapeArchive(getStoreLocation(), 1024L*1024);
-        Taper taper = new Taper(tapeArchive, tapingStore,5000);
 
         archive = new Cache(cachingDir, tempDir);
-        ((AbstractDeferringArchive)(archive)).setDelegate(taper);
-        taper.setCache((Cache) archive);
-        taper.setDelay(500);
+        ((AbstractDeferringArchive)(archive)).setDelegate(tapeArchive);
 
         store.setArchive(archive);
         store.getArchive().setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
@@ -87,7 +81,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
         }
 
         File archiveFolder = new File(getStoreLocation());
-//        FileUtils.cleanDirectory(archiveFolder);
+        FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));
 
     }
