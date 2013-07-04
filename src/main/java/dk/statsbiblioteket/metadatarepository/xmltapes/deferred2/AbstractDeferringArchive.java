@@ -49,7 +49,7 @@ public abstract class AbstractDeferringArchive implements Archive{
 
         File cacheFile = getDeferredFile(id);
         //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
-        if (cacheFile.lastModified() > fortyYearHence()){
+        if (isDeleted(cacheFile)){
             throw new FileNotFoundException("Deleted file");
         }
         try {
@@ -86,10 +86,10 @@ public abstract class AbstractDeferringArchive implements Archive{
 
 
     @Override
-    public boolean exist(URI id) {
+    public boolean exist(URI id) throws IOException {
         File cacheFile = getDeferredFile(id);
         //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
-        if (cacheFile.exists() && cacheFile.lastModified() > fortyYearHence()){
+        if (cacheFile.exists() && isDeleted(cacheFile)){
             return false;
         } else {
             return cacheFile.exists()  || delegate.exist(id);
@@ -133,7 +133,7 @@ public abstract class AbstractDeferringArchive implements Archive{
                 continue;
             }
             //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
-            if (cacheFile.lastModified() > fortyYearHence()){
+            if (isDeleted(cacheFile)){
                 id = URI.create(id.toString()+ TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED);
             }
 
@@ -185,11 +185,11 @@ public abstract class AbstractDeferringArchive implements Archive{
         return delegate;
     }
 
-    protected long fiftyYearHence(){
+    private static long fiftyYearHence(){
         return System.currentTimeMillis()+50* YEARMILLIS;
     }
 
-    protected long fortyYearHence(){
+    private static long fortyYearHence(){
         return System.currentTimeMillis()+40* YEARMILLIS;
     }
 
@@ -205,4 +205,14 @@ public abstract class AbstractDeferringArchive implements Archive{
             this.deferredDir = deferredDir;
         }
     }
+
+    public static boolean isDeleted(File file){
+        return file.lastModified() > fortyYearHence();
+    }
+
+    public static void setDeleted(File file){
+        file.setLastModified(fiftyYearHence());
+    }
 }
+
+

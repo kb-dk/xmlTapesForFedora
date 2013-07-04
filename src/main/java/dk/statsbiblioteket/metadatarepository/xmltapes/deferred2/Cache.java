@@ -54,7 +54,8 @@ public class Cache extends AbstractDeferringArchive{
         File cacheFile = getDeferredFile(id);
         cacheFile.delete();
         cacheFile.createNewFile();
-        cacheFile.setLastModified(fiftyYearHence());
+        setDeleted(cacheFile);
+
     }
 
 

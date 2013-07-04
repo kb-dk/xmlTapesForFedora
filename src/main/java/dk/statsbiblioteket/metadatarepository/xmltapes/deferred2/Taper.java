@@ -103,7 +103,7 @@ public class Taper extends AbstractDeferringArchive {
         for (File tapingFile : tapingFiles) {
             URI id = getIDfromFile(tapingFile);
             //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
-            if (tapingFile.lastModified() > fortyYearHence()){
+            if (isDeleted(tapingFile)){
                 getDelegate().remove(id);
                 Files.delete(tapingFile);
             } else {
