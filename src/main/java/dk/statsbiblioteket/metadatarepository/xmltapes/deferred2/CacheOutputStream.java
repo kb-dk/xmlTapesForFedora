@@ -10,7 +10,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URI;
 
 /**
  * Created with IntelliJ IDEA.
@@ -26,9 +25,9 @@ public class CacheOutputStream extends OutputStream {
     private final FileOutputStream stream;
     private final File tempFile;
     private final File cacheFile;
-    private LockPool lockPool;
+    private LockPoolNew lockPool;
 
-    public CacheOutputStream(File tempFile, File cacheFile, LockPool lockPool) throws FileNotFoundException {
+    public CacheOutputStream(File tempFile, File cacheFile, LockPoolNew lockPool) throws FileNotFoundException {
         this.tempFile = tempFile;
         this.cacheFile = cacheFile;
         this.lockPool = lockPool;
@@ -57,14 +56,17 @@ public class CacheOutputStream extends OutputStream {
 
     @Override
     public void close() throws IOException {
-        stream.close();
+        lockPool.lockForWriting();
         try {
-            lockPool.acquireLock(cacheFile.getName());
-            Files.move(tempFile,cacheFile,true);
-            lockPool.releaseLock(cacheFile.getName());
+            stream.close();
+            log.debug("Closing stream with id {}", cacheFile.getName());
+            FileUtils.deleteQuietly(cacheFile);
+            FileUtils.moveFile(tempFile, cacheFile);
+        } catch (Exception e) {
+            log.warn("Tried to move temp to cache, caught Exception", e);
+        } finally {
+            lockPool.unlockForWriting();
         }
-        catch (Exception e){
-            log.warn("Tried to move temp to cache, caught Exception",e);
-        }
+
     }
 }

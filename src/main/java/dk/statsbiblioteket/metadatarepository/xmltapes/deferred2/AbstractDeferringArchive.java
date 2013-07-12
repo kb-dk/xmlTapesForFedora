@@ -4,6 +4,8 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.TapeUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +23,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -31,17 +34,19 @@ import java.util.List;
  */
 public abstract class AbstractDeferringArchive implements Archive{
 
+    private static final Logger log = LoggerFactory.getLogger(AbstractDeferringArchive.class);
 
     public static final String UTF_8 = "UTF-8";
-    public static final long YEARMILLIS = 31558464000L;
     private Archive delegate;
     private  File deferredDir;
 
-    protected final LockPool lockPool;
+    protected final LockPoolNew lockPool;
+
+
 
 
     public AbstractDeferringArchive() {
-        lockPool = new LockPool();
+        lockPool = new LockPoolNewImpl();
     }
 
 
@@ -49,11 +54,8 @@ public abstract class AbstractDeferringArchive implements Archive{
     @Override
     public InputStream getInputStream(URI id) throws FileNotFoundException, IOException {
 
+
         File cacheFile = getDeferredFile(id);
-        //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
-        if (isDeleted(cacheFile)){
-            throw new FileNotFoundException("Deleted file");
-        }
         try {
             return new FileInputStream(cacheFile);
         } catch (FileNotFoundException e){
@@ -68,13 +70,23 @@ public abstract class AbstractDeferringArchive implements Archive{
         } catch (UnsupportedEncodingException e) {
             throw new Error(e);
         }
+    }
+
+    protected File getDeferredFileDeleted(URI id) {
+        try {
+            return new File(deferredDir,
+                    URLEncoder.encode(id.toString()+ "#"+TapeUtils.DELETED, UTF_8));
+        } catch (UnsupportedEncodingException e) {
+            throw new Error(e);
+        }
 
     }
+
 
     protected URI getIDfromFile(File cacheFile) {
 
         try {
-            String name = cacheFile.getName();
+            String name = cacheFile.getName().replaceAll(Pattern.quote("#"+TapeUtils.DELETED)+"$","");
             return new URI(URLDecoder.decode(name, UTF_8));
         } catch (URISyntaxException e) {
             return null;
@@ -89,62 +101,77 @@ public abstract class AbstractDeferringArchive implements Archive{
 
     @Override
     public boolean exist(URI id) throws IOException {
+
         File cacheFile = getDeferredFile(id);
-        //HERE WE NEED TO RECOGNIZE THAT THE BLOB IS DEAD
-        if (cacheFile.exists() && isDeleted(cacheFile)){
-            return false;
-        } else {
-            return cacheFile.exists()  || delegate.exist(id);
+        try {
+            lockPool.lockForWriting();
+            if (cacheFile.exists()){
+                return true;
+            }
+        } finally {
+            lockPool.unlockForWriting();
         }
+        return  delegate.exist(id);
     }
 
     @Override
     public long getSize(URI id) throws FileNotFoundException, IOException {
+
         File cacheFile = getDeferredFile(id);
-        long size = cacheFile.length();
-        if (cacheFile.exists()){
-            return size;
+        try {
+            lockPool.lockForWriting();
+            long size = cacheFile.length();
+            if (cacheFile.exists()){
+                return size;
+            }
+        } finally {
+            lockPool.unlockForWriting();
         }
         return delegate.getSize(id);
+
+
     }
 
 
+    /**
+     * Get the files in the cache.
+     * @return
+     */
+    protected  List<File> getCacheFiles() {
+        //Ensure that noone is able to lock files until we have locked all.
+        List<File> cacheFiles;
 
-    protected synchronized List<File> getAndLockCacheFiles() {
-        //Get the cached files
-        List<File> cacheFiles = new ArrayList<File>(FileUtils.listFiles(getDeferredDir(), null, false));
-        for (File cacheFile : cacheFiles) {
-            lockPool.acquireLock(cacheFile.getName());
+        lockPool.lockForWriting();
+        try {
+            cacheFiles = new ArrayList<File>(FileUtils.listFiles(getDeferredDir(), null, false));
+            // Sort them in last modified order
+            Collections.sort(cacheFiles, new Comparator<File>() {
+                @Override
+                public int compare(File o1, File o2) {
+                    long x = o1.lastModified();
+                    long y = o2.lastModified();
+                    return Long.valueOf(x).compareTo(y);
+                }
+            });
+            return cacheFiles;
+        } finally {
+            lockPool.unlockForWriting();
         }
-        // Sort them in last modified order
-        Collections.sort(cacheFiles, new Comparator<File>() {
-            @Override
-            public int compare(File o1, File o2) {
-                long x = o1.lastModified();
-                long y = o2.lastModified();
-                return Long.valueOf(x).compareTo(y);
-            }
-        });
-        return cacheFiles;
     }
 
     protected Collection<URI> getCacheIDs(String filterPrefix) {
         //Get the cached files
-        List<File> cacheFiles = getAndLockCacheFiles();
+        List<File> cacheFiles = getCacheFiles();
         ArrayList<URI> result = new ArrayList<URI>();
         for (File cacheFile : cacheFiles) {
             URI id = getIDfromFile(cacheFile);
             if (id == null){
                 continue;
             }
-            if (isDeleted(cacheFile)){
-                id = URI.create(id.toString()+ TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED);
-            }
 
             if (filterPrefix != null && id.toString().startsWith(filterPrefix)){
                 result.add(id);
             }
-            lockPool.releaseLock(cacheFile.getName());
         }
         return result;
     }
@@ -153,6 +180,7 @@ public abstract class AbstractDeferringArchive implements Archive{
 
     @Override
     public Iterator<URI> listIds(String filterPrefix) {
+        log.debug("Calling listIDs with argument {}",filterPrefix);
         return delegate.listIds(filterPrefix);
     }
 
@@ -190,14 +218,6 @@ public abstract class AbstractDeferringArchive implements Archive{
         return delegate;
     }
 
-    private static long fiftyYearHence(){
-        return System.currentTimeMillis()+50* YEARMILLIS;
-    }
-
-    private static long fortyYearHence(){
-        return System.currentTimeMillis()+40* YEARMILLIS;
-    }
-
     public void setDelegate(Archive delegate) {
         this.delegate = delegate;
     }
@@ -211,13 +231,7 @@ public abstract class AbstractDeferringArchive implements Archive{
         }
     }
 
-    public static boolean isDeleted(File file){
-        return file.lastModified() > fortyYearHence();
-    }
 
-    public static void setDeleted(File file){
-        file.setLastModified(fiftyYearHence());
-    }
 }
 
 

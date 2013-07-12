@@ -5,6 +5,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
+import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taping;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;
@@ -53,19 +54,26 @@ public class XmlTapesTestSuite extends TCKTestSuite {
 
         XmlTapesBlobStore store = new XmlTapesBlobStore(getPrivateStoreId());
 
+        long tapeSize = 1024L * 1024;
 
 
-        File archiveFolder = new File(getStoreLocation());
-        File cachingDir = new File(archiveFolder, "cachingDir");
+        URI storeLocation = getStoreLocation();
+        File tapingDir = new File(new File(storeLocation), "tapingDir");
+        tapingDir.mkdirs();
+        File cachingDir = new File(new File(storeLocation), "cachingDir");
         cachingDir.mkdirs();
-        File tempDir = new File(archiveFolder, "tempDir");
+        File tempDir = new File(new File(storeLocation), "tempDir");
         tempDir.mkdirs();
 
 
-        TapeArchive tapeArchive = new TapeArchive(getStoreLocation(), 1024L*1024);
+        Cache temp = new Cache(cachingDir, tempDir);
+        TapeArchive tapeArchive = new TapeArchive(storeLocation, tapeSize);
+        Taping taping = new Taping(tapingDir);
 
-        archive = new Cache(cachingDir, tempDir);
-        ((AbstractDeferringArchive)(archive)).setDelegate(tapeArchive);
+        temp.setDelegate(taping);
+        taping.setDelegate(tapeArchive);
+        taping.setParent(temp);
+        archive = temp;
 
         store.setArchive(archive);
         store.getArchive().setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
@@ -99,7 +107,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
     }
 
 
-    @Test( dependsOnGroups={ "post" })
+ /*   @Test( dependsOnGroups={ "post" })
     public void testFinal(){
 
         System.out.println("Final test");
@@ -109,7 +117,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
-    }
+    }*/
 
 
 }

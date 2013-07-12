@@ -100,9 +100,12 @@ public class XmlTapesBlob extends AbstractBlob {
 
         OutputStream them = newBlob.openOutputStream(this.getSize(), true);
         InputStream my = openInputStream();
-        IOUtils.copyLarge(my, them);
-        them.close();
-        my.close();
+        try {
+            IOUtils.copyLarge(my, them);
+        } finally {
+            them.close();
+            my.close();
+        }
         this.delete();
         return newBlob;
     }

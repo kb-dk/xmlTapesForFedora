@@ -5,6 +5,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
+import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taping;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;
@@ -57,25 +58,34 @@ public class XmlTapesBlobStoreTest {
     public BlobStore getPrivateStore() throws URISyntaxException, IOException {
         clean();
 
-        XmlTapesBlobStore store = new XmlTapesBlobStore(URI.create("test:tapestorage"));
 
 
-        File archiveFolder = new File(getPrivateStoreId());
-        File cachingDir = new File(archiveFolder, "cachingDir");
+        URI store = getPrivateStoreId();
+        long tapeSize = 1024L * 1024;
+        File tapingDir = new File(new File(store), "tapingDir");
+        tapingDir.mkdirs();
+        File cachingDir = new File(new File(store), "cachingDir");
         cachingDir.mkdirs();
-        File tempDir = new File(archiveFolder, "tempDir");
+        File tempDir = new File(new File(store), "tempDir");
         tempDir.mkdirs();
 
 
-        TapeArchive tapeArchive = new TapeArchive(getPrivateStoreId(), 1024L*1024);
+        archive = new Cache(cachingDir, tempDir);
+        TapeArchive tapeArchive = new TapeArchive(store, tapeSize);
+        Taping taping = new Taping(tapingDir);
+
+        archive.setDelegate(taping);
+        taping.setDelegate(tapeArchive);
+        taping.setParent(archive);
 
         archive = new Cache(cachingDir, tempDir);
         archive.setDelegate(tapeArchive);
 
-        store.setArchive(archive);
-        store.getArchive().setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
-        store.getArchive().rebuild();
-        return store;
+        XmlTapesBlobStore xmlTapesBlobStore = new XmlTapesBlobStore(URI.create("test:tapestorage"));
+        xmlTapesBlobStore.setArchive(archive);
+        xmlTapesBlobStore.getArchive().setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
+        xmlTapesBlobStore.getArchive().rebuild();
+        return xmlTapesBlobStore;
     }
     @After
     public void clean() throws IOException, URISyntaxException {

@@ -64,24 +64,13 @@
 
         <!--The two adresses above must be on the same file system as we rely on atomic moves-->
 
+        <property name="tapeDelay" value="600000"/><!--The allowed age of an file before it is taped, in ms-->
+        <property name="delay" value="100"/><!--The delay between invocations of the taper-->
         <!--The delegate for read operations-->
-        <property name="delegate" ref="taperTapeObjectStore"/>
+        <property name="delegate" ref="tarTapeObjectStore"/>
 
     </bean>
 
-    <!--The taper store holds the objects while they are being taped.-->
-    <bean name="taperTapeObjectStore" class="dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taper"
-          singleton="true">
-        <!--The delegate for reading and the store to tape the objects to-->
-        <constructor-arg ref="tarTapeObjectStore"/>
-        <!--Where to hold the objects while they are being taped-->
-        <constructor-arg value="/CHANGEME/tapingObjectStore"/>
-        <!--The frequency in ms which the objects should be taped-->
-        <constructor-arg value="5000"/>
-
-        <!--The cache to get the objects to tape from-->
-        <property name="cache" ref="cacheTapeObjectStore"/>
-    </bean>
 
     <!--The guts of the tape system-->
     <bean name="tarTapeObjectStore" class="dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive"

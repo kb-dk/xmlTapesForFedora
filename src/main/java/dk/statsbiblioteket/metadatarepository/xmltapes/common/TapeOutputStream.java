@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.TapeUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
@@ -18,6 +19,8 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * This is a special outputstream. This class ensures that bytes written are buffered in memory, and only written to
@@ -35,7 +38,7 @@ public class TapeOutputStream extends TarOutputStream {
     private Entry entry;
     private final URI id;
     private final Index index;
-    private StoreLock writeLock;
+    private ReentrantLock writeLock;
 
     boolean closing = false;
     boolean closed = false;
@@ -43,6 +46,7 @@ public class TapeOutputStream extends TarOutputStream {
     private LinkedList<ByteBuffer> buffer;
 
     private ByteBuffer lastBuffer;
+    private TapeArchive tapeArchive;
 
     /**
      * Create a new TapeOutputStream
@@ -58,21 +62,19 @@ public class TapeOutputStream extends TarOutputStream {
                             Entry entry,
                             URI id,
                             Index index,
-                            StoreLock writeLock,
+                            ReentrantLock writeLock,
                             long estimatedSize)  {
         super(delegate);
+        this.writeLock = writeLock;
 
         log.trace("Opening an outputstream for the id {} and trying to acquire lock",id);
 
         this.entry = entry;
         this.id = id;
         this.index = index;
-        this.writeLock = writeLock;
         buffer = new LinkedList<ByteBuffer>();
         buffer.add(ByteBuffer.allocate((int) Math.min(Math.max(estimatedSize, CAPACITY), Integer.MAX_VALUE)));
         lastBuffer = buffer.getLast();
-
-        this.writeLock.lock(Thread.currentThread());
 
         log.trace("Store write lock acquired for id {}",id);
 
@@ -136,7 +138,7 @@ public class TapeOutputStream extends TarOutputStream {
     }
 
     @Override
-    public synchronized void close() throws IOException {
+    public  void close() throws IOException {
         log.trace("Closing the record {}",id);
 
         closing = true;//From now on, writes go the the delegate, not the buffer
@@ -144,6 +146,7 @@ public class TapeOutputStream extends TarOutputStream {
         ByteBuffer output = zipTheBuffer();
 
         long size = output.capacity();
+
 
         TarHeader tarHeader = TarHeader.createHeader(TapeUtils.toFilenameGZ(id),size,timestamp/1000,false);
         TarEntry entry = new TarEntry(tarHeader);
@@ -153,7 +156,8 @@ public class TapeOutputStream extends TarOutputStream {
         out.close();
         index.addLocation(id, this.entry,timestamp); //Update the index to the newly written entry
         closed = true; //Now we cannot write anymore
-        writeLock.unlock(Thread.currentThread()); //unlock the storage system, we are done
+        writeLock.unlock(); //unlock the storage system, we are done
+
     }
 
     private ByteBuffer zipTheBuffer() throws IOException {
@@ -197,7 +201,7 @@ public class TapeOutputStream extends TarOutputStream {
     /**
      * Close the stream and mark this entry as a "delete" record.
      */
-    public synchronized void delete() throws IOException {
+    public void delete() throws IOException {
         closing = true;//From now on, writes go the the delegate, not the buffer
         TarHeader tarHeader = TarHeader.createHeader(TapeUtils.toDeleteFilename(id),0,System.currentTimeMillis()/1000,false);
         TarEntry entry = new TarEntry(tarHeader);
@@ -206,6 +210,7 @@ public class TapeOutputStream extends TarOutputStream {
         out.close();
         index.remove(id);
         closed = true; //Now we cannot write anymore
-        writeLock.unlock(Thread.currentThread()); //unlock the storage system, we are done
+        writeLock.unlock(); //unlock the storage system, we are done
     }
+
 }
