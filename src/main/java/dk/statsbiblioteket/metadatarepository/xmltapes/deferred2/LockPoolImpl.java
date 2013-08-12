@@ -10,12 +10,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * Time: 12:42 PM
  * To change this template use File | Settings | File Templates.
  */
-public class LockPoolNewImpl extends LockPoolNew {
+public class LockPoolImpl extends LockPool {
 
     private ReentrantLock lock;
 
 
-    public LockPoolNewImpl() {
+    public LockPoolImpl() {
         lock = new ReentrantLock();
     }
 

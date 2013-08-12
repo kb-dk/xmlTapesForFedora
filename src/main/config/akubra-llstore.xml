@@ -19,15 +19,13 @@
             name="org.fcrepo.server.storage.lowlevel.akubra.AkubraLowlevelStorage"
             class="org.fcrepo.server.storage.lowlevel.akubra.AkubraLowlevelStorage"
             singleton="true">
-        <constructor-arg>
+        <constructor-arg ref="tapeObjectStore">
             <description>The store of serialized Fedora objects</description>
-            <ref bean="tapeObjectStore"/>
             <!--Here we reference our tape system-->
         </constructor-arg>
-        <constructor-arg>
+        <constructor-arg ref="datastreamStore">
             <description>The store of datastream content</description>
-            <ref bean="datastreamStore"/>
-        </constructor-arg>
+            </constructor-arg>
         <constructor-arg value="false"><!--This is set to false, as we do not ever delete stuff-->
             <description>if true, replaceObject calls will be done in a way
                 that

@@ -1,6 +1,5 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.deferred2;
 
-import dk.statsbiblioteket.util.Files;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +24,9 @@ public class CacheOutputStream extends OutputStream {
     private final FileOutputStream stream;
     private final File tempFile;
     private final File cacheFile;
-    private LockPoolNew lockPool;
+    private LockPool lockPool;
 
-    public CacheOutputStream(File tempFile, File cacheFile, LockPoolNew lockPool) throws FileNotFoundException {
+    public CacheOutputStream(File tempFile, File cacheFile, LockPool lockPool) throws FileNotFoundException {
         this.tempFile = tempFile;
         this.cacheFile = cacheFile;
         this.lockPool = lockPool;

@@ -40,13 +40,13 @@ public abstract class AbstractDeferringArchive implements Archive{
     private Archive delegate;
     private  File deferredDir;
 
-    protected final LockPoolNew lockPool;
+    protected final LockPool lockPool;
 
 
 
 
     public AbstractDeferringArchive() {
-        lockPool = new LockPoolNewImpl();
+        lockPool = new LockPoolImpl();
     }
 
 

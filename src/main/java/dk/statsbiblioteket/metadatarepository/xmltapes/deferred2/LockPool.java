@@ -7,7 +7,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.deferred2;
  * Time: 12:39 PM
  * To change this template use File | Settings | File Templates.
  */
-public abstract class LockPoolNew {
+public abstract class LockPool {
 
     public abstract void lockForWriting();
 
