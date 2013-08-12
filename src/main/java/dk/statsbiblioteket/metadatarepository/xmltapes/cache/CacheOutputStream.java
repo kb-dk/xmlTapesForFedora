@@ -1,5 +1,6 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.deferred2;
+package dk.statsbiblioteket.metadatarepository.xmltapes.cache;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.LockPool;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

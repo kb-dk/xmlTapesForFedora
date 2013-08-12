@@ -1,4 +1,4 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.deferred2;
+package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
 /**
  * Created with IntelliJ IDEA.

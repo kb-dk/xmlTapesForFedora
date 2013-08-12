@@ -1,16 +1,14 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.testng;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.AbstractDeferringArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
-import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taping;
+import dk.statsbiblioteket.metadatarepository.xmltapes.cache.Cache;
+import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taping;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;
 import org.apache.commons.io.FileUtils;
-import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;

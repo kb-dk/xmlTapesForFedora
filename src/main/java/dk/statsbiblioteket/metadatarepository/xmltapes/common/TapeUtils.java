@@ -1,4 +1,4 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes;
+package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
 import org.kamranzafar.jtar.TarEntry;
 

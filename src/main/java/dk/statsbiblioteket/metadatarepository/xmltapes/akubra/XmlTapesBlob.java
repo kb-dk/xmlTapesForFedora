@@ -1,4 +1,4 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes;
+package dk.statsbiblioteket.metadatarepository.xmltapes.akubra;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import org.akubraproject.Blob;

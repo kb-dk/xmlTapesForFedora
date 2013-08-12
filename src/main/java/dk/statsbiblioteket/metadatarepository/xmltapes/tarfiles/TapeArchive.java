@@ -1,7 +1,7 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes;
+package dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeOutputStream;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;

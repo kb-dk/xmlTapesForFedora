@@ -1,8 +1,6 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.deferred2;
+package dk.statsbiblioteket.metadatarepository.xmltapes.cache;
 
-import dk.statsbiblioteket.util.Files;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.AbstractDeferringArchive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,10 +11,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * Cache is a fedora storage implementation that just holds files in a cache dir. Writes happen to the tempdir, and

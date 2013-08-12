@@ -1,4 +1,6 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.deferred2;
+package dk.statsbiblioteket.metadatarepository.xmltapes.common;
+
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.LockPool;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;

@@ -1,6 +1,6 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.deferred2;
+package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.TapeUtils;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 
 import java.net.URI;
 import java.util.Collection;

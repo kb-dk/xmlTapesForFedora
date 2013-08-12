@@ -1,6 +1,8 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.deferred2;
+package dk.statsbiblioteket.metadatarepository.xmltapes.taper;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.TapeUtils;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.AbstractDeferringArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.NonDuplicatingIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.LoggerFactory;
@@ -26,7 +28,7 @@ import java.util.TimerTask;
  * Time: 12:56 PM
  * To change this template use File | Settings | File Templates.
  */
-public class Taping extends AbstractDeferringArchive{
+public class Taping extends AbstractDeferringArchive {
 
 
 

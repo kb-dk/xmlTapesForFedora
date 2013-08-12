@@ -1,11 +1,10 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.AbstractDeferringArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache;
-import dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taping;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.AbstractDeferringArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.cache.Cache;
+import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taping;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;

@@ -1,7 +1,6 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.common;
+package dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.TapeUtils;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
@@ -20,7 +19,6 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * This is a special outputstream. This class ensures that bytes written are buffered in memory, and only written to
