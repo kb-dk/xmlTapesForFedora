@@ -68,7 +68,7 @@ public class RedisIndex implements Index {
     }
 
     @Override
-    public void addLocation(URI id, Entry location, long timestamp) {
+    public void addLocation(URI id, Entry location) {
         String hashcode = getHash(id);
         Jedis jedis = pool.getResource();
         Transaction trans = jedis.multi();

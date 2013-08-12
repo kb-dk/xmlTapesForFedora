@@ -20,7 +20,7 @@ public interface Index {
      * @param id the id to ammend
      * @param location the new location
      */
-    public void addLocation(URI id, Entry location,long timestamp);
+    public void addLocation(URI id, Entry location);
 
     /**
      * Remove an id and all associated locations from the index

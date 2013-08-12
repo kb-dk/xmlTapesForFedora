@@ -292,7 +292,7 @@ public class TapeArchive implements Archive {
             if (entry.getSize() == 0 && entry.getName().endsWith(TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED)) {
                 index.remove(id);
             } else {
-                index.addLocation(id, new Entry(tape, offset),timestamp);
+                index.addLocation(id, new Entry(tape, offset));
             }
             entry = tis.getNextEntry();
             offset = countingInputStream.getByteCount()-RECORDSIZE;

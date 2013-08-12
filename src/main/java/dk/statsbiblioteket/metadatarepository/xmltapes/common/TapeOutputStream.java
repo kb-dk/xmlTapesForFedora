@@ -154,7 +154,7 @@ public class TapeOutputStream extends TarOutputStream {
         IOUtils.write(output.array(),this);
         closeCurrentEntry();
         out.close();
-        index.addLocation(id, this.entry,timestamp); //Update the index to the newly written entry
+        index.addLocation(id, this.entry); //Update the index to the newly written entry
         closed = true; //Now we cannot write anymore
         writeLock.unlock(); //unlock the storage system, we are done
 

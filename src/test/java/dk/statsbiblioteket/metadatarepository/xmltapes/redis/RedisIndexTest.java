@@ -2,7 +2,6 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Record;
-import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -14,7 +13,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.UUID;
 
-import static javax.management.Query.gt;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
@@ -120,7 +118,7 @@ public class RedisIndexTest {
 
     private void addEntry(){
         URI uri = URI.create(UUID.randomUUID().toString());
-        index.addLocation(uri,getEntry(uri),System.nanoTime());
+        index.addLocation(uri,getEntry(uri));
     }
 
     private Entry getEntry(URI uuid){
