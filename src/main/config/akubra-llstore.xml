@@ -41,7 +41,7 @@
 
     <!--This is the tape store Akubra Implementation-->
     <bean name="tapeObjectStore"
-          class="dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore"
+          class="dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore"
           singleton="true">
         <constructor-arg value="urn:example.org:tapeObjectStore"/>
         <!--This parameter is the name of the storage. -->
@@ -54,7 +54,7 @@
     <!--The cache tape object store holds the objects while it is being written and until the taper is ready
     to tape the object-->
     <bean name="cacheTapeObjectStore"
-          class="dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache"
+          class="dk.statsbiblioteket.metadatarepository.xmltapes.cache.Cache"
           singleton="true">
         <!--Where to store files until the taper is ready to tape them-->
         <constructor-arg value="/CHANGEME/cacheObjectStore" index="0"/>
@@ -71,7 +71,7 @@
     <!--The cache tape object store holds the objects while it is being written and until the taper is ready
      to tape the object-->
     <bean name="tapingTapeObjectStore"
-          class="dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taping"
+          class="dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taping"
           singleton="true">
          <!--Where to store files until the taper is ready to tape them-->
         <constructor-arg value="/CHANGEME/tapingObjectStore" index="0"/>
@@ -90,7 +90,7 @@
 
     <!--The guts of the tape system-->
     <bean name="tarTapeObjectStore"
-          class="dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive"
+          class="dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchive"
           init-method="rebuild"
           singleton="true">
         <!--Change the init-method to init, if you do not want to rebuild the redis index on server startup -->
