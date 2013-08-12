@@ -15,10 +15,9 @@
                   ref="org.fcrepo.server.storage.lowlevel.akubra.AkubraLowlevelStorage"/>
     </bean>
 
-    <bean
-            name="org.fcrepo.server.storage.lowlevel.akubra.AkubraLowlevelStorage"
-            class="org.fcrepo.server.storage.lowlevel.akubra.AkubraLowlevelStorage"
-            singleton="true">
+    <bean name="org.fcrepo.server.storage.lowlevel.akubra.AkubraLowlevelStorage"
+          class="org.fcrepo.server.storage.lowlevel.akubra.AkubraLowlevelStorage"
+          singleton="true">
         <constructor-arg ref="tapeObjectStore">
             <description>The store of serialized Fedora objects</description>
             <!--Here we reference our tape system-->
@@ -41,7 +40,8 @@
     </bean>
 
     <!--This is the tape store Akubra Implementation-->
-    <bean name="tapeObjectStore" class="dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore"
+    <bean name="tapeObjectStore"
+          class="dk.statsbiblioteket.metadatarepository.xmltapes.XmlTapesBlobStore"
           singleton="true">
         <constructor-arg value="urn:example.org:tapeObjectStore"/>
         <!--This parameter is the name of the storage. -->
@@ -53,27 +53,48 @@
 
     <!--The cache tape object store holds the objects while it is being written and until the taper is ready
     to tape the object-->
-    <bean name="cacheTapeObjectStore" class="dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache"
+    <bean name="cacheTapeObjectStore"
+          class="dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Cache"
           singleton="true">
         <!--Where to store files until the taper is ready to tape them-->
-        <constructor-arg value="/CHANGEME/cacheObjectStore"/>
+        <constructor-arg value="/CHANGEME/cacheObjectStore" index="0"/>
         <!--Where to store files while they are still being written-->
-        <constructor-arg value="/CHANGEME/cacheTempObjectStore"/>
-
+        <constructor-arg value="/CHANGEME/cacheTempObjectStore" index="1"/>
         <!--The two adresses above must be on the same file system as we rely on atomic moves-->
 
-        <property name="tapeDelay" value="600000"/><!--The allowed age of an file before it is taped, in ms-->
-        <property name="delay" value="100"/><!--The delay between invocations of the taper-->
         <!--The delegate for read operations-->
-        <property name="delegate" ref="tarTapeObjectStore"/>
+        <property name="delegate" ref="tapingTapeObjectStore"/>
 
     </bean>
 
 
+    <!--The cache tape object store holds the objects while it is being written and until the taper is ready
+     to tape the object-->
+    <bean name="tapingTapeObjectStore"
+          class="dk.statsbiblioteket.metadatarepository.xmltapes.deferred2.Taping"
+          singleton="true">
+         <!--Where to store files until the taper is ready to tape them-->
+        <constructor-arg value="/CHANGEME/tapingObjectStore" index="0"/>
+
+        <!--The allowed age of an file before it is taped, in ms-->
+        <property name="tapeDelay" value="600000"/>
+        <!--The delay between invocations of the taper-->
+        <property name="delay" value="100"/>
+
+         <property name="delegate" ref="tarTapeObjectStore"/>
+
+        <!--The cache, to get the objects ready for writing-->
+        <property name="parent" ref="cacheTapeObjectStore"/>
+     </bean>
+
+
     <!--The guts of the tape system-->
-    <bean name="tarTapeObjectStore" class="dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive"
+    <bean name="tarTapeObjectStore"
+          class="dk.statsbiblioteket.metadatarepository.xmltapes.TapeArchive"
           init-method="rebuild"
           singleton="true">
+        <!--Change the init-method to init, if you do not want to rebuild the redis index on server startup -->
+
         <!--This constructor argument specifies the tape store location. -->
         <constructor-arg value="file:/CHANGEME/tapeObjectStore" type="java.net.URI"/>
         <!--This specifies the maximum length a tape can be before a new tape is started-->
@@ -83,7 +104,6 @@
         <property name="index" ref="redisIndex"/>
         <property name="fixErrors" value="false"/>
     </bean>
-
 
 
     <!--This is our Redis index-->
