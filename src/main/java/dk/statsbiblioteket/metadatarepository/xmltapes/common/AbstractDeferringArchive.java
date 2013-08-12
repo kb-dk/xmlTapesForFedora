@@ -39,7 +39,7 @@ public abstract class AbstractDeferringArchive implements Archive{
     private Archive delegate;
     private  File deferredDir;
 
-    protected final LockPool lockPool;
+    public final LockPool lockPool;
 
 
 
@@ -62,7 +62,7 @@ public abstract class AbstractDeferringArchive implements Archive{
         }
     }
 
-    protected File getDeferredFile(URI id) {
+    public File getDeferredFile(URI id) {
         try {
             return new File(deferredDir,
                     URLEncoder.encode(id.toString(), UTF_8));
@@ -136,7 +136,7 @@ public abstract class AbstractDeferringArchive implements Archive{
      * Get the files in the cache.
      * @return
      */
-    protected  List<File> getCacheFiles() {
+    public List<File> getCacheFiles() {
         //Ensure that noone is able to lock files until we have locked all.
         List<File> cacheFiles;
 
@@ -158,7 +158,7 @@ public abstract class AbstractDeferringArchive implements Archive{
         }
     }
 
-    protected Collection<URI> getCacheIDs(String filterPrefix) {
+    public Collection<URI> getCacheIDs(String filterPrefix) {
         //Get the cached files
         List<File> cacheFiles = getCacheFiles();
         ArrayList<URI> result = new ArrayList<URI>();
