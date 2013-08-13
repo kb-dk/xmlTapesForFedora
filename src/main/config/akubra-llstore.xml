@@ -71,7 +71,7 @@
     <!--The cache tape object store holds the objects while it is being written and until the taper is ready
      to tape the object-->
     <bean name="tapingTapeObjectStore"
-          class="dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taping"
+          class="dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper"
           singleton="true">
          <!--Where to store files until the taper is ready to tape them-->
         <constructor-arg value="/CHANGEME/tapingObjectStore" index="0"/>

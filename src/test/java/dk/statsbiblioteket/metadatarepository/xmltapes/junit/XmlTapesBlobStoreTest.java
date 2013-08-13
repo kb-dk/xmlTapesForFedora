@@ -1,10 +1,10 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cache.Cache;
-import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taping;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;
@@ -71,11 +71,11 @@ public class XmlTapesBlobStoreTest {
 
         archive = new Cache(cachingDir, tempDir);
         TapeArchive tapeArchive = new TapeArchive(store, tapeSize);
-        Taping taping = new Taping(tapingDir);
+        Taper taper = new Taper(tapingDir);
 
-        archive.setDelegate(taping);
-        taping.setDelegate(tapeArchive);
-        taping.setParent(archive);
+        archive.setDelegate(taper);
+        taper.setDelegate(tapeArchive);
+        taper.setParent(archive);
 
         archive = new Cache(cachingDir, tempDir);
         archive.setDelegate(tapeArchive);

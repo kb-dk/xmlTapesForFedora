@@ -4,7 +4,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cache.Cache;
-import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taping;
+import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;
@@ -66,11 +66,11 @@ public class XmlTapesTestSuite extends TCKTestSuite {
 
         Cache temp = new Cache(cachingDir, tempDir);
         TapeArchive tapeArchive = new TapeArchive(storeLocation, tapeSize);
-        Taping taping = new Taping(tapingDir);
+        Taper taper = new Taper(tapingDir);
 
-        temp.setDelegate(taping);
-        taping.setDelegate(tapeArchive);
-        taping.setParent(temp);
+        temp.setDelegate(taper);
+        taper.setDelegate(tapeArchive);
+        taper.setParent(temp);
         archive = temp;
 
         store.setArchive(archive);

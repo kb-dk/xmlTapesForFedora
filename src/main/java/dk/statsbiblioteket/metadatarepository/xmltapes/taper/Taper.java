@@ -28,12 +28,12 @@ import java.util.TimerTask;
  * Time: 12:56 PM
  * To change this template use File | Settings | File Templates.
  */
-public class Taping extends AbstractDeferringArchive {
+public class Taper extends AbstractDeferringArchive {
 
 
 
     private AbstractDeferringArchive parent;
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(Taping.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(Taper.class);
 
     private TimerTask task;
     private Timer timer;
@@ -57,7 +57,7 @@ public class Taping extends AbstractDeferringArchive {
 
 
 
-    public Taping( File tapingDir) {
+    public Taper(File tapingDir) {
         super();
         super.setDeferredDir(tapingDir);
         timer = new Timer();
