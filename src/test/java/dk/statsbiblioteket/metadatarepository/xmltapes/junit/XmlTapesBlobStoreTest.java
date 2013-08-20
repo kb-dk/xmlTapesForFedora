@@ -1,10 +1,10 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.cache.Cache;
+import dk.statsbiblioteket.metadatarepository.xmltapes.cache.CacheForDeferringTaper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
-import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.taper.DeferringTaper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;
@@ -39,7 +39,7 @@ public class XmlTapesBlobStoreTest {
     public static final int REDIS_PORT = 6379;
     public static final int REDIS_DATABASE = 5;
     BlobStoreConnection connection;
-    private Cache archive;
+    private CacheForDeferringTaper archive;
 
     @Before
     public void setUp() throws Exception {
@@ -70,11 +70,11 @@ public class XmlTapesBlobStoreTest {
         XmlTapesBlobStore xmlTapesBlobStore = new XmlTapesBlobStore(URI.create("test:tapestorage"));
 
         //create the cache and link the blobstore to the cache
-        archive = new Cache(cachingDir, tempDir);
+        archive = new CacheForDeferringTaper(cachingDir, tempDir);
         xmlTapesBlobStore.setArchive(archive);
 
         //create the taper and link the cache to the taper, and the taper to the cache
-        Taper taper = new Taper(tapingDir);
+        DeferringTaper taper = new DeferringTaper(tapingDir);
         archive.setDelegate(taper);
         taper.setParent(archive);
 

@@ -1,9 +1,9 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.testng;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.cache.Cache;
+import dk.statsbiblioteket.metadatarepository.xmltapes.cache.CacheForDeferringTaper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
-import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.taper.DeferringTaper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;
@@ -27,7 +27,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
     public static final String REDIS_HOST = "localhost";
     public static final int REDIS_PORT = 6379;
     public static final int REDIS_DATABASE = 4;
-    private static Cache archive;
+    private static CacheForDeferringTaper archive;
 
     public XmlTapesTestSuite() throws IOException, URISyntaxException {
         super(getPrivateStore(), getPrivateStoreId(), false, false);
@@ -63,9 +63,9 @@ public class XmlTapesTestSuite extends TCKTestSuite {
         tempDir.mkdirs();
 
 
-        Cache temp = new Cache(cachingDir, tempDir);
+        CacheForDeferringTaper temp = new CacheForDeferringTaper(cachingDir, tempDir);
         TapeArchiveImpl tapeArchive = new TapeArchiveImpl(storeLocation, tapeSize);
-        Taper taper = new Taper(tapingDir);
+        DeferringTaper taper = new DeferringTaper(tapingDir);
 
         temp.setDelegate(taper);
         taper.setDelegate(tapeArchive);

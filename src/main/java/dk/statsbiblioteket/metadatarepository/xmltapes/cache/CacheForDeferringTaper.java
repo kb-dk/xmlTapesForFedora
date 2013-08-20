@@ -11,22 +11,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.net.URLEncoder;
 
 /**
  * Cache is a fedora storage implementation that just holds files in a cache dir. Writes happen to the tempdir, and
  * when the stream is closed, the file is moved to the cache dir. Read operations are resolved against the cache dir,
  * and if not found delegated.
  */
-public class Cache extends AbstractDeferringArchive<AkubraCompatibleArchive> implements AkubraCompatibleArchive{
+public class CacheForDeferringTaper extends AbstractDeferringArchive<AkubraCompatibleArchive> implements AkubraCompatibleArchive{
 
-    private static final Logger log = LoggerFactory.getLogger(Cache.class);
+    private static final Logger log = LoggerFactory.getLogger(CacheForDeferringTaper.class);
 
 
-    public static final String TEMP_PREFIX = "temp";
     private final File tempDir;
 
-    public Cache(File cacheDir, File tempDir) throws IOException {
+    public CacheForDeferringTaper(File cacheDir, File tempDir) throws IOException {
         super();
         super.setDeferredDir(cacheDir);
         this.tempDir = tempDir.getCanonicalFile();
@@ -34,19 +32,14 @@ public class Cache extends AbstractDeferringArchive<AkubraCompatibleArchive> imp
 
     }
 
-    private File getTempFile(URI id) throws IOException {
-        File tempfile = File.createTempFile(URLEncoder.encode(id.toString(), UTF_8), TEMP_PREFIX, tempDir);
-        tempfile.deleteOnExit();
-        return tempfile;
-    }
+
 
 
     @Override
     public OutputStream createNew(URI id, long estimatedSize) throws IOException {
         log.debug("Calling createNew with arguments {}",id);
-        File tempFile = getTempFile(id);
+        File tempFile = getTempFile(id,tempDir);
         return new CacheOutputStream(tempFile, getDeferredFile(id), lockPool);
-
     }
 
 

@@ -1,9 +1,5 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.taper;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.AbstractDeferringArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.NonDuplicatingIterator;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -17,7 +13,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.nio.file.FileAlreadyExistsException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -29,12 +24,12 @@ import java.util.TimerTask;
  * Time: 12:56 PM
  * To change this template use File | Settings | File Templates.
  */
-public class Taper extends AbstractDeferringArchive<TapeArchive> implements AkubraCompatibleArchive {
+public class DeferringTaper extends AbstractTaper{
 
 
 
-    private AbstractDeferringArchive parent;
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(Taper.class);
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(DeferringTaper.class);
 
     private TimerTask task;
     private Timer timer;
@@ -42,7 +37,6 @@ public class Taper extends AbstractDeferringArchive<TapeArchive> implements Akub
     private boolean timerStopped = false;
     private boolean timerHaveRunAtLeastOnce = false;
     private boolean closed = false;
-
 
     /**
      * The delay between runs of the taper thread
@@ -55,43 +49,20 @@ public class Taper extends AbstractDeferringArchive<TapeArchive> implements Akub
     private long tapeDelay;
 
 
-
-
-
-    public Taper(File tapingDir) {
-        super();
-        super.setDeferredDir(tapingDir);
+    public DeferringTaper(File tapingDir, boolean tapeDeferred) {
+        super(tapingDir);
         timer = new Timer();
         delay = 10;
         tapeDelay = 2000;
-
         setDelay(delay);
 
     }
 
-    @Override
-    public boolean exist(URI id) throws IOException {
-        log.debug("Calling exist with id {}",id);
-        return super.exist(id);    //To change body of overridden methods use File | Settings | File Templates.
-    }
 
-    @Override
-    public long getSize(URI id) throws FileNotFoundException, IOException {
-        log.debug("Calling getSize with id {}",id);
-        return super.getSize(id);    //To change body of overridden methods use File | Settings | File Templates.
-    }
 
-    @Override
-    public InputStream getInputStream(URI id) throws FileNotFoundException, IOException {
-        log.debug("Calling getInputStream with arguments id {}",id);
-        return super.getInputStream(id);    //To change body of overridden methods use File | Settings | File Templates.
+    public DeferringTaper(File tapingDir) {
+        this(tapingDir, true);
     }
-
-    @Override
-     public Iterator<URI> listIds(String filterPrefix) {
-         log.debug("Calling listIDs with arguments {}",filterPrefix);
-         return new NonDuplicatingIterator(getDelegate().listIds(filterPrefix),parent.getCacheIDs(filterPrefix),getCacheIDs(filterPrefix));
-     }
 
     @Override
     public OutputStream createNew(URI id, long estimatedSize) throws IOException {
@@ -329,11 +300,5 @@ public class Taper extends AbstractDeferringArchive<TapeArchive> implements Akub
         getDelegate().close();
 
     }
-
-
-    public void setParent(AbstractDeferringArchive parent) {
-        this.parent = parent;
-    }
-
 
 }

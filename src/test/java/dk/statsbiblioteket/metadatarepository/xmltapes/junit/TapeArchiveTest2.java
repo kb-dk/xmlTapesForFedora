@@ -1,10 +1,10 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.cache.Cache;
+import dk.statsbiblioteket.metadatarepository.xmltapes.cache.CacheForDeferringTaper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
-import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.taper.DeferringTaper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -36,7 +36,7 @@ public class TapeArchiveTest2 {
     private long tapeSize = 1024*1024;
     RedisIndex index;
 
-    Cache archive;
+    CacheForDeferringTaper archive;
     private TapeArchive underlyingTapeArchive;
 
 
@@ -52,9 +52,9 @@ public class TapeArchiveTest2 {
         tempDir.mkdirs();
 
 
-        archive = new Cache(cachingDir, tempDir);
+        archive = new CacheForDeferringTaper(cachingDir, tempDir);
         underlyingTapeArchive = new TapeArchiveImpl(store, tapeSize);
-        Taper taper = new Taper(tapingDir);
+        DeferringTaper taper = new DeferringTaper(tapingDir);
 
         archive.setDelegate(taper);
         taper.setDelegate(underlyingTapeArchive);

@@ -54,7 +54,7 @@
     <!--The cache tape object store holds the objects while it is being written and until the taper is ready
     to tape the object-->
     <bean name="cacheTapeObjectStore"
-          class="dk.statsbiblioteket.metadatarepository.xmltapes.cache.Cache"
+          class="dk.statsbiblioteket.metadatarepository.xmltapes.cache.CacheForDeferringTaper"
           singleton="true">
         <!--Where to store files until the taper is ready to tape them-->
         <constructor-arg value="/CHANGEME/cacheObjectStore" index="0"/>
@@ -71,7 +71,7 @@
     <!--The cache tape object store holds the objects while it is being written and until the taper is ready
      to tape the object-->
     <bean name="tapingTapeObjectStore"
-          class="dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper"
+          class="dk.statsbiblioteket.metadatarepository.xmltapes.taper.DeferringTaper"
           singleton="true">
          <!--Where to store files until the taper is ready to tape them-->
         <constructor-arg value="/CHANGEME/tapingObjectStore" index="0"/>
