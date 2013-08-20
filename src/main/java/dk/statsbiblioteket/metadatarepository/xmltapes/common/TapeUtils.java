@@ -22,7 +22,7 @@ public class TapeUtils {
     public static URI toURI(String filename) {
 
 
-        int endIndex = filename.lastIndexOf(NAME_SEPARATOR);
+        int endIndex = filename.indexOf(NAME_SEPARATOR);
         if (endIndex < 0) {
             endIndex = filename.length();
         }

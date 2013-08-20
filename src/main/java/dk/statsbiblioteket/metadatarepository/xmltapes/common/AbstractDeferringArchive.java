@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
  */
 public abstract  class AbstractDeferringArchive<T extends Archive> implements Archive{
 
+    public static final String TEMP_PREFIX = "temp";
     private static final Logger log = LoggerFactory.getLogger(AbstractDeferringArchive.class);
 
     public static final String UTF_8 = "UTF-8";
@@ -83,7 +84,9 @@ public abstract  class AbstractDeferringArchive<T extends Archive> implements Ar
     protected URI getIDfromFile(File cacheFile) {
 
         try {
-            String name = cacheFile.getName().replaceAll(Pattern.quote("#"+TapeUtils.DELETED)+"$","");
+            String name = cacheFile.getName();
+            name = URLDecoder.decode(name,"UTF-8");
+            name = name.replaceAll(Pattern.quote("#"+TapeUtils.DELETED)+"$","");
             return new URI(URLDecoder.decode(name, UTF_8));
         } catch (URISyntaxException e) {
             return null;
@@ -212,6 +215,13 @@ public abstract  class AbstractDeferringArchive<T extends Archive> implements Ar
     public void close() throws IOException{
         getDelegate().close();
     }
+
+    protected File getTempFile(URI id, File temp_dir) throws IOException {
+        File tempfile = File.createTempFile(URLEncoder.encode(id.toString(), UTF_8), TEMP_PREFIX, temp_dir);
+        tempfile.deleteOnExit();
+        return tempfile;
+    }
+
 
 
 }
