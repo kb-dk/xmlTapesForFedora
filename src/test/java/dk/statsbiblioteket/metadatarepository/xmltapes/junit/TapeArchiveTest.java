@@ -1,10 +1,10 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper;
-import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cache.Cache;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
+import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -29,7 +29,7 @@ public class TapeArchiveTest {
     public static final String REDIS_HOST = "localhost";
     public static final int REDIS_PORT = 6379;
     public static final int REDIS_DATABASE = 3;
-    AbstractDeferringArchive archive;
+    Cache archive;
 
     URI testFile1 = URI.create("testFile1");
     String contents = "testFile 1 is here now";
@@ -48,15 +48,16 @@ public class TapeArchiveTest {
 
 
         archive = new Cache(cachingDir, tempDir);
-        TapeArchive tapeArchive = new TapeArchive(store, tapeSize);
+        TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize);
+
         Taper taper = new Taper(tapingDir);
 
         archive.setDelegate(taper);
         taper.setDelegate(tapeArchive);
         taper.setParent(archive);
 
-        archive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
-        archive.rebuild();
+        tapeArchive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
+        tapeArchive.rebuild();
         OutputStream outputStream = archive.createNew(testFile1, 0);
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         writer.write(contents);

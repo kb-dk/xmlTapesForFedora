@@ -1,11 +1,10 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.testng;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cache.Cache;
-import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
+import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;
 import org.apache.commons.io.FileUtils;
@@ -28,7 +27,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
     public static final String REDIS_HOST = "localhost";
     public static final int REDIS_PORT = 6379;
     public static final int REDIS_DATABASE = 4;
-    private static Archive archive;
+    private static Cache archive;
 
     public XmlTapesTestSuite() throws IOException, URISyntaxException {
         super(getPrivateStore(), getPrivateStoreId(), false, false);
@@ -65,7 +64,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
 
 
         Cache temp = new Cache(cachingDir, tempDir);
-        TapeArchive tapeArchive = new TapeArchive(storeLocation, tapeSize);
+        TapeArchiveImpl tapeArchive = new TapeArchiveImpl(storeLocation, tapeSize);
         Taper taper = new Taper(tapingDir);
 
         temp.setDelegate(taper);
@@ -74,8 +73,8 @@ public class XmlTapesTestSuite extends TCKTestSuite {
         archive = temp;
 
         store.setArchive(archive);
-        store.getArchive().setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
-        store.getArchive().rebuild();
+        tapeArchive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
+        tapeArchive.rebuild();
         return store;
     }
 

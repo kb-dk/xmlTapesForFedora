@@ -1,11 +1,11 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cache.Cache;
-import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
+import dk.statsbiblioteket.metadatarepository.xmltapes.taper.Taper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -19,10 +19,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 
 public class TapeArchiveTest2 {
@@ -30,7 +27,7 @@ public class TapeArchiveTest2 {
     public static final String REDIS_HOST = "localhost";
     public static final int REDIS_PORT = 6379;
     public static final int REDIS_DATABASE = 3;
-    AbstractDeferringArchive archive;
+
 
     URI testFile1 = URI.create("testFile1");
     URI testFile2 = URI.create("testFile2");
@@ -38,6 +35,9 @@ public class TapeArchiveTest2 {
     String contents = "testFile 1 is here now";
     private long tapeSize = 1024*1024;
     RedisIndex index;
+
+    Cache archive;
+    private TapeArchive underlyingTapeArchive;
 
 
     @Before
@@ -53,16 +53,16 @@ public class TapeArchiveTest2 {
 
 
         archive = new Cache(cachingDir, tempDir);
-        TapeArchive tapeArchive = new TapeArchive(store, tapeSize);
+        underlyingTapeArchive = new TapeArchiveImpl(store, tapeSize);
         Taper taper = new Taper(tapingDir);
 
         archive.setDelegate(taper);
-        taper.setDelegate(tapeArchive);
+        taper.setDelegate(underlyingTapeArchive);
         taper.setParent(archive);
 
         index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);
-        archive.setIndex(index);
-        archive.rebuild();
+        underlyingTapeArchive.setIndex(index);
+        underlyingTapeArchive.rebuild();
         OutputStream outputStream = archive.createNew(testFile1, 0);
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         writer.write(contents);
@@ -110,7 +110,7 @@ public class TapeArchiveTest2 {
             Entry entry = index.getLocation(next);
             offsetBefore += entry.getOffset();
         }
-        archive.rebuild();
+        underlyingTapeArchive.rebuild();
 
         int offsetAfter = 0;
 

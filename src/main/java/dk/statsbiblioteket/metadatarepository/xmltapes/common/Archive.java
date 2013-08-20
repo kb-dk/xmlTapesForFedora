@@ -2,12 +2,9 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
 
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.util.Iterator;
 
@@ -45,22 +42,6 @@ public interface Archive {
      */
     long getSize(URI id) throws FileNotFoundException, IOException;
 
-    /**
-     * Create a new blob and open an outputstream to populate it
-     * @param id the id of the new blob
-     * @param estimatedSize the estimated size of the content
-     * @return an outputstream to the new blob
-     * @throws IOException if creation of a new blob failed
-     */
-    OutputStream createNew(URI id, long estimatedSize) throws IOException;
-
-
-    /**
-     * Remove the blob from the index, so that it will not be in the archive anymore
-     * @param id the id to remove
-     */
-    void remove(URI id) throws IOException;
-
 
     /**
      * List all Ids in the archive that adhere to a given interface
@@ -71,13 +52,6 @@ public interface Archive {
 
 
 
-    /**
-     * Get the index representation that this archive will use
-     * @return
-     */
-    Index getIndex();
-
-    void setIndex(Index index);
 
 
     /**
@@ -86,13 +60,10 @@ public interface Archive {
      */
     public void init() throws IOException ;
 
-    /**
-     * Initialises and rebuild the index
-     * @throws IOException
-     */
-    void rebuild() throws IOException;
 
     void close() throws IOException;
+
+
 }
 
 

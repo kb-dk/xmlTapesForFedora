@@ -90,7 +90,7 @@
 
     <!--The guts of the tape system-->
     <bean name="tarTapeObjectStore"
-          class="dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchive"
+          class="dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl"
           init-method="rebuild"
           singleton="true">
         <!--Change the init-method to init, if you do not want to rebuild the redis index on server startup -->

@@ -1,7 +1,5 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,12 +29,12 @@ import java.util.regex.Pattern;
  * Time: 12:17 PM
  * To change this template use File | Settings | File Templates.
  */
-public abstract class AbstractDeferringArchive implements Archive{
+public abstract  class AbstractDeferringArchive<T extends Archive> implements Archive{
 
     private static final Logger log = LoggerFactory.getLogger(AbstractDeferringArchive.class);
 
     public static final String UTF_8 = "UTF-8";
-    private Archive delegate;
+    private T delegate;
     private  File deferredDir;
 
     public final LockPool lockPool;
@@ -184,28 +182,8 @@ public abstract class AbstractDeferringArchive implements Archive{
     }
 
     @Override
-    public Index getIndex() {
-        return delegate.getIndex();
-    }
-
-    @Override
-    public void setIndex(Index index) {
-        delegate.setIndex(index);
-    }
-
-    @Override
     public void init() throws IOException {
         delegate.init();
-    }
-
-    @Override
-    public void close() throws IOException {
-        delegate.close();
-    }
-
-    @Override
-    public void rebuild() throws IOException {
-        delegate.rebuild();
     }
 
     public File getDeferredDir() {
@@ -213,11 +191,11 @@ public abstract class AbstractDeferringArchive implements Archive{
     }
 
 
-    public Archive getDelegate() {
+    public T getDelegate() {
         return delegate;
     }
 
-    public void setDelegate(Archive delegate) {
+    public void setDelegate(T delegate) {
         this.delegate = delegate;
     }
 
@@ -228,6 +206,11 @@ public abstract class AbstractDeferringArchive implements Archive{
         } catch (IOException e) {
             this.deferredDir = deferredDir;
         }
+    }
+
+
+    public void close() throws IOException{
+        getDelegate().close();
     }
 
 

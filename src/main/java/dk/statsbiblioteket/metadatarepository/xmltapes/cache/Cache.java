@@ -1,6 +1,7 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.cache;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AbstractDeferringArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +18,7 @@ import java.net.URLEncoder;
  * when the stream is closed, the file is moved to the cache dir. Read operations are resolved against the cache dir,
  * and if not found delegated.
  */
-public class Cache extends AbstractDeferringArchive {
+public class Cache extends AbstractDeferringArchive<AkubraCompatibleArchive> implements AkubraCompatibleArchive{
 
     private static final Logger log = LoggerFactory.getLogger(Cache.class);
 

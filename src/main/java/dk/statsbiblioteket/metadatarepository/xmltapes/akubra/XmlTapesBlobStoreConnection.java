@@ -1,7 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.akubra;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlob;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;
 import org.akubraproject.UnsupportedIdException;
@@ -22,11 +21,11 @@ import java.util.Map;
  */
 public class XmlTapesBlobStoreConnection extends AbstractBlobStoreConnection {
 
-    private Archive archive;
+    private AkubraCompatibleArchive archive;
 
 
 
-    protected XmlTapesBlobStoreConnection(BlobStore owner, StreamManager streamManager, Archive archive) {
+    protected XmlTapesBlobStoreConnection(BlobStore owner, StreamManager streamManager, AkubraCompatibleArchive archive) {
         super(owner, streamManager);
         this.archive = archive;
     }

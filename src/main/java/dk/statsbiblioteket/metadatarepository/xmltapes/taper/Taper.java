@@ -1,14 +1,15 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.taper;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AbstractDeferringArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.NonDuplicatingIterator;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,7 +29,7 @@ import java.util.TimerTask;
  * Time: 12:56 PM
  * To change this template use File | Settings | File Templates.
  */
-public class Taper extends AbstractDeferringArchive {
+public class Taper extends AbstractDeferringArchive<TapeArchive> implements AkubraCompatibleArchive {
 
 
 
@@ -200,15 +201,7 @@ public class Taper extends AbstractDeferringArchive {
         lockPool.lockForWriting();
         try {
             URI id = getIDfromFile(fileToTape);
-
-            OutputStream tapeOut = getDelegate().createNew(id, fileToTape.length());
-            InputStream tapingIn = new FileInputStream(fileToTape);
-            try {
-                IOUtils.copyLarge(tapingIn, tapeOut);
-            } finally {
-                tapingIn.close();
-                tapeOut.close();
-            }
+            getDelegate().tapeFile(id,fileToTape);
         } finally {
             FileUtils.deleteQuietly(fileToTape);
             lockPool.unlockForWriting();

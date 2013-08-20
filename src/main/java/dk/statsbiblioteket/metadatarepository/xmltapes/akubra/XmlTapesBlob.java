@@ -1,6 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.akubra;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.Archive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStoreConnection;
 import org.akubraproject.DuplicateBlobException;
@@ -30,10 +30,10 @@ public class XmlTapesBlob extends AbstractBlob {
     private static final Logger log = LoggerFactory.getLogger(XmlTapesBlob.class);
 
 
-    private final Archive archive;
+    private final AkubraCompatibleArchive archive;
     private StreamManager streamManager;
 
-    public XmlTapesBlob(BlobStoreConnection owner, URI id, Archive archive, StreamManager streamManager) {
+    public XmlTapesBlob(BlobStoreConnection owner, URI id, AkubraCompatibleArchive archive, StreamManager streamManager) {
         super(owner, id);
         this.archive = archive;
         this.streamManager = streamManager;
