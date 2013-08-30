@@ -75,7 +75,7 @@
           init-method="init"
           singleton="true">
          <!--Where to store files until the taper is ready to tape them-->
-        <constructor-arg value="/CHANGEME/tapingObjectStore" index="0"/>
+        <constructor-arg value="/CHANGEME/tapingObjectStore" index="0" type="java.io.File"/>
 
         <!--The allowed age of an file before it is taped, in ms-->
         <property name="tapeDelay" value="600000"/>
