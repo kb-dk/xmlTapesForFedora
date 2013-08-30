@@ -72,6 +72,7 @@
      to tape the object-->
     <bean name="tapingTapeObjectStore"
           class="dk.statsbiblioteket.metadatarepository.xmltapes.taper.DeferringTaper"
+          init-method="init"
           singleton="true">
          <!--Where to store files until the taper is ready to tape them-->
         <constructor-arg value="/CHANGEME/tapingObjectStore" index="0"/>
@@ -91,7 +92,7 @@
     <!--The guts of the tape system-->
     <bean name="tarTapeObjectStore"
           class="dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl"
-          init-method="rebuild"
+          init-method="init"
           singleton="true">
         <!--Change the init-method to init, if you do not want to rebuild the redis index on server startup -->
 
@@ -102,7 +103,10 @@
         <!--10 MB-->
         <!--This is the reference to the index-->
         <property name="index" ref="redisIndex"/>
+        <!--Remove broken records from the newest tape when initialising-->
         <property name="fixErrors" value="false"/>
+        <!--Reindex all the tape files when initialising-->
+        <property name="rebuild" value="true"/>
     </bean>
 
 

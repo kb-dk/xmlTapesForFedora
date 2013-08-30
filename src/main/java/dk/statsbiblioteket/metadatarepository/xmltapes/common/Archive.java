@@ -63,6 +63,7 @@ public interface Archive {
 
     void close() throws IOException;
 
+    boolean isClosed();
 
 }
 

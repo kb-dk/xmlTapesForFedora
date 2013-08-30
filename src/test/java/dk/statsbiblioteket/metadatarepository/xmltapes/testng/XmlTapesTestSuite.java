@@ -66,6 +66,8 @@ public class XmlTapesTestSuite extends TCKTestSuite {
         CacheForDeferringTaper temp = new CacheForDeferringTaper(cachingDir, tempDir);
         TapeArchiveImpl tapeArchive = new TapeArchiveImpl(storeLocation, tapeSize);
         DeferringTaper taper = new DeferringTaper(tapingDir);
+        taper.setDelay(10);
+        taper.setTapeDelay(1000);
 
         temp.setDelegate(taper);
         taper.setDelegate(tapeArchive);
@@ -75,6 +77,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
         store.setArchive(archive);
         tapeArchive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
         tapeArchive.rebuild();
+        archive.init();
         return store;
     }
 

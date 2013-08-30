@@ -1,6 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Collection;
@@ -18,6 +18,9 @@ import java.util.regex.Pattern;
  * To change this template use File | Settings | File Templates.
  */
 public class NonDuplicatingIterator implements Iterator<URI> {
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(NonDuplicatingIterator.class);
+
 
     private final Iterator<URI> last;
     private final Collection<URI>[] collections;
@@ -40,27 +43,39 @@ public class NonDuplicatingIterator implements Iterator<URI> {
 
     private void loopUntilNext(){
         while (next == null){
+            //Check if the current iterator is empty
             if (!currentIterator.hasNext()){
+                //Are there any more iterators to do?
                 if (! nextIterator()) {
                       throw new NoSuchElementException();
                 } else {
                     continue;
                 }
             }
+            //Get the next element
             next = currentIterator.next();
+            log.debug("Getting element {} from collection {}",next,currentCollection);
+            //If the next element is deleted
             if (next.toString().endsWith(TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED)){
-
+                //Translate to a normal (nondeleted) id and add id to deletedIDs
                 next = URI.create(next.toString().replaceAll(Pattern.quote(
                         TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED),
                         ""));
                 deletedIDs.add(next);
             }
+            //If the element is already marked as deleted
             if (deletedIDs.contains(next)){
+                log.debug("Element {} was deleted, so skipping",next);
+                //skip it
                 next = null;
                 continue;
             }
+            //For all the collections we already have done
             for (int i = 0; i < currentCollection; i++){
+                //If it contains the element
                 if (collections[i].contains(next)){
+                    //skip it
+                    log.debug("We already have returned element {} from a previous collection, so skip it",next);
                     next = null;
                     continue;
                 }

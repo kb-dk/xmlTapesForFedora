@@ -8,9 +8,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Iterator;
 
@@ -29,30 +27,12 @@ public abstract class AbstractTaper extends AbstractDeferringArchive<TapeArchive
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(AbstractTaper.class);
 
 
+
+
     public AbstractTaper(File tapingDir) {
         super();
         super.setDeferredDir(tapingDir);
 
-    }
-
-
-
-    @Override
-    public boolean exist(URI id) throws IOException {
-        log.debug("Calling exist with id {}",id);
-        return super.exist(id);    //To change body of overridden methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public long getSize(URI id) throws FileNotFoundException, IOException {
-        log.debug("Calling getSize with id {}",id);
-        return super.getSize(id);    //To change body of overridden methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public InputStream getInputStream(URI id) throws FileNotFoundException, IOException {
-        log.debug("Calling getInputStream with arguments id {}",id);
-        return super.getInputStream(id);    //To change body of overridden methods use File | Settings | File Templates.
     }
 
     @Override
@@ -63,7 +43,7 @@ public abstract class AbstractTaper extends AbstractDeferringArchive<TapeArchive
 
 
 
-    private void tapeTheTapingFileAddition(File fileToTape) throws IOException {
+    protected void tapeTheTapingFileAddition(File fileToTape) throws IOException {
         log.debug("Taping addition of file {}",fileToTape.getName());
         lockPool.lockForWriting();
         try {
@@ -77,17 +57,17 @@ public abstract class AbstractTaper extends AbstractDeferringArchive<TapeArchive
 
     }
 
-    private synchronized void tapeTheTapingFileDeletion(File fileToTape) throws IOException {
-        log.debug("Taping deletion of file {}",fileToTape);
+    protected synchronized void tapeTheTapingFileDeletion(File fileToTape) throws IOException {
+        log.debug("Begin taping of the deletion of file {}",fileToTape.getName());
         lockPool.lockForWriting();
         try {
 
             if (fileToTape.length() > 0){
-                log.debug("File {} containted content, so add the content before deletion",fileToTape);
+                log.debug("File {} containted content, so add the content before deletion",fileToTape.getName());
                 tapeTheTapingFileAddition(fileToTape);
             }
             URI id = getIDfromFile(fileToTape);
-            log.debug("Taping the file deletion {}",fileToTape);
+            log.debug("Taping the file deletion {} for real this time",fileToTape.getName());
             getDelegate().remove(id);
 
         } finally {

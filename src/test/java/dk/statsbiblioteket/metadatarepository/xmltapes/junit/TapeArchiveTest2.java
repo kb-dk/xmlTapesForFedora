@@ -55,6 +55,8 @@ public class TapeArchiveTest2 {
         archive = new CacheForDeferringTaper(cachingDir, tempDir);
         underlyingTapeArchive = new TapeArchiveImpl(store, tapeSize);
         DeferringTaper taper = new DeferringTaper(tapingDir);
+        taper.setDelay(10);
+        taper.setTapeDelay(1000);
 
         archive.setDelegate(taper);
         taper.setDelegate(underlyingTapeArchive);
@@ -63,6 +65,7 @@ public class TapeArchiveTest2 {
         index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);
         underlyingTapeArchive.setIndex(index);
         underlyingTapeArchive.rebuild();
+        archive.init();
         OutputStream outputStream = archive.createNew(testFile1, 0);
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         writer.write(contents);

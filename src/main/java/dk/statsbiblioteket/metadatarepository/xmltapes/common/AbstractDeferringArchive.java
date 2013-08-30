@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
  * Time: 12:17 PM
  * To change this template use File | Settings | File Templates.
  */
-public abstract  class AbstractDeferringArchive<T extends Archive> implements Archive{
+public abstract  class AbstractDeferringArchive<T extends Archive> extends Closable implements Archive{
 
     public static final String TEMP_PREFIX = "temp";
     private static final Logger log = LoggerFactory.getLogger(AbstractDeferringArchive.class);
@@ -51,6 +51,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> implements Ar
 
     @Override
     public InputStream getInputStream(URI id) throws FileNotFoundException, IOException {
+        testClosed();
 
 
         File cacheFile = getDeferredFile(id);
@@ -87,7 +88,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> implements Ar
             String name = cacheFile.getName();
             name = URLDecoder.decode(name,"UTF-8");
             name = name.replaceAll(Pattern.quote("#"+TapeUtils.DELETED)+"$","");
-            return new URI(URLDecoder.decode(name, UTF_8));
+            return new URI(name);
         } catch (URISyntaxException e) {
             return null;
         } catch (UnsupportedEncodingException e) {
@@ -96,27 +97,41 @@ public abstract  class AbstractDeferringArchive<T extends Archive> implements Ar
     }
 
 
+    protected URI getIDfromFileWithDeleted(File cacheFile) {
+
+          try {
+              String name = cacheFile.getName();
+              name = URLDecoder.decode(name,"UTF-8");
+              return new URI(name);
+          } catch (URISyntaxException e) {
+              return null;
+          } catch (UnsupportedEncodingException e) {
+              throw new Error(e);
+          }
+      }
+
 
 
 
     @Override
     public boolean exist(URI id) throws IOException {
+        testClosed();
 
         File cacheFile = getDeferredFile(id);
-        try {
-            lockPool.lockForWriting();
-            if (cacheFile.exists()){
-                return true;
-            }
-        } finally {
-            lockPool.unlockForWriting();
+        if (cacheFile.exists()){
+            return true;
+        }
+
+        File deleted = getDeferredFileDeleted(id);
+        if (deleted.exists()){
+            return false;
         }
         return  delegate.exist(id);
     }
 
     @Override
     public long getSize(URI id) throws FileNotFoundException, IOException {
-
+        testClosed();
         File cacheFile = getDeferredFile(id);
         try {
             lockPool.lockForWriting();
@@ -164,7 +179,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> implements Ar
         List<File> cacheFiles = getCacheFiles();
         ArrayList<URI> result = new ArrayList<URI>();
         for (File cacheFile : cacheFiles) {
-            URI id = getIDfromFile(cacheFile);
+            URI id = getIDfromFileWithDeleted(cacheFile);
             if (id == null){
                 continue;
             }
@@ -180,6 +195,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> implements Ar
 
     @Override
     public Iterator<URI> listIds(String filterPrefix) {
+        testClosed();
         log.debug("Calling listIDs with argument {}",filterPrefix);
         return delegate.listIds(filterPrefix);
     }
@@ -213,7 +229,12 @@ public abstract  class AbstractDeferringArchive<T extends Archive> implements Ar
 
 
     public void close() throws IOException{
+        super.close();
         getDelegate().close();
+    }
+
+    public boolean isClosed(){
+        return super.isClosed() && getDelegate().isClosed();
     }
 
     protected File getTempFile(URI id, File temp_dir) throws IOException {

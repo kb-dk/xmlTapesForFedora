@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.Closable;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
@@ -37,7 +38,7 @@ import java.util.zip.GZIPOutputStream;
 /**
  * This class implements the Archive in the fashion of tar tape archived
  */
-public class TapeArchiveImpl implements TapeArchive {
+public class TapeArchiveImpl extends Closable implements TapeArchive {
 
 
     private static final Logger log = LoggerFactory.getLogger(TapeArchiveImpl.class);
@@ -94,7 +95,16 @@ public class TapeArchiveImpl implements TapeArchive {
     private boolean fixErrors = false;
 
 
+    /**
+     * Rebuild the index when initing
+     */
+    private boolean rebuild = false;
 
+
+    /**
+     * Flag indicating if the init method have completed
+     */
+    private boolean initialised = false;
 
 
 
@@ -128,13 +138,30 @@ public class TapeArchiveImpl implements TapeArchive {
 
     }
 
+
     /**
      * Initialise the system.
      * Find the "HEAD" tar, scan it for errors, and add all from in to the index again
      * Check that all the tapes have been indexed
      */
     @Override
-    public void init() throws IOException {
+    public synchronized void init() throws IOException {
+        testClosed();
+        if (rebuild){
+            rebuild();
+        } else {
+            setup();
+        }
+        initialised = true;
+    }
+
+    /**
+     * Initialise the system.
+     * Find the "HEAD" tar, scan it for errors, and add all from in to the index again
+     * Check that all the tapes have been indexed
+     */
+    public void setup() throws IOException {
+        testClosed();
         log.debug("Init called");
         File[] tapes = getTapes();
         if (isFixErrors()){ //Only fixErrors if explicitly told to
@@ -142,9 +169,27 @@ public class TapeArchiveImpl implements TapeArchive {
         }
         // Iterate through all the tapes in sorted order to rebuild the index
         rebuildWhatsNeeded(tapes);
-
-
     }
+
+    /**
+     * Clear the index and rebuild it
+     *
+     * @throws IOException
+     */
+    @Override
+    public void rebuild() throws IOException {
+        testClosed();
+        getStoreWriteLock();
+        try {
+            log.info("The index should be rebuild, so clearing it");
+            // Clear the index and then rebuild it
+            index.clear();
+            setup();
+        } finally {
+            writeLock.unlock();
+        }
+    }
+
 
 
     /**
@@ -158,6 +203,7 @@ public class TapeArchiveImpl implements TapeArchive {
      * @throws IOException If writing the new tape failed.
      */
     private void verifyAndFix(File tape) throws IOException {
+        testClosed();
         log.info("Verifying and fixing the content of the tape {}",tape);
 
         TarInputStream tarstream = new TarInputStream(new FileInputStream(tape));
@@ -224,30 +270,18 @@ public class TapeArchiveImpl implements TapeArchive {
     }
 
 
-    /**
-     * Clear the index and rebuild it
-     *
-     * @throws IOException
-     */
-    @Override
-    public void rebuild() throws IOException {
-        log.info("The index should be rebuild, so clearing it");
-        // Clear the index and then rebuild it
-        index.clear();
-        init();
-    }
 
 
     @Override
     public void close() throws IOException {
         getStoreWriteLock();
         try {
-
+            super.close();
         } finally {
             writeLock.unlock();
         }
-        //To change body of implemented methods use File | Settings | File Templates.
     }
+
 
     /**
      * Iterate through the tapes and index them, if they are not already indexed. The newest tape will always be indexed
@@ -256,6 +290,7 @@ public class TapeArchiveImpl implements TapeArchive {
      * @throws IOException if reading a tape failed
      */
     private void rebuildWhatsNeeded(File[] tapes) throws IOException {
+        testClosed();
         boolean indexedSoFar = true;
 
         //Iterate through all but the newest tape
@@ -283,6 +318,7 @@ public class TapeArchiveImpl implements TapeArchive {
      * @throws IOException
      */
     private  void indexTape(File tape) throws IOException {
+        testClosed();
         // Create a TarInputStream
         CountingInputStream countingInputStream = new CountingInputStream(new BufferedInputStream(new FileInputStream(tape)));
         TarInputStream tis = new TarInputStream(countingInputStream);
@@ -312,6 +348,7 @@ public class TapeArchiveImpl implements TapeArchive {
      * @return the list of tape files
      */
     private File[] getTapes() {
+        testClosed();
         //TODO should we do this twice or store the result?
         // Find all the tapes in the tape folder
         File[] tapes = archiveTapes.listFiles(
@@ -401,6 +438,8 @@ public class TapeArchiveImpl implements TapeArchive {
 
     @Override
     public InputStream getInputStream(final URI id) throws IOException {
+        testClosed();
+        testInitialised();
         log.debug("Calling getInputStream for id {}",id);
         Entry newestFile = index.getLocation(id);
         if (newestFile == null) {
@@ -456,13 +495,16 @@ public class TapeArchiveImpl implements TapeArchive {
 
     @Override
     public boolean exist(URI id) {
-
+        testClosed();
+        testInitialised();
         return index.getLocation(id) != null;
     }
 
 
     @Override
     public long getSize(URI id) throws IOException {
+        testClosed();
+        testInitialised();
         log.debug("Calling getSize for id {}",id);
 
         Entry newestFile = index.getLocation(id);
@@ -496,7 +538,8 @@ public class TapeArchiveImpl implements TapeArchive {
 
     @Override
     public  void tapeFile(URI id, File fileToTape) throws IOException {
-
+        testClosed();
+        testInitialised();
         getStoreWriteLock();
         log.debug("Calling tapeFile with id {}",id);
         try {
@@ -526,7 +569,6 @@ public class TapeArchiveImpl implements TapeArchive {
     }
 
     private long getZippedLength(File fileToTape) throws IOException {
-
         CountingOutputStream counter = new CountingOutputStream(new NullOutputStream());
         GZIPOutputStream output = new GZIPOutputStream(counter);
         FileInputStream input = new FileInputStream(fileToTape);
@@ -557,6 +599,8 @@ public class TapeArchiveImpl implements TapeArchive {
 
     @Override
     public  void remove(URI id) throws IOException {
+        testClosed();
+        testInitialised();
         getStoreWriteLock();
         log.debug("calling Remove with id {}",id);
 
@@ -611,6 +655,8 @@ public class TapeArchiveImpl implements TapeArchive {
 
     @Override
     public Iterator<URI> listIds(String filterPrefix) {
+        testClosed();
+        testInitialised();
         log.debug("Calling listIds with prefix {}",filterPrefix);
 
         return index.listIds(filterPrefix);
@@ -643,5 +689,20 @@ public class TapeArchiveImpl implements TapeArchive {
     @Override
     public void setFixErrors(boolean fixErrors) {
         this.fixErrors = fixErrors;
+    }
+
+    public boolean isRebuild() {
+        return rebuild;
+    }
+
+    public void setRebuild(boolean rebuild) {
+        this.rebuild = rebuild;
+    }
+
+
+    public void testInitialised(){
+        if (!initialised){
+            throw new IllegalStateException("Attempted to use archive before initialisation complete");
+        }
     }
 }

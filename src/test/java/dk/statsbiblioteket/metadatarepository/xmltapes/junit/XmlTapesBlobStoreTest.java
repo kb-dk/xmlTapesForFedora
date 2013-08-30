@@ -78,6 +78,9 @@ public class XmlTapesBlobStoreTest {
         archive.setDelegate(taper);
         taper.setParent(archive);
 
+        taper.setDelay(10);
+        taper.setTapeDelay(1000);
+
         //create the real tape archive and link the the taper to it
         TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize);
         taper.setDelegate(tapeArchive);
@@ -85,6 +88,7 @@ public class XmlTapesBlobStoreTest {
         //set the redis index and rebuilt the index
         tapeArchive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
         tapeArchive.rebuild();
+        archive.init();
 
         return xmlTapesBlobStore;
     }

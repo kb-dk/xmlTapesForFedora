@@ -24,6 +24,7 @@ public class DirectTaper extends AbstractTaper {
 
     @Override
     public OutputStream createNew(URI id, long estimatedSize) throws IOException {
+        testClosed();
         log.debug("Calling createNew with arguments {}",id);
         File tempFile = getTempFile(id,getDeferredDir());
         return new DirectTaperOutputStream(tempFile, id,getDelegate());
@@ -32,6 +33,7 @@ public class DirectTaper extends AbstractTaper {
 
     @Override
     public void remove(URI id) throws IOException {
+        testClosed();
         getDelegate().remove(id);
     }
 }

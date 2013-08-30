@@ -6,9 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 
@@ -37,6 +35,7 @@ public class CacheForDeferringTaper extends AbstractDeferringArchive<AkubraCompa
 
     @Override
     public OutputStream createNew(URI id, long estimatedSize) throws IOException {
+        testClosed();
         log.debug("Calling createNew with arguments {}",id);
         File tempFile = getTempFile(id,tempDir);
         return new CacheOutputStream(tempFile, getDeferredFile(id), lockPool);
@@ -46,28 +45,10 @@ public class CacheForDeferringTaper extends AbstractDeferringArchive<AkubraCompa
 
     @Override
     public  void remove(URI id) throws IOException {
+        testClosed();
         log.debug("Calling remove with arguments {}",id);
         getDelegate().remove(id);
         log.debug("End of remove with arguments {}",id);
 
-    }
-
-
-    @Override
-    public boolean exist(URI id) throws IOException {
-        log.debug("Calling exist with id {}",id);
-        return super.exist(id);    //To change body of overridden methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public long getSize(URI id) throws FileNotFoundException, IOException {
-        log.debug("Calling getSize with id {}",id);
-        return super.getSize(id);    //To change body of overridden methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public InputStream getInputStream(URI id) throws FileNotFoundException, IOException {
-        log.debug("Calling getInputStream with arguments id {}",id);
-        return super.getInputStream(id);    //To change body of overridden methods use File | Settings | File Templates.
     }
 }

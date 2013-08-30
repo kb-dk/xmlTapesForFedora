@@ -34,9 +34,10 @@ public class DeferringTaper extends AbstractTaper{
     private TimerTask task;
     private Timer timer;
 
-    private boolean timerStopped = false;
+    private boolean timerStopped = true;
     private boolean timerHaveRunAtLeastOnce = false;
-    private boolean closed = false;
+
+    private boolean stopTimer = false;
 
     /**
      * The delay between runs of the taper thread
@@ -49,20 +50,19 @@ public class DeferringTaper extends AbstractTaper{
     private long tapeDelay;
 
 
-    public DeferringTaper(File tapingDir, boolean tapeDeferred) {
+    public DeferringTaper(File tapingDir) {
         super(tapingDir);
         timer = new Timer();
-        delay = 10;
-        tapeDelay = 2000;
-        setDelay(delay);
-
     }
 
 
-
-    public DeferringTaper(File tapingDir) {
-        this(tapingDir, true);
+    @Override
+    public void init() throws IOException {
+        super.init();
+        startTimer();
     }
+
+
 
     @Override
     public OutputStream createNew(URI id, long estimatedSize) throws IOException {
@@ -81,7 +81,7 @@ public class DeferringTaper extends AbstractTaper{
             public synchronized void run() {
                 timerStopped = false;
 
-                if (timerHaveRunAtLeastOnce && closed) {
+                if (timerHaveRunAtLeastOnce && stopTimer) {
                     cancel();
                     timerStopped = true;
                     return;
@@ -89,16 +89,29 @@ public class DeferringTaper extends AbstractTaper{
                 try {
                     if (getDelegate() != null && parent != null){
                         saveAll();
-                        timerHaveRunAtLeastOnce = true;
                     }
                 } catch (Exception e) {
                     log.error("Failed to save objects", e);
+                } finally {
+                    timerHaveRunAtLeastOnce = true;
                 }
             }
         };
         timerHaveRunAtLeastOnce = false;
         timer.schedule(task, 0, delay);
     }
+
+    private void stopTimer() {
+          stopTimer = true;
+          //Close the timer, THEN close the delegates. The other order would cause problems.
+          while (!timerStopped) {
+              try {
+                  Thread.sleep(100);
+              } catch (InterruptedException e) {
+
+              }
+          }
+      }
 
 
     /**
@@ -117,6 +130,7 @@ public class DeferringTaper extends AbstractTaper{
 
 
         lockPool.lockForWriting();
+        testClosed();
         try {
             //log.debug("Attempting to save all");
             //1
@@ -130,9 +144,9 @@ public class DeferringTaper extends AbstractTaper{
             try {
                 List<File> cacheFiles = parent.getCacheFiles();
                 for (File cacheFile : cacheFiles) {
-                    log.debug("Found file {} in caching folder",cacheFile);
+                    log.debug("Found file {} in caching folder",cacheFile.getName());
                     if (cacheFile.lastModified() + tapeDelay < now) {
-                        log.debug("File {} is old enough, move to {}",cacheFile,getDeferredDir());
+                        log.debug("File {} is old enough, move to {}",cacheFile.getName(),getDeferredDir());
                         FileUtils.moveFileToDirectory(cacheFile, getDeferredDir(), true);
                     } else {
                         log.debug("File {} is to young, ignore",cacheFile);
@@ -152,13 +166,12 @@ public class DeferringTaper extends AbstractTaper{
 
     private void tapeAll(List<File> cacheFiles) throws IOException {
         lockPool.lockForWriting();
+        testClosed();
         try {
             for (File cacheFile : cacheFiles) {
                 if (cacheFile.getName().endsWith(TapeUtils.DELETED)){
-
                     tapeTheTapingFileDeletion(cacheFile);
                 } else {
-
                     tapeTheTapingFileAddition(cacheFile);
                 }
             }
@@ -167,44 +180,9 @@ public class DeferringTaper extends AbstractTaper{
         }
     }
 
-    private void tapeTheTapingFileAddition(File fileToTape) throws IOException {
-        log.debug("Taping addition of file {}",fileToTape.getName());
-        lockPool.lockForWriting();
-        try {
-            URI id = getIDfromFile(fileToTape);
-            getDelegate().tapeFile(id,fileToTape);
-        } finally {
-            FileUtils.deleteQuietly(fileToTape);
-            lockPool.unlockForWriting();
-        }
-
-
-    }
-
-    private synchronized void tapeTheTapingFileDeletion(File fileToTape) throws IOException {
-        log.debug("Taping deletion of file {}",fileToTape);
-        lockPool.lockForWriting();
-        try {
-
-            if (fileToTape.length() > 0){
-                log.debug("File {} containted content, so add the content before deletion",fileToTape);
-                tapeTheTapingFileAddition(fileToTape);
-            }
-            URI id = getIDfromFile(fileToTape);
-            log.debug("Taping the file deletion {}",fileToTape);
-            getDelegate().remove(id);
-
-        } finally {
-            FileUtils.deleteQuietly(fileToTape);
-            lockPool.unlockForWriting();
-        }
-    }
-
-
-
-
     @Override
     public  void remove(URI id) throws IOException {
+        testClosed();
         //This is only called by cache.remove, and that method already locks the cache for writing
 
         while (true){
@@ -215,7 +193,7 @@ public class DeferringTaper extends AbstractTaper{
 
                 File tapingFile = getDeferredFileDeleted(id);
                 if (tapingFile.exists()){
-                    log.debug("{} is already scheduled for removal. Wait sleep for now and return later");
+                    log.debug("{} is already scheduled for removal. Wait sleep for now and return later",tapingFile.getName());
                     //sleep and try again
                     throw new FileAlreadyExistsException(tapingFile.toString());
                 }
@@ -229,7 +207,7 @@ public class DeferringTaper extends AbstractTaper{
                 try { //Get file from cache
 
                     InputStream cacheFile = parent.getInputStream(id);
-                    log.debug("File {} is in cache, so copy the current version to {}",id,getDeferredDir());
+                    log.debug("File {} is in cache, so copy the current version to {}",id,tapingFile);
 
                     //write this content to the tapingFile
                     FileOutputStream output = new FileOutputStream(tapingFile);
@@ -279,7 +257,6 @@ public class DeferringTaper extends AbstractTaper{
 
     public void setDelay(long delay) {
         this.delay = delay;
-        startTimer();
     }
 
 
@@ -287,18 +264,24 @@ public class DeferringTaper extends AbstractTaper{
         this.tapeDelay = tapeDelay;
     }
 
+
+    public long getDelay() {
+        return delay;
+    }
+
+    public long getTapeDelay() {
+        return tapeDelay;
+    }
+
+
+
     @Override
     public void close() throws IOException {
-        closed = true;
-        while (!timerStopped) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
 
-            }
-        }
-        getDelegate().close();
-
+        stopTimer();
+        super.close();
     }
+
+
 
 }
