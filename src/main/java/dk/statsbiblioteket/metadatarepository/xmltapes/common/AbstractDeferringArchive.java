@@ -238,6 +238,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
     }
 
     protected File getTempFile(URI id, File temp_dir) throws IOException {
+        temp_dir.mkdirs();
         File tempfile = File.createTempFile(URLEncoder.encode(id.toString(), UTF_8), TEMP_PREFIX, temp_dir);
         tempfile.deleteOnExit();
         return tempfile;
