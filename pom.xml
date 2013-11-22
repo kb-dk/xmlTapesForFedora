@@ -83,7 +83,7 @@
         <dependency>
             <groupId>dk.statsbiblioteket.sbutil</groupId>
             <artifactId>sbutil</artifactId>
-            <version>0.5.7</version>
+            <version>0.5.13</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -150,9 +150,9 @@
 
 
         <dependency>
-            <groupId>org.kamranzafar</groupId>
-            <artifactId>jtar</artifactId>
-            <version>2.3-SNAPSHOT</version>
+            <groupId>dk.statsbiblioteket.doms</groupId>
+             <artifactId>jtar</artifactId>
+             <version>2.3</version>
         </dependency>
 
         <!--    <dependency>
