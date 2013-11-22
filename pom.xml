@@ -20,6 +20,12 @@
 
     </properties>
 
+    <scm>
+        <connection>scm:git:git@github.com:statsbiblioteket/xmlTapesForFedora.git</connection>
+        <developerConnection>scm:git:git@github.com:statsbiblioteket/xmlTapesForFedora.git</developerConnection>
+        <url>git@github.com:statsbiblioteket/xmlTapesForFedora.git</url>
+    </scm>
+
 
     <build>
         <plugins>
@@ -148,11 +154,10 @@
         </dependency>
 
 
-
         <dependency>
             <groupId>dk.statsbiblioteket.doms</groupId>
-             <artifactId>jtar</artifactId>
-             <version>2.3</version>
+            <artifactId>jtar</artifactId>
+            <version>2.3</version>
         </dependency>
 
         <!--    <dependency>
