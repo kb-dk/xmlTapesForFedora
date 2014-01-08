@@ -4,6 +4,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import dk.statsbiblioteket.util.FileAlreadyExistsException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -29,7 +30,7 @@ public class DeferringTaper extends AbstractTaper{
 
 
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(DeferringTaper.class);
+    private static final Logger log = LoggerFactory.getLogger(DeferringTaper.class);
 
     private TimerTask task;
     private Timer timer;
@@ -76,6 +77,7 @@ public class DeferringTaper extends AbstractTaper{
         }
 
         task = new TimerTask() {
+            private final Logger log = LoggerFactory.getLogger(DeferringTaper.class);
 
             @Override
             public synchronized void run() {
