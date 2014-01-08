@@ -1,3 +1,6 @@
+1.0.2
+No longer nullPointerexceptions from DeferringTaper when trying to report errors.
+
 1.0.1
 Use 1.0 doms parent pom
 
