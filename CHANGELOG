@@ -1,3 +1,7 @@
+1.0.3
+Tape filename prefix and extension are now configurable
+
+
 1.0.2
 No longer nullPointerexceptions from DeferringTaper when trying to report errors.
 
