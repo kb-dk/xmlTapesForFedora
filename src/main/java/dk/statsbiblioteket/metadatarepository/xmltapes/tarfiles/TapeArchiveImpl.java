@@ -62,7 +62,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         this.tempTapePrefix = tempTapePrefix;
     }
 
-    private static final String TAR = ".tar.gz";
+    private static final String TAR = ".gz.tar";
     private String tapeExtension = TAR;
     public String getTapeExtension() {
         return tapeExtension;
@@ -377,7 +377,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
                 new FilenameFilter() {
                     @Override
                     public boolean accept(File dir, String name) {
-                        if (name.startsWith(TAPE) && name.endsWith(getTapeExtension())) {
+                        if (name.startsWith(getTapePrefix()) && name.endsWith(getTapeExtension())) {
                             return true;
                         }
                         return false;
