@@ -107,6 +107,15 @@
         <property name="fixErrors" value="false"/>
         <!--Reindex all the tape files when initialising-->
         <property name="rebuild" value="true"/>
+
+        <!--Extension of the tape files-->
+        <property name="tapeExtension" value=".gz.tar"/>
+
+        <!--prefix for the tape files-->
+        <property name="tapePrefix" value="tape"/>
+
+        <!--prefix for the temp tape files-->
+        <property name="tempTapePrefix" value="tempTape"/>
     </bean>
 
 
