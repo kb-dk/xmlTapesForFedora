@@ -1,3 +1,7 @@
+1.0.4
+Fixed stupid bug regarding tape prefix
+
+
 1.0.3
 Tape filename prefix and extension are now configurable
 
