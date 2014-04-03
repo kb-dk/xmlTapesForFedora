@@ -109,13 +109,13 @@
         <property name="rebuild" value="true"/>
 
         <!--Extension of the tape files-->
-        <property name="tapeExtension" value=".gz.tar"/>
+        <constructor-arg  value=".gz.tar"/>
 
         <!--prefix for the tape files-->
-        <property name="tapePrefix" value="tape"/>
+        <constructor-arg  value="tape"/>
 
         <!--prefix for the temp tape files-->
-        <property name="tempTapePrefix" value="tempTape"/>
+        <constructor-arg  value="tempTape"/>
     </bean>
 
 

@@ -43,33 +43,11 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
 
     private static final Logger log = LoggerFactory.getLogger(TapeArchiveImpl.class);
 
+    private final String tapePrefix;
 
-    private static final String TAPE = "tape";
-    private String tapePrefix = TAPE;
-    public String getTapePrefix() {
-        return tapePrefix;
-    }
-    public void setTapePrefix(String tapePrefix) {
-        this.tapePrefix = tapePrefix;
-    }
+    private final String tempTapePrefix;
 
-    private static final String TEMP_TAPE = "tempTape";
-    private String tempTapePrefix = TEMP_TAPE;
-    public String getTempTapePrefix() {
-        return tempTapePrefix;
-    }
-    public void setTempTapePrefix(String tempTapePrefix) {
-        this.tempTapePrefix = tempTapePrefix;
-    }
-
-    private static final String TAR = ".gz.tar";
-    private String tapeExtension = TAR;
-    public String getTapeExtension() {
-        return tapeExtension;
-    }
-    public void setTapeExtension(String tapeExtension) {
-        this.tapeExtension = tapeExtension;
-    }
+    private final String tapeExtension;
 
     /**
      * The max size a tarball can grow to, before we start a new tape.
@@ -138,7 +116,10 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
      * @param location the folder with the archive files
      * @param tapeSize the cuttoff size to use for new tapes
      */
-    public TapeArchiveImpl(URI location, long tapeSize) throws IOException {
+    public TapeArchiveImpl(URI location, long tapeSize, String tapeExtension, String tapePrefix, String tempTapePrefix) throws IOException {
+        this.tapeExtension = tapeExtension;
+        this.tapePrefix = tapePrefix;
+        this.tempTapePrefix = tempTapePrefix;
 
         log.info("Initialising tape archive from {}",location);
         SIZE_LIMIT = tapeSize;
@@ -247,7 +228,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             log.warn("Failed to verify {}. I will now copy all that can be read to new file and replace the broken tape",
                     tape);
 
-            File tempTape = File.createTempFile(getTempTapePrefix(), getTapeExtension());
+            File tempTape = File.createTempFile(tempTapePrefix, tapeExtension);
             tempTape.deleteOnExit();
             tarout = new TarOutputStream(new FileOutputStream(tempTape));
             //close and reopen
@@ -267,7 +248,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             IOUtils.closeQuietly(tarout);
 
             //move existing out of the way
-            File temp2 = File.createTempFile(getTempTapePrefix(), getTapeExtension());
+            File temp2 = File.createTempFile(tempTapePrefix, tapeExtension);
             temp2.deleteOnExit();
 
             FileUtils.moveFile(tape, temp2);
@@ -377,10 +358,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
                 new FilenameFilter() {
                     @Override
                     public boolean accept(File dir, String name) {
-                        if (name.startsWith(getTapePrefix()) && name.endsWith(getTapeExtension())) {
-                            return true;
-                        }
-                        return false;
+                        return name.startsWith(tapePrefix) && name.endsWith(tapeExtension);
                     }
                 }
         );
@@ -447,7 +425,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     private  File createNewTape() throws IOException {
         getStoreWriteLock();
         try {
-            newestTape = new File(archiveTapes, getTapePrefix() + System.currentTimeMillis() + getTapeExtension());
+            newestTape = new File(archiveTapes, tapePrefix + System.currentTimeMillis() + tapeExtension);
             newestTape.createNewFile();
             log.debug("Starting the new tape {}",newestTape);
             return newestTape;

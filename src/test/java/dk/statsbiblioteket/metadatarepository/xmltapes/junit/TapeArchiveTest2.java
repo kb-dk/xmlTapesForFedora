@@ -53,7 +53,7 @@ public class TapeArchiveTest2 {
 
 
         archive = new CacheForDeferringTaper(cachingDir, tempDir);
-        underlyingTapeArchive = new TapeArchiveImpl(store, tapeSize);
+        underlyingTapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
         DeferringTaper taper = new DeferringTaper(tapingDir);
         taper.setDelay(10);
         taper.setTapeDelay(1000);

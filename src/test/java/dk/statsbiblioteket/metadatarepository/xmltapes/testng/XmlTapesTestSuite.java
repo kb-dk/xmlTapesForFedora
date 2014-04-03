@@ -64,7 +64,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
 
 
         CacheForDeferringTaper temp = new CacheForDeferringTaper(cachingDir, tempDir);
-        TapeArchiveImpl tapeArchive = new TapeArchiveImpl(storeLocation, tapeSize);
+        TapeArchiveImpl tapeArchive = new TapeArchiveImpl(storeLocation, tapeSize, ".tar", "tape", "tempTape");
         DeferringTaper taper = new DeferringTaper(tapingDir);
         taper.setDelay(10);
         taper.setTapeDelay(1000);
