@@ -48,7 +48,7 @@ public class DeferringTaper extends AbstractTaper {
 
     public DeferringTaper(File tapingDir) {
         super(tapingDir);
-        timer = new Timer();
+        timer = new Timer("DeferringTaper for '"+tapingDir.getAbsolutePath()+"'",true);
     }
 
 
