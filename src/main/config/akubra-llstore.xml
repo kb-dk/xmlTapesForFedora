@@ -109,7 +109,7 @@
         <property name="rebuild" value="true"/>
 
         <!--Extension of the tape files-->
-        <constructor-arg  value=".gz.tar"/>
+        <constructor-arg  value=".tar"/>
 
         <!--prefix for the tape files-->
         <constructor-arg  value="tape"/>
