@@ -1,4 +1,4 @@
-1.0.4
+1.0.5
 Fixed bad and stupid bug about tape extentions. This means that the properties "tapeExtention", "tapePrefix" and "tapeTempPrefix" is now constructor params, rather than properties.
 The Timer thread is now a daemon, so the system should be able to shut down.
 
