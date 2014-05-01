@@ -8,6 +8,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;
 import org.apache.commons.io.FileUtils;
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,7 +76,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
         archive = temp;
 
         store.setArchive(archive);
-        tapeArchive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
+        tapeArchive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig()));
         tapeArchive.rebuild();
         archive.init();
         return store;

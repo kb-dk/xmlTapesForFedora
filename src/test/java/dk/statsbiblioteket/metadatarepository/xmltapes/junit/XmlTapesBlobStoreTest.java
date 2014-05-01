@@ -14,6 +14,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -86,7 +87,7 @@ public class XmlTapesBlobStoreTest {
         taper.setDelegate(tapeArchive);
 
         //set the redis index and rebuilt the index
-        tapeArchive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
+        tapeArchive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig()));
         tapeArchive.rebuild();
         archive.init();
 

@@ -6,6 +6,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.File;
 import java.net.URI;
@@ -13,7 +14,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.UUID;
 
-import static junit.framework.Assert.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,7 +33,7 @@ public class RedisIndexTest {
 
     @Before
     public void setUp() throws Exception {
-        index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);
+        index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
     }
 
     @After

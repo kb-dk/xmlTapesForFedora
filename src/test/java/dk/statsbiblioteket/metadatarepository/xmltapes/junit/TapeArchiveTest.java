@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -58,7 +59,7 @@ public class TapeArchiveTest {
         taper.setDelegate(tapeArchive);
         taper.setParent(archive);
 
-        tapeArchive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE));
+        tapeArchive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig()));
         tapeArchive.rebuild();
         archive.init();
         OutputStream outputStream = archive.createNew(testFile1, 0);

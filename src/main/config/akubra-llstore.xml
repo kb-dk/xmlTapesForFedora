@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
-<beans>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+     http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+     http://www.springframework.org/schema/util  http://www.springframework.org/schema/util/spring-util-3.1.xsd">
 
-    <!--Standard-->
+
+<!--Standard-->
     <bean name="org.fcrepo.server.storage.lowlevel.ILowlevelStorage"
           class="org.fcrepo.server.storage.lowlevel.akubra.AkubraLowlevelStorageModule">
         <constructor-arg index="0">
@@ -17,7 +22,7 @@
 
     <bean name="org.fcrepo.server.storage.lowlevel.akubra.AkubraLowlevelStorage"
           class="org.fcrepo.server.storage.lowlevel.akubra.AkubraLowlevelStorage"
-          singleton="true">
+            >
         <constructor-arg ref="tapeObjectStore">
             <description>The store of serialized Fedora objects</description>
             <!--Here we reference our tape system-->
@@ -42,7 +47,7 @@
     <!--This is the tape store Akubra Implementation-->
     <bean name="tapeObjectStore"
           class="dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore"
-          singleton="true">
+            >
         <constructor-arg value="urn:example.org:tapeObjectStore"/>
         <!--This parameter is the name of the storage. -->
         <property name="archive" ref="cacheTapeObjectStore"/>
@@ -55,7 +60,8 @@
     to tape the object-->
     <bean name="cacheTapeObjectStore"
           class="dk.statsbiblioteket.metadatarepository.xmltapes.cache.CacheForDeferringTaper"
-          singleton="true">
+
+            >
         <!--Where to store files until the taper is ready to tape them-->
         <constructor-arg value="/CHANGEME/cacheObjectStore" index="0"/>
         <!--Where to store files while they are still being written-->
@@ -73,7 +79,7 @@
     <bean name="tapingTapeObjectStore"
           class="dk.statsbiblioteket.metadatarepository.xmltapes.taper.DeferringTaper"
           init-method="init"
-          singleton="true">
+            >
          <!--Where to store files until the taper is ready to tape them-->
         <constructor-arg value="/CHANGEME/tapingObjectStore" index="0" type="java.io.File"/>
 
@@ -93,7 +99,7 @@
     <bean name="tarTapeObjectStore"
           class="dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl"
           init-method="init"
-          singleton="true">
+            >
         <!--Change the init-method to init, if you do not want to rebuild the redis index on server startup -->
 
         <!--This constructor argument specifies the tape store location. -->
@@ -121,7 +127,8 @@
 
     <!--This is our Redis index-->
     <bean name="redisIndex" class="dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex"
-          singleton="true">
+            >
+        <constructor-arg type="redis.clients.jedis.JedisPoolConfig" ref="jedisPoolConfig"/>
         <!--The redis server-->
         <constructor-arg value="localhost"/>
         <!--The port it is running on-->
@@ -131,21 +138,43 @@
     </bean>
 
 
+    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <!-- Action to take when trying to acquire a connection and all connections are taken -->
+        <property name="whenExhaustedAction">
+            <!-- Fail-fast behaviour, we don't like to keep the kids waiting -->
+            <util:constant static-field="org.apache.commons.pool.impl.GenericObjectPool.WHEN_EXHAUSTED_BLOCK" />
+        </property>
+        <!-- Maximum active connections to Redis instance -->
+        <property name="maxActive" value="10"/>
+        <!-- Number of connections to Redis that just sit there and do nothing -->
+        <property name="maxIdle" value="5"/>
+        <!-- Minimum number of idle connections to Redis - these can be seen as always open and ready to serve -->
+        <property name="minIdle" value="1"/>
+        <!-- Tests whether connection is dead when connection retrieval method is called -->
+        <property name="testOnBorrow" value="true"/>
+        <!-- Tests whether connection is dead when returning a connection to the pool -->
+        <property name="testOnReturn" value="true"/>
+        <!-- Tests whether connections are dead during idle periods -->
+        <property name="testWhileIdle" value="true"/>
+        <!-- Maximum number of connections to test in each idle check -->
+        <property name="numTestsPerEvictionRun" value="10"/>
+        <!-- Idle connection checking period -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000"/>
+        <!-- Maximum time, in milliseconds, to wait for a resource when exausted action is set to WHEN_EXAUSTED_BLOCK -->
+        <property name="maxWait" value="30000"/>
+    </bean>
+
     <!--Standard storage for managed datastreams. We do not use managed datastreams-->
     <bean name="datastreamStore" class="org.akubraproject.map.IdMappingBlobStore"
-          singleton="true">
+            >
         <constructor-arg value="urn:fedora:datastreamStore"/>
-        <constructor-arg>
-            <ref bean="fsDatastreamStore"/>
-        </constructor-arg>
-        <constructor-arg>
-            <ref bean="fsDatastreamStoreMapper"/>
-        </constructor-arg>
+        <constructor-arg ref="fsDatastreamStore"/>
+        <constructor-arg ref="fsDatastreamStoreMapper"/>
     </bean>
 
     <!--Standard storage for managed datastreams. We do not use managed datastreams-->
     <bean name="fsDatastreamStore" class="org.akubraproject.fs.FSBlobStore"
-          singleton="true">
+            >
         <constructor-arg value="urn:example.org:fsDatastreamStore"/>
         <constructor-arg value="/CHANGEME/datastreamStore"/>
     </bean>
@@ -153,14 +182,14 @@
     <!--Standard storage for managed datastreams. We do not use managed datastreams-->
     <bean name="fsDatastreamStoreMapper"
           class="org.fcrepo.server.storage.lowlevel.akubra.HashPathIdMapper"
-          singleton="true">
+            >
         <constructor-arg value="##"/>
     </bean>
 
 
     <bean name="fedoraStorageHintProvider"
           class="org.fcrepo.server.storage.NullStorageHintsProvider"
-          singleton="true">
+            >
     </bean>
 
 </beans>

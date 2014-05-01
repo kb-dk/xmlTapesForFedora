@@ -10,6 +10,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,7 +63,7 @@ public class TapeArchiveTest2 {
         taper.setDelegate(underlyingTapeArchive);
         taper.setParent(archive);
 
-        index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE);
+        index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
         underlyingTapeArchive.setIndex(index);
         underlyingTapeArchive.rebuild();
         archive.init();

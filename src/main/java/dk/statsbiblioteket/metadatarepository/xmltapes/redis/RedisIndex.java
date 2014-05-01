@@ -1,21 +1,19 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Record;
-import org.apache.commons.pool.impl.GenericObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.Tuple;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -46,10 +44,9 @@ public class RedisIndex implements Index {
     private final JedisPool pool;
 
 
-    public RedisIndex(String host, int port, int database) {
-        GenericObjectPool.Config poolConfig = new GenericObjectPool.Config();
-        poolConfig.whenExhaustedAction = GenericObjectPool.WHEN_EXHAUSTED_BLOCK;
-        pool = new JedisPool(poolConfig,host, port,0,null,database);
+    public RedisIndex(String host, int port, int database, JedisPoolConfig jedisPoolConfig) {
+
+        pool = new JedisPool(jedisPoolConfig,host, port,0,null,database);
 
         log.info("Redis database {} initialised on {}:{}",new Object[]{database,host,port});
     }
