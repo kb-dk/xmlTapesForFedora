@@ -138,10 +138,11 @@
     </bean>
 
 
+    <!--see http://biasedbit.com/redis-jedispool-configuration/-->
     <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
         <!-- Action to take when trying to acquire a connection and all connections are taken -->
         <property name="whenExhaustedAction">
-            <!-- Fail-fast behaviour, we don't like to keep the kids waiting -->
+            <!-- Default behaviour, block the caller until a resource becomes available -->
             <util:constant static-field="org.apache.commons.pool.impl.GenericObjectPool.WHEN_EXHAUSTED_BLOCK" />
         </property>
         <!-- Maximum active connections to Redis instance -->
