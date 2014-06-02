@@ -541,6 +541,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         testClosed();
         testInitialised();
         getStoreWriteLock();
+        testEnoughSize();
         log.debug("Calling tapeFile with id {}",id);
         try {
             startNewTapeIfNessesary();
@@ -565,6 +566,15 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             writeLock.unlock(); //unlock the storage system, we are done
         }
 
+
+    }
+
+    private void testEnoughSize() throws IOException {
+        long freeSpace = newestTape.getFreeSpace();
+        final double required = SIZE_LIMIT * 1.1;
+        if (freeSpace < required){
+            throw new IOException("Not enough ("+required+") free space ("+freeSpace+") to write tape, aborting");
+        }
 
     }
 
@@ -602,6 +612,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         testClosed();
         testInitialised();
         getStoreWriteLock();
+        testEnoughSize();
         log.debug("calling Remove with id {}",id);
 
         Entry newestFile = index.getLocation(id);
