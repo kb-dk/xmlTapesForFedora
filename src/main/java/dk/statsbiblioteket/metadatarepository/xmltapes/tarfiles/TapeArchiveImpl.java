@@ -543,10 +543,10 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     public  void tapeFile(URI id, File fileToTape) throws IOException {
         testClosed();
         testInitialised();
-        getStoreWriteLock();
         testEnoughSize();
-        log.debug("Calling tapeFile with id {}",id);
+        getStoreWriteLock();
         try {
+            log.debug("Calling tapeFile with id {}", id);
             startNewTapeIfNessesary();
 
             Entry toCreate = new Entry(newestTape, newestTape.length());
@@ -569,8 +569,6 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         } finally {
             writeLock.unlock(); //unlock the storage system, we are done
         }
-
-
     }
 
     private void testEnoughSize() throws IOException {
@@ -617,22 +615,23 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     public  void remove(URI id) throws IOException {
         testClosed();
         testInitialised();
-        getStoreWriteLock();
-
         testEnoughSize();
-        log.debug("calling Remove with id {}",id);
-
-        Entry newestFile = index.getLocation(id);
-        if (newestFile == null) { //No reason to delete a file that does not exist in the index.
-            return;
+        getStoreWriteLock();
+        try {
+            log.debug("calling Remove with id {}", id);
+            Entry newestFile = index.getLocation(id);
+            if (newestFile == null) { //No reason to delete a file that does not exist in the index.
+                return;
+            }
+            startNewTapeIfNessesary();
+            TarOutputStream tarOutputStream = getTarOutputStream(0, TapeUtils.toDeleteFilename(id));
+            tarOutputStream.close();
+            index.remove(id); //Update the index to the newly written entry
+            newestTapeLength = newestTape.length();
+        } finally {
+            writeLock.unlock(); //unlock the storage system, we are done
         }
 
-        startNewTapeIfNessesary();
-        TarOutputStream tarOutputStream = getTarOutputStream(0, TapeUtils.toDeleteFilename(id));
-        tarOutputStream.close();
-        index.remove(id); //Update the index to the newly written entry
-        newestTapeLength = newestTape.length();
-        writeLock.unlock(); //unlock the storage system, we are done
 
     }
 
@@ -664,11 +663,9 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
                 }
                 Thread.sleep(100);
             } catch (InterruptedException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                log.warn("Interrupted while waiting for store write lock",e);
             }
-
         }
-
     }
 
 
