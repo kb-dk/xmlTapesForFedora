@@ -469,7 +469,13 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             }
             return tapeInputstream;
         } else {
-            log.warn("Could not find entry {} for id {}, instead found {}",new Object[]{entry,id,tarEntry.getName()});
+            String name = null;
+            if (tarEntry != null) {
+                name = tarEntry.getName();
+                log.warn("Could not find entry {} for id {}, instead found {}", new Object[]{entry, id, name});
+            } else {
+                log.warn("Could not find entry {} for id {}", new Object[]{entry, id});
+            }
             throw new IOException("Could not find entry in archive file");
         }
     }
