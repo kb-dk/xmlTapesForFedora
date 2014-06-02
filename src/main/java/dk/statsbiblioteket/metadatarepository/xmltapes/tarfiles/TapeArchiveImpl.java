@@ -107,6 +107,8 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     private boolean initialised = false;
 
 
+    private long newestTapeLength = 0;
+
 
     /*-----------------STARTUP and REBUILDING-------------------------*/
 
@@ -427,6 +429,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         try {
             newestTape = new File(archiveTapes, tapePrefix + System.currentTimeMillis() + tapeExtension);
             newestTape.createNewFile();
+            newestTapeLength = 0;
             log.debug("Starting the new tape {}",newestTape);
             return newestTape;
         } finally {
@@ -562,6 +565,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             tarOutputStream.close();
 
             index.addLocation(id, toCreate); //Update the index to the newly written entry
+            newestTapeLength = newestTape.length();
         } finally {
             writeLock.unlock(); //unlock the storage system, we are done
         }
@@ -597,7 +601,9 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
 
     private TarOutputStream getTarOutputStream(long size, String entryName) throws IOException {
         long timestamp = System.currentTimeMillis();
-        TarOutputStream tarOutputStream = new TarOutputStream(new FileOutputStream(newestTape, true),false);
+        final FileOutputStream fileOutputStream = new FileOutputStream(newestTape);
+        fileOutputStream.getChannel().position(newestTapeLength);
+        TarOutputStream tarOutputStream = new TarOutputStream(fileOutputStream,false);
         TarHeader tarHeader = TarHeader.createHeader(entryName,size,timestamp/1000,false);
         TarEntry entry = new TarEntry(tarHeader);
         tarOutputStream.putNextEntry(entry);
@@ -612,6 +618,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         testClosed();
         testInitialised();
         getStoreWriteLock();
+
         testEnoughSize();
         log.debug("calling Remove with id {}",id);
 
@@ -624,7 +631,9 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         TarOutputStream tarOutputStream = getTarOutputStream(0, TapeUtils.toDeleteFilename(id));
         tarOutputStream.close();
         index.remove(id); //Update the index to the newly written entry
+        newestTapeLength = newestTape.length();
         writeLock.unlock(); //unlock the storage system, we are done
+
     }
 
     private void startNewTapeIfNessesary() throws IOException {
