@@ -49,8 +49,8 @@ public abstract class AbstractTaper extends AbstractDeferringArchive<TapeArchive
         try {
             URI id = getIDfromFile(fileToTape);
             getDelegate().tapeFile(id,fileToTape);
-        } finally {
             FileUtils.deleteQuietly(fileToTape);
+        } finally {
             lockPool.unlockForWriting();
         }
 
@@ -69,9 +69,8 @@ public abstract class AbstractTaper extends AbstractDeferringArchive<TapeArchive
             URI id = getIDfromFile(fileToTape);
             log.debug("Taping the file deletion {} for real this time",fileToTape.getName());
             getDelegate().remove(id);
-
-        } finally {
             FileUtils.deleteQuietly(fileToTape);
+        } finally {
             lockPool.unlockForWriting();
         }
     }
