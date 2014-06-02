@@ -132,12 +132,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         if (!archiveTapes.isDirectory()) {
             throw new IOException("Archive folder " + archiveTapes + " is not a directory");
         }
-        File[] tapes = getTapes();
-        if (tapes.length == 0) {
-            newestTape = createNewTape();
-        } else {
-            newestTape = tapes[tapes.length - 1];
-        }
+        newestTape = createNewTape();
         log.debug("Newest tape is {}", newestTape);
     }
 
@@ -150,6 +145,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     @Override
     public synchronized void init() throws IOException {
         testClosed();
+        log.debug("Init called");
         if (rebuild) {
             rebuild();
         } else {
@@ -165,13 +161,12 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
      */
     public void setup() throws IOException {
         testClosed();
-        log.debug("Init called");
         File[] tapes = getTapes();
         if (isFixErrors()) { //Only fixErrors if explicitly told to
             verifyAndFix(newestTape); //Only check and fix the newest tape
         }
         // Iterate through all the tapes in sorted order to rebuild the index
-        rebuildWhatsNeeded(tapes);
+        rebuildWhatsNeeded(tapes, newestTape);
     }
 
     /**
@@ -279,9 +274,10 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
      *
      * @param tapes the tapes, sorted from oldest to newest
      *
+     * @param newestTape new NewestTape, which is not included in the list above
      * @throws IOException if reading a tape failed
      */
-    private void rebuildWhatsNeeded(File[] tapes) throws IOException {
+    private void rebuildWhatsNeeded(File[] tapes, File newestTape) throws IOException {
         testClosed();
         boolean indexedSoFar = true;
         //Iterate through all but the newest tape
