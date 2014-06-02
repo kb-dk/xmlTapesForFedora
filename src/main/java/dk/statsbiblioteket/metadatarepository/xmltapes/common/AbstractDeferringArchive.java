@@ -62,10 +62,22 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
         }
     }
 
-    public File getDeferredFile(URI id) {
+    public File getDeferredFile(URI id) throws IOException {
         try {
-            return new File(deferredDir,
-                    URLEncoder.encode(id.toString(), UTF_8));
+            final String child = URLEncoder.encode(id.toString(), UTF_8);
+            final File file = new File(deferredDir, child);
+            final File fileNew = new File(deferredDir, child + "_new");
+            if (!file.exists() && fileNew.exists()) {
+                lockPool.lockForWriting();
+                try {
+                    if (!file.exists() && fileNew.exists()) {//Test that  this is still the case?
+                        FileUtils.moveFile(fileNew, file);
+                    }
+                } finally {
+                    lockPool.unlockForWriting();
+                }
+            }
+            return file;
         } catch (UnsupportedEncodingException e) {
             throw new Error(e);
         }

@@ -60,8 +60,10 @@ public class CacheOutputStream extends OutputStream {
         try {
             stream.close();
             log.debug("Closing stream with id {}", cacheFile.getName());
+            final File tempCacheFile = new File(cacheFile.getAbsolutePath() + "_new");
+            FileUtils.moveFile(tempFile, tempCacheFile);
             FileUtils.deleteQuietly(cacheFile);
-            FileUtils.moveFile(tempFile, cacheFile);
+            FileUtils.moveFile(tempCacheFile, cacheFile);
         } catch (Exception e) {
             log.warn("Tried to move temp to cache, caught Exception", e);
         } finally {
