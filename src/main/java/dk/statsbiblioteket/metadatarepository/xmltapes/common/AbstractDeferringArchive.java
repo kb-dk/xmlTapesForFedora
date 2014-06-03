@@ -1,6 +1,7 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,11 +63,12 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
         }
     }
 
+    //TODO this method have grown in scope. Split, doc or do something
     public File getDeferredFile(URI id) throws IOException {
         try {
             final String child = URLEncoder.encode(id.toString(), UTF_8);
             final File file = new File(deferredDir, child);
-            final File fileNew = new File(deferredDir, child + "_new");
+            final File fileNew = TapeUtils.toNewName(file);
             if (!file.exists() && fileNew.exists()) {
                 lockPool.lockForWriting();
                 try {
@@ -170,7 +172,11 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
 
         lockPool.lockForWriting();
         try {
-            cacheFiles = new ArrayList<File>(FileUtils.listFiles(getDeferredDir(), null, false));
+            cacheFiles = FileFilterUtils.filterList(FileFilterUtils.notFileFilter(FileFilterUtils.prefixFileFilter(
+                    "new_")), FileUtils.listFiles(getDeferredDir(), null, false));
+
+
+            //TODO remove the _new files from this list
             // Sort them in last modified order
             Collections.sort(cacheFiles, new Comparator<File>() {
                 @Override

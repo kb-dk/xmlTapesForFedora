@@ -1,6 +1,7 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.cache;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.LockPool;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,7 @@ public class CacheOutputStream extends OutputStream {
         try {
             stream.close();
             log.debug("Closing stream with id {}", cacheFile.getName());
-            final File tempCacheFile = new File(cacheFile.getAbsolutePath() + "_new");
+            final File tempCacheFile = TapeUtils.toNewName(cacheFile);
             FileUtils.moveFile(tempFile, tempCacheFile);
             FileUtils.deleteQuietly(cacheFile);
             FileUtils.moveFile(tempCacheFile, cacheFile);
@@ -72,4 +73,5 @@ public class CacheOutputStream extends OutputStream {
         }
 
     }
+
 }

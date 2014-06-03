@@ -2,6 +2,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
 import org.kamranzafar.jtar.TarEntry;
 
+import java.io.File;
 import java.net.URI;
 
 /**
@@ -49,4 +50,7 @@ public class TapeUtils {
         return Long.parseLong(splits[1]);
     }
 
+    public static File toNewName(File file) {
+        return new File(file.getParentFile(), "new_" + file.getName());
+    }
 }
