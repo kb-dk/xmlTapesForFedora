@@ -66,6 +66,7 @@ public class CacheOutputStream extends OutputStream {
             FileUtils.moveFile(tempCacheFile, cacheFile);
         } catch (Exception e) {
             log.warn("Tried to move temp to cache, caught Exception", e);
+            throw new IOException("Failed to save cachefile '" + cacheFile + "'", e);
         } finally {
             lockPool.unlockForWriting();
         }
