@@ -83,6 +83,11 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
      * The "HEAD" tape
      */
     private File newestTape;
+    /**
+     * The length of the newest tape. Anything beyound this point is garbage data that will be overwritten. When
+     * an entry is written successfully, the length will be updated
+     */
+    private long newestTapeLength = 0;
 
     /**
      * A reference to the index system
@@ -107,7 +112,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     private boolean initialised = false;
 
 
-    private long newestTapeLength = 0;
+
 
     /*-----------------STARTUP and REBUILDING-------------------------*/
 
@@ -166,7 +171,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             verifyAndFix(newestTape); //Only check and fix the newest tape
         }
         // Iterate through all the tapes in sorted order to rebuild the index
-        rebuildWhatsNeeded(tapes, newestTape);
+        rebuildWhatsNeeded(tapes);
     }
 
     /**
@@ -286,16 +291,14 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
      * but will never be marked as Indexed
      * @param tapes the tapes, sorted from oldest to newest
      *
-     * @param newestTape new NewestTape, which is not included in the list above
      * @throws IOException if reading a tape failed
      */
-    private void rebuildWhatsNeeded(File[] tapes, File newestTape) throws IOException {
+    private void rebuildWhatsNeeded(File... tapes) throws IOException {
         testClosed();
         boolean indexedSoFar = true;
 
         //Iterate through all but the newest tape
-        for (int i = 0; i < tapes.length-1; i++) {
-            File tape = tapes[i];
+        for (File tape : tapes) {
             if (indexedSoFar && index.isIndexed(tape.getName())) {
                 log.debug("File {} have already been indexed so is skipped",tape);
             } else {
@@ -547,7 +550,6 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     public  void tapeFile(URI id, File fileToTape) throws IOException {
         testClosed();
         testInitialised();
-        testEnoughSize();
         getStoreWriteLock();
         log.debug("Calling tapeFile with id {}",id);
         try {
@@ -572,14 +574,6 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             newestTapeLength = newestTape.length();
         } finally {
             writeLock.unlock(); //unlock the storage system, we are done
-        }
-    }
-
-    private void testEnoughSize() throws IOException {
-        long freeSpace = newestTape.getFreeSpace();
-        final double required = SIZE_LIMIT * 1.1;
-        if (freeSpace < required) {
-            throw new IOException("Not enough (" + required + ") free space (" + freeSpace + ") to write tape, aborting");
         }
     }
 
@@ -612,30 +606,25 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     }
 
 
-
-
     @Override
     public void remove(URI id) throws IOException {
         testClosed();
         testInitialised();
-        testEnoughSize();
         getStoreWriteLock();
         try {
             log.debug("calling Remove with id {}", id);
-
-        Entry newestFile = index.getLocation(id);
-        if (newestFile == null) { //No reason to delete a file that does not exist in the index.
-            return;
-        }
-
-        startNewTapeIfNessesary();
-        TarOutputStream tarOutputStream = getTarOutputStream(0, TapeUtils.toDeleteFilename(id));
-        tarOutputStream.close();
-        index.remove(id); //Update the index to the newly written entry
+            Entry newestFile = index.getLocation(id);
+            if (newestFile == null) { //No reason to delete a file that does not exist in the index.
+                return;
+            }
+            startNewTapeIfNessesary();
+            TarOutputStream tarOutputStream = getTarOutputStream(0, TapeUtils.toDeleteFilename(id));
+            tarOutputStream.close();
+            index.remove(id); //Update the index to the newly written entry
             newestTapeLength = newestTape.length();
         } finally {
-        writeLock.unlock(); //unlock the storage system, we are done
-    }
+            writeLock.unlock(); //unlock the storage system, we are done
+        }
     }
 
     private void startNewTapeIfNessesary() throws IOException {
