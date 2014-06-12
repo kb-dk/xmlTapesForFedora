@@ -1,4 +1,6 @@
 1.0.6
+ * Fixed the config file to be more Drift friendly
+ * Reorganised the class names to make them more understandable
  * Zipping logic moved to TapeUtils
  * The testNg suite cleans up after run
  * Fixed so that we have a two-stage commit of the cache files. First we move the file from the temp folder to the cache folder under a name prefixed with new_. Then we delete the file in cache and move the new_ file to the correct name
