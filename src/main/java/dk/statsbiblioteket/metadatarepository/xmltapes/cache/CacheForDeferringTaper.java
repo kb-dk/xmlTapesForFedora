@@ -30,8 +30,12 @@ public class CacheForDeferringTaper extends AbstractDeferringArchive<AkubraCompa
 
     }
 
-
-
+    @Override
+    public String toString() {
+        return "CacheForDeferringTaper{" +
+               "tempDir=" + tempDir.getName() +
+               '}';
+    }
 
     @Override
     public OutputStream createNew(URI id, long estimatedSize) throws IOException {

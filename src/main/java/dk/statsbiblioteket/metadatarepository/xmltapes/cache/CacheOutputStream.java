@@ -36,6 +36,13 @@ public class CacheOutputStream extends OutputStream {
     }
 
     @Override
+    public String toString() {
+        return "CacheOutputStream{" +
+               cacheFile.getName() +
+               '}';
+    }
+
+    @Override
     public void flush() throws IOException {
         stream.flush();
     }
