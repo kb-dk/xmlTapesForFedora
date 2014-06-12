@@ -79,11 +79,22 @@ public class TapeUtils {
         final InputStream input = new FileInputStream(fileToTape);
         try {
             IOUtils.copyLarge(input, uncompressor);
-            return counter.getBytesWritten();
         }
         finally {
             IOUtils.closeQuietly(input);
             IOUtils.closeQuietly(counter);
         }
+        return counter.getBytesWritten();
+    }
+
+    public static long getLengthDirect(InputStream stream) throws IOException {
+        CountingOutputStream counter = new CountingOutputStream(new NullOutputStream());
+        try {
+            IOUtils.copyLarge(stream, counter);
+        } finally {
+            IOUtils.closeQuietly(stream);
+            IOUtils.closeQuietly(counter);
+        }
+        return counter.getBytesWritten();
     }
 }

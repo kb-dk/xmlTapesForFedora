@@ -6,11 +6,9 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.apache.commons.compress.utils.CountingOutputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
-import org.apache.commons.io.output.NullOutputStream;
 import org.kamranzafar.jtar.TarEntry;
 import org.kamranzafar.jtar.TarHeader;
 import org.kamranzafar.jtar.TarInputStream;
@@ -32,7 +30,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.zip.GZIPOutputStream;
 
 
 /**
@@ -479,7 +476,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             } else {
                 log.warn("Could not find entry {} for id {}", new Object[]{entry, id});
             }
-            throw new IOException("Could not find entry in archive file");
+            throw new IOException("Could not find entry for "+id+" in archive file");
         }
     }
 
@@ -515,26 +512,18 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     public long getSize(URI id) throws IOException {
         testClosed();
         testInitialised();
-        log.debug("Calling getSize for id {}",id);
-
-        Entry newestFile = index.getLocation(id);
-        if (newestFile == null) {
-            throw new FileNotFoundException();
+        getStoreWriteLock();
+        try {
+            log.debug("Calling getSize for id {}", id);
+            Entry tapeFile = index.getLocation(id);
+            if (tapeFile == null) {
+                throw new FileNotFoundException();
+            }
+            return TapeUtils.getLengthDirect(getContentInputStream(tapeFile,id));
+        } finally {
+            writeLock.unlock(); //unlock the storage system, we are done
         }
-        return getSize(newestFile);
-
     }
-
-    private long getSize(Entry entry) throws IOException {
-        TarInputStream inputStream = getTarInputStream(entry);
-        inputStream.getNextEntry();
-        GzipCompressorInputStream zipped = new GzipCompressorInputStream(inputStream);
-        CountingOutputStream out = new CountingOutputStream(new NullOutputStream());
-        IOUtils.copyLarge(zipped,out);
-        return out.getBytesWritten();
-    }
-
-
 
     /**
      * Creates a new entry in the tape archive.
@@ -555,41 +544,18 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         try {
             startNewTapeIfNessesary();
 
-            Entry toCreate = new Entry(newestTape, newestTape.length());
+            Entry toCreate = new Entry(newestTape, newestTapeLength);
 
-            long size = getZippedLength(fileToTape);
-
-
-            TarOutputStream tarOutputStream = getTarOutputStream(size, TapeUtils.toFilenameGZ(id));
-            GZIPOutputStream gzipCompressorOutputStream = new GZIPOutputStream(tarOutputStream);
+            long size = TapeUtils.getLengthCompressed(fileToTape);
+            TapeUtils.compress(fileToTape, getTarOutputStream(size, TapeUtils.toFilenameGZ(id)));
 
 
-            FileInputStream fileStream = new FileInputStream(fileToTape);
-            IOUtils.copyLarge(fileStream, gzipCompressorOutputStream);
-            fileStream.close();
-            gzipCompressorOutputStream.finish();
-            tarOutputStream.close();
+
 
             index.addLocation(id, toCreate); //Update the index to the newly written entry
             newestTapeLength = newestTape.length();
         } finally {
             writeLock.unlock(); //unlock the storage system, we are done
-        }
-    }
-
-    private long getZippedLength(File fileToTape) throws IOException {
-        CountingOutputStream counter = new CountingOutputStream(new NullOutputStream());
-        GZIPOutputStream output = new GZIPOutputStream(counter);
-        FileInputStream input = new FileInputStream(fileToTape);
-        try {
-            IOUtils.copyLarge(input, output);
-            output.close();
-            input.close();
-            return counter.getBytesWritten();
-        }
-        finally {
-            IOUtils.closeQuietly(input);
-            IOUtils.closeQuietly(output);
         }
     }
 

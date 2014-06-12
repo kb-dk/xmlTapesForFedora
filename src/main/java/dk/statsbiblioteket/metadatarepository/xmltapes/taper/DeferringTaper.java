@@ -3,15 +3,12 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import dk.statsbiblioteket.util.FileAlreadyExistsException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
@@ -48,7 +45,7 @@ public class DeferringTaper extends AbstractTaper {
 
     public DeferringTaper(File tapingDir) {
         super(tapingDir);
-        timer = new Timer("DeferringTaper for '"+tapingDir.getAbsolutePath()+"'",true);
+        timer = new Timer("DeferringTaper for '"+tapingDir.getName()+"'",true);
     }
 
 
@@ -186,35 +183,23 @@ public class DeferringTaper extends AbstractTaper {
                 //1. File is in cache
                 //2. File is not in cache, but in tapes
                 //3. File is not in cache or tapes
-
-                parent.lockPool.lockForWriting();
+                File cacheFile = parent.getDeferredFile(id);
                 try { //Get file from cache
 
-                    InputStream cacheFile = parent.getInputStream(id);
                     log.debug("File {} is in cache, so copy the current version to {}", id, tapingFile);
 
                     //write this content to the tapingFile
-                    FileOutputStream output = new FileOutputStream(tapingFile);
-                    try {
-                        IOUtils.copyLarge(cacheFile, output);
-                    } finally {
-                        cacheFile.close();
-                        output.close();
-                    }
+                    FileUtils.moveFile(cacheFile, tapingFile);
                     //It is now in taping, so remove it from the cache
-                    FileUtils.deleteQuietly(parent.getDeferredFile(id));
+                    FileUtils.deleteQuietly(cacheFile);
 
                 } catch (FileNotFoundException e) { //file was not in cache
                     if (getDelegate().exist(id)) {//but in tapes
                         log.debug("File {} was not in cache, but is in tapes. Just mark it for deletion.", id);
                         FileUtils.touch(tapingFile);
-                        FileUtils.deleteQuietly(parent.getDeferredFile(id));
                     } else { //nowhere, so ignore this delete
                         log.debug("File {} was nowhere, so ignore this remove", id);
                     }
-
-                } finally {
-                    parent.lockPool.unlockForWriting();
                 }
                 break;
 
