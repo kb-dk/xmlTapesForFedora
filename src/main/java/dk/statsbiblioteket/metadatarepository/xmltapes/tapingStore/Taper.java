@@ -15,14 +15,14 @@ import java.util.List;
 import java.util.TimerTask;
 
 public class Taper extends TimerTask {
-    private final Logger log = LoggerFactory.getLogger(TapingStore.class);
+    private final Logger log = LoggerFactory.getLogger(Taper.class);
     private final LockPool tapingLock;
     private final LockPool cacheLock;
 
     private TapingStore tapingStore;
     private final CacheStore cacheStore;
     private final TapeArchive tapeArchive;
-    private boolean timerHaveRunAtLeastOnce;
+    private boolean timerHaveRunAtLeastOnce = false;
 
     /**
      * The maximum allowed age of a file before it will be taped
@@ -41,9 +41,7 @@ public class Taper extends TimerTask {
     @Override
     public synchronized void run() {
         try {
-            if (tapingStore.getDelegate() != null && tapingStore.cache != null) {
-                saveAll();
-            }
+           saveAll();
         } catch (Exception e) {
             log.error("Failed to save objects", e);
         } finally {
@@ -64,16 +62,16 @@ public class Taper extends TimerTask {
         //3. Move all acceptable files from cache to taping dir
         //4. Tape all the files in the tapingDir (getStoreFiles)
         tapingLock.lockForWriting();
-        tapingStore.testClosed();
         try {
+            tapingStore.testClosed();
             //log.debug("Attempting to save all");
             //1
             tapeAll(tapingStore.getStoreFiles());
             //2
             cacheLock.lockForWriting();
-            //3
-            long now = System.currentTimeMillis();
             try {
+                //3
+                long now = System.currentTimeMillis();
                 List<File> cacheFiles = cacheStore.getStoreFiles();
                 for (File cacheFile : cacheFiles) {
                     log.debug("Found file {} in caching folder", cacheFile.getName());
