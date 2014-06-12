@@ -8,6 +8,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;
 import org.apache.commons.io.FileUtils;
+import org.testng.annotations.AfterSuite;
 import redis.clients.jedis.JedisPoolConfig;
 
 import java.io.File;
@@ -82,7 +83,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
         return store;
     }
 
-
+    @AfterSuite
     public static void clean() throws IOException, URISyntaxException {
 
         if (archive != null){
