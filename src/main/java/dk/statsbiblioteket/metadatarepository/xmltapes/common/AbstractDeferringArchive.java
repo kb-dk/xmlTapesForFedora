@@ -146,12 +146,11 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
     @Override
     public long getSize(URI id) throws FileNotFoundException, IOException {
         testClosed();
-        File cacheFile = getDeferredFile(id);
+        lockPool.lockForWriting();
         try {
-            lockPool.lockForWriting();
-            long size = cacheFile.length();
-            if (cacheFile.exists()){
-                return size;
+            File cacheFile = getDeferredFile(id);
+            if (cacheFile.exists()) {
+                return cacheFile.length();
             }
         } finally {
             lockPool.unlockForWriting();
