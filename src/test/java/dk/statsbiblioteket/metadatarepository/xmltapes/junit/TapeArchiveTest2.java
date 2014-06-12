@@ -1,10 +1,11 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.cache.CacheForDeferringTaper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
-import dk.statsbiblioteket.metadatarepository.xmltapes.taper.DeferringTaper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -34,39 +35,41 @@ public class TapeArchiveTest2 {
     URI testFile2 = URI.create("testFile2");
     URI testFile3 = URI.create("testFile3");
     String contents = "testFile 1 is here now";
-    private long tapeSize = 1024*1024;
     RedisIndex index;
 
-    CacheForDeferringTaper archive;
+    CacheStore archive;
     private TapeArchive underlyingTapeArchive;
 
 
     @Before
     public void setUp() throws Exception {
-
+        clean();
         URI store = getPrivateStoreId();
-        File tapingDir = new File(new File(store), "tapingDir");
-        tapingDir.mkdirs();
-        File cachingDir = new File(new File(store), "cachingDir");
-        cachingDir.mkdirs();
-        File tempDir = new File(new File(store), "tempDir");
-        tempDir.mkdirs();
+        long tapeSize = 1024L * 1024;
 
-
-        archive = new CacheForDeferringTaper(cachingDir, tempDir);
-        underlyingTapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
-        DeferringTaper taper = new DeferringTaper(tapingDir);
-        taper.setDelay(10);
-        taper.setTapeDelay(1000);
-
-        archive.setDelegate(taper);
-        taper.setDelegate(underlyingTapeArchive);
-        taper.setParent(archive);
-
+        //create the cacheStore
+        File cachingDir = TestUtils.mkdir(store, "cachingDir");
+        File tempDir = TestUtils.mkdir(store, "tempDir");
+        CacheStore cacheStore = new CacheStore(cachingDir, tempDir);
+        //create the tapingStore
+        File tapingDir = TestUtils.mkdir(store, "tapingDir");
+        TapingStore tapingStore = new TapingStore(tapingDir);
+        tapingStore.setCache(cacheStore);
+        tapingStore.setDelay(10);
+        cacheStore.setDelegate(tapingStore);
+        //create the TapeArchive
+        TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
         index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
-        underlyingTapeArchive.setIndex(index);
-        underlyingTapeArchive.rebuild();
+        tapeArchive.setIndex(index);
+        tapingStore.setDelegate(tapeArchive);
+        Taper taper = new Taper(tapingStore, cacheStore, tapeArchive);
+        taper.setTapeDelay(1000);
+        tapingStore.setTask(taper);
+        archive = cacheStore;
         archive.init();
+        underlyingTapeArchive = tapeArchive;
+
+
         OutputStream outputStream = archive.createNew(testFile1, 0);
         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
         writer.write(contents);
@@ -95,7 +98,9 @@ public class TapeArchiveTest2 {
 
     @After
     public void clean() throws URISyntaxException, IOException{
-        archive.close();
+        if (archive != null) {
+            archive.close();
+        }
         File archiveFolder = new File(getPrivateStoreId());
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));

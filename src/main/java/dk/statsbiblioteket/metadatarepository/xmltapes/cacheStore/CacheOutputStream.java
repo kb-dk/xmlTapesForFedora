@@ -1,4 +1,4 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.cache;
+package dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.LockPool;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;

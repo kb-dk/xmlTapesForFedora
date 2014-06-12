@@ -1,4 +1,4 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.cache;
+package dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
@@ -15,16 +15,16 @@ import java.net.URI;
  * when the stream is closed, the file is moved to the cache dir. Read operations are resolved against the cache dir,
  * and if not found delegated.
  */
-public class CacheForDeferringTaper extends AbstractDeferringArchive<AkubraCompatibleArchive> implements AkubraCompatibleArchive{
+public class CacheStore extends AbstractDeferringArchive<AkubraCompatibleArchive> implements AkubraCompatibleArchive{
 
-    private static final Logger log = LoggerFactory.getLogger(CacheForDeferringTaper.class);
+    private static final Logger log = LoggerFactory.getLogger(CacheStore.class);
 
 
     private final File tempDir;
 
-    public CacheForDeferringTaper(File cacheDir, File tempDir) throws IOException {
+    public CacheStore(File cacheDir, File tempDir) throws IOException {
         super();
-        super.setDeferredDir(cacheDir);
+        super.setStoreDir(cacheDir);
         this.tempDir = tempDir.getCanonicalFile();
         this.tempDir.mkdirs();
 
@@ -32,8 +32,8 @@ public class CacheForDeferringTaper extends AbstractDeferringArchive<AkubraCompa
 
     @Override
     public String toString() {
-        return "CacheForDeferringTaper{" +
-               "tempDir=" + tempDir.getName() +
+        return "CacheStore{" +
+               "tempDir=" + tempDir +
                '}';
     }
 

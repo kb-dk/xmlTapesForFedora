@@ -14,7 +14,7 @@ public abstract class Closable {
     private boolean closed = false;
 
 
-    protected void testClosed() {
+    public void testClosed() {
         if (isClosed()){
             throw new IllegalStateException("Archive is closed");
         }

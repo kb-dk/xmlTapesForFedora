@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,7 +19,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -37,7 +34,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
 
     public static final String UTF_8 = "UTF-8";
     private T delegate;
-    private  File deferredDir;
+    private  File storeDir;
 
     public final LockPool lockPool;
 
@@ -67,7 +64,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
     public File getDeferredFile(URI id) throws IOException {
         try {
             final String child = URLEncoder.encode(id.toString(), UTF_8);
-            final File file = new File(deferredDir, child);
+            final File file = new File(storeDir, child);
             final File fileNew = TapeUtils.toNewName(file);
             if (!file.exists() && fileNew.exists()) {
                 lockPool.lockForWriting();
@@ -87,44 +84,13 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
 
     protected File getDeferredFileDeleted(URI id) {
         try {
-            return new File(deferredDir,
+            return new File(storeDir,
                     URLEncoder.encode(id.toString()+ "#"+TapeUtils.DELETED, UTF_8));
         } catch (UnsupportedEncodingException e) {
             throw new Error(e);
         }
 
     }
-
-
-    protected URI getIDfromFile(File cacheFile) {
-
-        try {
-            String name = cacheFile.getName();
-            name = URLDecoder.decode(name,"UTF-8");
-            name = name.replaceAll(Pattern.quote("#"+TapeUtils.DELETED)+"$","");
-            return new URI(name);
-        } catch (URISyntaxException e) {
-            return null;
-        } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
-        }
-    }
-
-
-    protected URI getIDfromFileWithDeleted(File cacheFile) {
-
-          try {
-              String name = cacheFile.getName();
-              name = URLDecoder.decode(name,"UTF-8");
-              return new URI(name);
-          } catch (URISyntaxException e) {
-              return null;
-          } catch (UnsupportedEncodingException e) {
-              throw new Error(e);
-          }
-      }
-
-
 
 
     @Override
@@ -165,14 +131,14 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
      * Get the files in the cache.
      * @return
      */
-    public List<File> getCacheFiles() {
+    public List<File> getStoreFiles() {
         //Ensure that noone is able to lock files until we have locked all.
         List<File> cacheFiles;
 
         lockPool.lockForWriting();
         try {
             cacheFiles = FileFilterUtils.filterList(FileFilterUtils.notFileFilter(FileFilterUtils.prefixFileFilter(
-                    "new_")), FileUtils.listFiles(getDeferredDir(), null, false));
+                    "new_")), FileUtils.listFiles(getStoreDir(), null, false));
 
 
             //TODO remove the _new files from this list
@@ -193,10 +159,10 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
 
     public Collection<URI> getCacheIDs(String filterPrefix) {
         //Get the cached files
-        List<File> cacheFiles = getCacheFiles();
+        List<File> cacheFiles = getStoreFiles();
         ArrayList<URI> result = new ArrayList<URI>();
         for (File cacheFile : cacheFiles) {
-            URI id = getIDfromFileWithDeleted(cacheFile);
+            URI id = TapeUtils.getIDfromFileWithDeleted(cacheFile);
             if (id == null){
                 continue;
             }
@@ -222,8 +188,8 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
         delegate.init();
     }
 
-    public File getDeferredDir() {
-        return deferredDir;
+    public File getStoreDir() {
+        return storeDir;
     }
 
 
@@ -235,12 +201,12 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
         this.delegate = delegate;
     }
 
-    public void setDeferredDir(File deferredDir) {
+    public void setStoreDir(File storeDir) {
         try {
-            this.deferredDir = deferredDir.getCanonicalFile();
-            this.deferredDir.mkdirs();
+            this.storeDir = storeDir.getCanonicalFile();
+            this.storeDir.mkdirs();
         } catch (IOException e) {
-            this.deferredDir = deferredDir;
+            this.storeDir = storeDir;
         }
     }
 

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+     http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+     http://www.springframework.org/schema/util  http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+
+
+    <bean class="dk.statsbiblioteket.metadatarepository.xmltapes.common.XmlTapesConfig" id="tapeObjectConfig">
+        <property name="tempDir" value="/CHANGEME/tempObjectStore"/>
+        <property name="cachingDir" value="/CHANGEME/cacheObjectStore"/>
+        <property name="tapingDir" value="/CHANGEME/tapingObjectStore"/>
+        <property name="tapeDir" value="/CHANGEME/tapeObjectStore"/>
+        <property name="minAgeToTapeInMS" value="600000"/>
+        <property name="tapeExtension" value=".tar"/>
+        <property name="tapePrefix" value="tape"/>
+        <property name="tapeSize" value="#{ 1024*1024*100 }"/>
+        <property name="tapeWaitBeforeStartInMS" value="100"/>
+        <property name="tempTapePrefix" value="tempTape"/>
+        <property name="fixErrorsOnRestart" value="false"/>
+        <property name="rebuildIndexFromTapesOnRestart" value="true"/>
+        <property name="redisHost" value="localhost"/>
+        <property name="redisPort" value="6379"/>
+        <property name="redisDB" value="0"/>
+    </bean>
+
+    <bean class="dk.statsbiblioteket.metadatarepository.xmltapes.common.XmlTapesConfig" id="tapeDatastreamConfig">
+        <property name="tempDir" value="/CHANGEME/tempDatastreamStore"/>
+        <property name="cachingDir" value="/CHANGEME/cacheDatastreamStore"/>
+        <property name="tapingDir" value="/CHANGEME/tapingDatastreamStore"/>
+        <property name="tapeDir" value="/CHANGEME/tapeDatastreamStore"/>
+        <property name="minAgeToTapeInMS" value="600000"/>
+        <property name="tapeExtension" value=".tar"/>
+        <property name="tapePrefix" value="tape"/>
+        <property name="tapeSize" value="#{ 1024*1024*100 }"/>
+        <property name="tapeWaitBeforeStartInMS" value="100"/>
+        <property name="tempTapePrefix" value="tempTape"/>
+        <property name="fixErrorsOnRestart" value="false"/>
+        <property name="rebuildIndexFromTapesOnRestart" value="true"/>
+        <property name="redisHost" value="localhost"/>
+        <property name="redisPort" value="6379"/>
+        <property name="redisDB" value="1"/>
+    </bean>
+
+
+</beans>

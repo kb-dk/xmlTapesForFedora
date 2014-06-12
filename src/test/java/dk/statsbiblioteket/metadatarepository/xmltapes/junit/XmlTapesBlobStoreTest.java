@@ -1,10 +1,12 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.cache.CacheForDeferringTaper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
-import dk.statsbiblioteket.metadatarepository.xmltapes.taper.DeferringTaper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStore;
@@ -40,7 +42,7 @@ public class XmlTapesBlobStoreTest {
     public static final int REDIS_PORT = 6379;
     public static final int REDIS_DATABASE = 5;
     BlobStoreConnection connection;
-    private CacheForDeferringTaper archive;
+    private AkubraCompatibleArchive archive;
 
     @Before
     public void setUp() throws Exception {
@@ -60,39 +62,39 @@ public class XmlTapesBlobStoreTest {
 
         URI store = getPrivateStoreId();
         long tapeSize = 1024L * 1024;
-        File tapingDir = new File(new File(store), "tapingDir");
-        tapingDir.mkdirs();
-        File cachingDir = new File(new File(store), "cachingDir");
-        cachingDir.mkdirs();
-        File tempDir = new File(new File(store), "tempDir");
-        tempDir.mkdirs();
 
         //Create the blobstore
         XmlTapesBlobStore xmlTapesBlobStore = new XmlTapesBlobStore(URI.create("test:tapestorage"));
 
-        //create the cache and link the blobstore to the cache
-        archive = new CacheForDeferringTaper(cachingDir, tempDir);
-        xmlTapesBlobStore.setArchive(archive);
+        //create the cacheStore
+        File cachingDir = TestUtils.mkdir(store, "cachingDir");
+        File tempDir = TestUtils.mkdir(store, "tempDir");
+        CacheStore cacheStore = new CacheStore(cachingDir, tempDir);
 
-        //create the taper and link the cache to the taper, and the taper to the cache
-        DeferringTaper taper = new DeferringTaper(tapingDir);
-        archive.setDelegate(taper);
-        taper.setParent(archive);
+        //create the tapingStore
+        File tapingDir = TestUtils.mkdir(store, "tapingDir");
+        TapingStore tapingStore = new TapingStore(tapingDir);
+        tapingStore.setCache(cacheStore);
+        tapingStore.setDelay(10);
+        cacheStore.setDelegate(tapingStore);
 
-        taper.setDelay(10);
+        //create the TapeArchive
+        TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
+        RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
+        tapeArchive.setIndex(redis);
+        tapingStore.setDelegate(tapeArchive);
+
+        Taper taper = new Taper(tapingStore, cacheStore, tapeArchive);
         taper.setTapeDelay(1000);
+        tapingStore.setTask(taper);
 
-        //create the real tape archive and link the the taper to it
-        TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize,".tar","tape","tempTape");
-        taper.setDelegate(tapeArchive);
 
-        //set the redis index and rebuilt the index
-        tapeArchive.setIndex(new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig()));
-        tapeArchive.rebuild();
+        archive = cacheStore;
         archive.init();
-
+        xmlTapesBlobStore.setArchive(archive);
         return xmlTapesBlobStore;
     }
+
     @After
     public void clean() throws IOException, URISyntaxException {
         if (connection != null){

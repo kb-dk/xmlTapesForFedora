@@ -11,7 +11,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.util.regex.Pattern;
 
 /**
  * Static utility methods to convert between index entries, fedora URIs and tar Entries and tar filenames
@@ -97,4 +101,31 @@ public class TapeUtils {
         }
         return counter.getBytesWritten();
     }
+
+    public static URI getIDfromFile(File cacheFile) {
+
+        try {
+            String name = cacheFile.getName();
+            name = URLDecoder.decode(name, "UTF-8");
+            name = name.replaceAll(Pattern.quote("#" + DELETED)+"$","");
+            return new URI(name);
+        } catch (URISyntaxException e) {
+            return null;
+        } catch (UnsupportedEncodingException e) {
+            throw new Error(e);
+        }
+    }
+
+    protected static URI getIDfromFileWithDeleted(File cacheFile) {
+
+          try {
+              String name = cacheFile.getName();
+              name = URLDecoder.decode(name, "UTF-8");
+              return new URI(name);
+          } catch (URISyntaxException e) {
+              return null;
+          } catch (UnsupportedEncodingException e) {
+              throw new Error(e);
+          }
+      }
 }
