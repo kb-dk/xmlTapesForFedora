@@ -40,7 +40,7 @@ public class TapeArchiveTest {
     @Before
     public void setUp() throws Exception {
         clean();
-        URI store = getPrivateStoreId();
+        File store = getPrivateStoreId();
         long tapeSize = 1024L * 1024;
 
         //create the cacheStore
@@ -75,8 +75,8 @@ public class TapeArchiveTest {
     }
 
 
-    private static URI getPrivateStoreId() throws URISyntaxException {
-        URI archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile().toURI();
+    private static File getPrivateStoreId() throws URISyntaxException {
+        File archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile();
         return archiveFolder;
     }
 
@@ -87,7 +87,7 @@ public class TapeArchiveTest {
         if (archive != null) {
             archive.close();
         }
-        File archiveFolder = new File(getPrivateStoreId());
+        File archiveFolder = getPrivateStoreId();
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));
     }

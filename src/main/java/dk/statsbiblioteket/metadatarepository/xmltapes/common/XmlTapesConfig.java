@@ -1,13 +1,13 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
-import java.net.URI;
+import java.io.File;
 
 public class XmlTapesConfig {
 
-    private URI tempDir;
-    private URI cachingDir;
-    private URI tapingDir;
-    private URI tapeDir;
+    private File tempDir;
+    private File cachingDir;
+    private File tapingDir;
+    private File tapeDir;
 
     private long tapeWaitBeforeStartInMS;
 
@@ -22,29 +22,6 @@ public class XmlTapesConfig {
     private boolean fixErrorsOnRestart;
     private boolean rebuildIndexFromTapesOnRestart;
 
-    public URI getCachingDir() {
-        return cachingDir;
-    }
-
-    public void setCachingDir(URI cachingDir) {
-        this.cachingDir = cachingDir;
-    }
-
-    public URI getTempDir() {
-        return tempDir;
-    }
-
-    public void setTempDir(URI tempDir) {
-        this.tempDir = tempDir;
-    }
-
-    public URI getTapingDir() {
-        return tapingDir;
-    }
-
-    public void setTapingDir(URI tapingDir) {
-        this.tapingDir = tapingDir;
-    }
 
     public long getTapeWaitBeforeStartInMS() {
         return tapeWaitBeforeStartInMS;
@@ -94,11 +71,11 @@ public class XmlTapesConfig {
         this.tempTapePrefix = tempTapePrefix;
     }
 
-    public URI getTapeDir() {
+    public File getTapeDir() {
         return tapeDir;
     }
 
-    public void setTapeDir(URI tapeDir) {
+    public void setTapeDir(File tapeDir) {
         this.tapeDir = tapeDir;
     }
 
@@ -144,5 +121,29 @@ public class XmlTapesConfig {
 
     public void setRedisDB(int redisDB) {
         this.redisDB = redisDB;
+    }
+
+    public File getTempDir() {
+        return tempDir;
+    }
+
+    public void setTempDir(File tempDir) {
+        this.tempDir = tempDir;
+    }
+
+    public File getCachingDir() {
+        return cachingDir;
+    }
+
+    public void setCachingDir(File cachingDir) {
+        this.cachingDir = cachingDir;
+    }
+
+    public File getTapingDir() {
+        return tapingDir;
+    }
+
+    public void setTapingDir(File tapingDir) {
+        this.tapingDir = tapingDir;
     }
 }

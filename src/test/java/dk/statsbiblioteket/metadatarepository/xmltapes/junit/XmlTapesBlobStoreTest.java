@@ -51,8 +51,8 @@ public class XmlTapesBlobStoreTest {
     }
 
 
-    private static URI getPrivateStoreId() throws URISyntaxException {
-        URI archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile().toURI();
+    private static File getPrivateStoreId() throws URISyntaxException {
+        File archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile();
         return archiveFolder;
     }
 
@@ -60,7 +60,7 @@ public class XmlTapesBlobStoreTest {
     public BlobStore getPrivateStore() throws URISyntaxException, IOException {
         clean();
 
-        URI store = getPrivateStoreId();
+        File store = getPrivateStoreId();
         long tapeSize = 1024L * 1024;
 
         //Create the blobstore
@@ -103,7 +103,7 @@ public class XmlTapesBlobStoreTest {
         if (archive != null){
             archive.close();
         }
-        File archiveFolder = new File(getPrivateStoreId());
+        File archiveFolder = getPrivateStoreId();
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));
 

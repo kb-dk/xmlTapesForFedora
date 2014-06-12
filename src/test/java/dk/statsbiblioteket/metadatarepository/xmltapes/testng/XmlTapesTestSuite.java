@@ -39,8 +39,8 @@ public class XmlTapesTestSuite extends TCKTestSuite {
 
     }
 
-    private static URI getStoreLocation() throws URISyntaxException {
-        URI archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile().toURI();
+    private static File getStoreLocation() throws URISyntaxException {
+        File archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile();
         return archiveFolder;
     }
 
@@ -85,7 +85,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
     }
 
     public static void cleanBefore() throws IOException, URISyntaxException {
-        File archiveFolder = new File(getStoreLocation());
+        File archiveFolder = getStoreLocation();
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));
     }

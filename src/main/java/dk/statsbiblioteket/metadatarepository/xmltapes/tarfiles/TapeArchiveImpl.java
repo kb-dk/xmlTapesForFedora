@@ -119,14 +119,14 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
      * @param location the folder with the archive files
      * @param tapeSize the cuttoff size to use for new tapes
      */
-    public TapeArchiveImpl(URI location, long tapeSize, String tapeExtension, String tapePrefix, String tempTapePrefix) throws IOException {
+    public TapeArchiveImpl(File location, long tapeSize, String tapeExtension, String tapePrefix, String tempTapePrefix) throws IOException {
         this.tapeExtension = tapeExtension;
         this.tapePrefix = tapePrefix;
         this.tempTapePrefix = tempTapePrefix;
 
         log.info("Initialising tape archive from {}",location);
         SIZE_LIMIT = tapeSize;
-        archiveTapes = new File(location);
+        archiveTapes = location;
         if ( !archiveTapes.exists()){
             archiveTapes.mkdirs();
         }
