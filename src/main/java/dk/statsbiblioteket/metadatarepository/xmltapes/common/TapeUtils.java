@@ -1,8 +1,16 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.compress.utils.CountingOutputStream;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
 import org.kamranzafar.jtar.TarEntry;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 
 /**
@@ -52,5 +60,30 @@ public class TapeUtils {
 
     public static File toNewName(File file) {
         return new File(file.getParentFile(), "new_" + file.getName());
+    }
+
+    public static void compress(File fileToTape, OutputStream destination) throws IOException {
+        GzipCompressorOutputStream uncompressor = new GzipCompressorOutputStream(destination);
+        final InputStream input = new FileInputStream(fileToTape);
+        try {
+            IOUtils.copyLarge(input, uncompressor);
+        } finally {
+            IOUtils.closeQuietly(input);
+            IOUtils.closeQuietly(destination);
+        }
+    }
+
+    public static long getLengthCompressed(File fileToTape) throws IOException {
+        CountingOutputStream counter = new CountingOutputStream(new NullOutputStream());
+        GzipCompressorOutputStream uncompressor = new GzipCompressorOutputStream(counter);
+        final InputStream input = new FileInputStream(fileToTape);
+        try {
+            IOUtils.copyLarge(input, uncompressor);
+            return counter.getBytesWritten();
+        }
+        finally {
+            IOUtils.closeQuietly(input);
+            IOUtils.closeQuietly(counter);
+        }
     }
 }
