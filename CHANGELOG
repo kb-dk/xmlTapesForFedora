@@ -1,3 +1,13 @@
+1.0.6
+ * Zipping logic moved to TapeUtils
+ * The testNg suite cleans up after run
+ * Fixed so that we have a two-stage commit of the cache files. First we move the file from the temp folder to the cache folder under a name prefixed with new_. Then we delete the file in cache and move the new_ file to the correct name
+ * Always create a new tape when starting up, as this prevents issues with junk in the end of the previous one. This junk is ignored when it is indexed, just leading to a warning in the log now
+ * Do not fail hard on init if a tape cannot be read. Rather, log an error and ignore anything further in that tape
+ * More intelligent append with the use of a file length counter
+ * Do not delete the source file if the taping fails. This was a serious bug
+ * Jedis can now be configured from spring. Reasonable defaults to prevent connection timeouts
+
 1.0.5
 Fixed bad and stupid bug about tape extentions. This means that the properties "tapeExtention", "tapePrefix" and "tapeTempPrefix" is now constructor params, rather than properties.
 The Timer thread is now a daemon, so the system should be able to shut down.
