@@ -47,7 +47,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
     }
 
     public static BlobStore getPrivateStore() throws URISyntaxException, IOException {
-        clean();
+        cleanBefore();
 
 
 
@@ -83,16 +83,20 @@ public class XmlTapesTestSuite extends TCKTestSuite {
         return store;
     }
 
+    public static void cleanBefore() throws IOException, URISyntaxException {
+        File archiveFolder = new File(getStoreLocation());
+        FileUtils.cleanDirectory(archiveFolder);
+        FileUtils.touch(new File(archiveFolder, "empty"));
+    }
+
+
     @AfterSuite
     public static void clean() throws IOException, URISyntaxException {
 
         if (archive != null){
             archive.close();
         }
-
-        File archiveFolder = new File(getStoreLocation());
-        FileUtils.cleanDirectory(archiveFolder);
-        FileUtils.touch(new File(archiveFolder, "empty"));
+        cleanBefore();
 
     }
 
