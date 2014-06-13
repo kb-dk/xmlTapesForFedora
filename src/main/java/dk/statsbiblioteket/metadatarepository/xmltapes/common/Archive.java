@@ -48,7 +48,7 @@ public interface Archive {
      * @param filterPrefix the blob id prefix
      * @return
      */
-    Iterator<URI> listIds(String filterPrefix);
+    Iterator<URI> listIds(String filterPrefix) throws IOException;
 
 
 

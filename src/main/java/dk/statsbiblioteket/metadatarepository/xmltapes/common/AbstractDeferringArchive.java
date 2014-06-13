@@ -63,24 +63,13 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
 
     //TODO this method have grown in scope. Split, doc or do something
     public File getDeferredFile(URI id) throws IOException {
-        try {
-            final String filename = TapeUtils.toFilename(id);
-            final File file = new File(storeDir, filename);
-            final File fileNew = TapeUtils.toNewName(file);
-            if (!file.exists() && fileNew.exists()) {
-                lockPool.lockForWriting();
-                try {
-                    if (!file.exists() && fileNew.exists()) {//Test that  this is still the case?
-                        FileUtils.moveFile(fileNew, file);
-                    }
-                } finally {
-                    lockPool.unlockForWriting();
-                }
-            }
-            return file;
-        } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
+        final String filename = TapeUtils.toFilename(id);
+        final File file = new File(storeDir, filename);
+        final File fileNew = TapeUtils.toNewName(file);
+        if (!file.exists() && fileNew.exists()) {
+            return fileNew;
         }
+        return file;
     }
 
     protected File getDeferredFileDeleted(URI id) {
@@ -130,14 +119,27 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
 
     /**
      * Get the files in the cache.
+     * Note, this method moves the "new_" files to the right names if no original is found and delete it if an original is found
      * @return
      */
-    public List<File> getStoreFiles() {
+    public List<File> getStoreFiles() throws IOException {
         //Ensure that noone is able to lock files until we have locked all.
         List<File> cacheFiles;
 
         lockPool.lockForWriting();
         try {
+            List<File> newCacheFiles = FileFilterUtils.filterList((FileFilterUtils.prefixFileFilter("new_")),
+                    FileUtils.listFiles(getStoreDir(), null, false));
+            for (File newCacheFile : newCacheFiles) {
+                final File fileOrig = new File(newCacheFile.getParent(),newCacheFile.getName().replaceFirst("^new_",""));
+                if (fileOrig.exists()) {
+                    FileUtils.deleteQuietly(newCacheFile);
+                }  else {
+                    FileUtils.moveFile(newCacheFile, fileOrig);
+                }
+            }
+
+
             cacheFiles = FileFilterUtils.filterList(FileFilterUtils.notFileFilter(FileFilterUtils.prefixFileFilter(
                     "new_")), FileUtils.listFiles(getStoreDir(), null, false));
 
@@ -158,7 +160,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
         }
     }
 
-    public Collection<URI> getCacheIDs(String filterPrefix) {
+    public Collection<URI> getCacheIDs(String filterPrefix) throws IOException {
         //Get the cached files
         List<File> cacheFiles = getStoreFiles();
         ArrayList<URI> result = new ArrayList<URI>();
@@ -178,7 +180,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
 
 
     @Override
-    public Iterator<URI> listIds(String filterPrefix) {
+    public Iterator<URI> listIds(String filterPrefix) throws IOException {
         testClosed();
         log.debug("Calling listIDs with argument {}",filterPrefix);
         return delegate.listIds(filterPrefix);

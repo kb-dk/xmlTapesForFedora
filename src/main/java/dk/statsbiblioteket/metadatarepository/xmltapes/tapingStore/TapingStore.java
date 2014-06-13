@@ -151,7 +151,7 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
 
 
     @Override
-    public Iterator<URI> listIds(String filterPrefix) {
+    public Iterator<URI> listIds(String filterPrefix) throws IOException {
         log.debug("Calling listIDs with arguments {}",filterPrefix);
         return new NonDuplicatingIterator(getDelegate().listIds(filterPrefix),
                 cache.getCacheIDs(filterPrefix),getCacheIDs(filterPrefix));
