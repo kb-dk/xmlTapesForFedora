@@ -128,20 +128,10 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
 
         lockPool.lockForWriting();
         try {
-            List<File> newCacheFiles = FileFilterUtils.filterList((FileFilterUtils.prefixFileFilter("new_")),
-                    FileUtils.listFiles(getStoreDir(), null, false));
-            for (File newCacheFile : newCacheFiles) {
-                final File fileOrig = new File(newCacheFile.getParent(),newCacheFile.getName().replaceFirst("^new_",""));
-                if (fileOrig.exists()) {
-                    FileUtils.deleteQuietly(newCacheFile);
-                }  else {
-                    FileUtils.moveFile(newCacheFile, fileOrig);
-                }
-            }
+            handleNew_Files();
 
 
-            cacheFiles = FileFilterUtils.filterList(FileFilterUtils.notFileFilter(FileFilterUtils.prefixFileFilter(
-                    "new_")), FileUtils.listFiles(getStoreDir(), null, false));
+            cacheFiles = FileFilterUtils.filterList(FileFilterUtils.notFileFilter(FileFilterUtils.prefixFileFilter(TapeUtils.NEW_)), FileUtils.listFiles(getStoreDir(), null, false));
 
 
             //TODO remove the _new files from this list
@@ -157,6 +147,19 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
             return cacheFiles;
         } finally {
             lockPool.unlockForWriting();
+        }
+    }
+
+    private void handleNew_Files() throws IOException {
+        List<File> newCacheFiles = FileFilterUtils.filterList((FileFilterUtils.prefixFileFilter(TapeUtils.NEW_)),
+                FileUtils.listFiles(getStoreDir(), null, false));
+        for (File newCacheFile : newCacheFiles) {
+            final File fileOrig = new File(newCacheFile.getParent(),newCacheFile.getName().replaceFirst("^"+ TapeUtils.NEW_,""));
+            if (fileOrig.exists()) {
+                FileUtils.deleteQuietly(newCacheFile);
+            }  else {
+                FileUtils.moveFile(newCacheFile, fileOrig);
+            }
         }
     }
 

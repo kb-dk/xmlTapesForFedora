@@ -29,6 +29,7 @@ public class TapeUtils {
     public static final String NAME_SEPARATOR = "#";
     public static final String DELETED = "DELETED";
     public static final String GZ = ".gz";
+    protected static final String NEW_ = "new_";
 
     public static URI toURI(TarEntry entry) {
         return toURI(entry.getName());
@@ -76,7 +77,7 @@ public class TapeUtils {
     }
 
     public static File toNewName(File file) {
-        return new File(file.getParentFile(), "new_" + file.getName());
+        return new File(file.getParentFile(), NEW_ + file.getName());
     }
 
     public static void copy(File fileToTape, OutputStream destination) throws IOException {
