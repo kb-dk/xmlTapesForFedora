@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.utils.CountingOutputStream;
 import org.apache.commons.io.IOUtils;
@@ -15,6 +16,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.regex.Pattern;
 
 /**
@@ -39,21 +41,32 @@ public class TapeUtils {
         if (endIndex < 0) {
             endIndex = filename.length();
         }
+        if (filename.endsWith(GZ)){
+            filename = filename.replace(GZ,"");
+        }
         return URI.create(filename.substring(0, endIndex));
     }
 
 
-    public static String toFilename(URI id) {
-        return id.toString() + NAME_SEPARATOR + System.currentTimeMillis();
+    public static String toTimestampedFilename(URI id) {
+        return encode(id) + NAME_SEPARATOR + System.currentTimeMillis() + GZ;
     }
 
-    public static String toFilenameGZ(URI id) {
-        return toFilename(id)+ GZ;
+    public static String toFilename(URI id) {
+        return encode(id) +  GZ;
+    }
+
+    private static String encode(URI id) {
+        try {
+            return URLEncoder.encode(id.toString(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new Error("UTF-8 not known",e);
+        }
     }
 
 
     public static String toDeleteFilename(URI id) {
-        return id.toString() + NAME_SEPARATOR + System.currentTimeMillis() + NAME_SEPARATOR + DELETED;
+        return encode(id) + NAME_SEPARATOR + System.currentTimeMillis() + NAME_SEPARATOR + DELETED + GZ;
     }
 
     public static long getTimestamp(TarEntry entry) {
@@ -64,6 +77,16 @@ public class TapeUtils {
 
     public static File toNewName(File file) {
         return new File(file.getParentFile(), "new_" + file.getName());
+    }
+
+    public static void copy(File fileToTape, OutputStream destination) throws IOException {
+        final InputStream input = new FileInputStream(fileToTape);
+        try {
+            IOUtils.copyLarge(input, destination);
+        } finally {
+            IOUtils.closeQuietly(input);
+            IOUtils.closeQuietly(destination);
+        }
     }
 
     public static void compress(File fileToTape, OutputStream destination) throws IOException {
@@ -91,6 +114,19 @@ public class TapeUtils {
         return counter.getBytesWritten();
     }
 
+    public static long getLengthUncompressed(File fileToTape) throws IOException {
+        CountingOutputStream counter = new CountingOutputStream(new NullOutputStream());
+        final InputStream input = new GzipCompressorInputStream(new FileInputStream(fileToTape));
+        try {
+            IOUtils.copyLarge(input, counter);
+        } finally {
+            IOUtils.closeQuietly(input);
+            IOUtils.closeQuietly(counter);
+        }
+        return counter.getBytesWritten();
+    }
+
+
     public static long getLengthDirect(InputStream stream) throws IOException {
         CountingOutputStream counter = new CountingOutputStream(new NullOutputStream());
         try {
@@ -107,6 +143,7 @@ public class TapeUtils {
         try {
             String name = cacheFile.getName();
             name = URLDecoder.decode(name, "UTF-8");
+            name = name.replaceAll(Pattern.quote(GZ)+"$","");
             name = name.replaceAll(Pattern.quote("#" + DELETED)+"$","");
             return new URI(name);
         } catch (URISyntaxException e) {
@@ -121,6 +158,7 @@ public class TapeUtils {
           try {
               String name = cacheFile.getName();
               name = URLDecoder.decode(name, "UTF-8");
+              name = name.replaceAll(Pattern.quote(GZ) + "$", "");
               return new URI(name);
           } catch (URISyntaxException e) {
               return null;

@@ -545,12 +545,15 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             startNewTapeIfNessesary();
 
             Entry toCreate = new Entry(newestTape, newestTapeLength);
-
-            long size = TapeUtils.getLengthCompressed(fileToTape);
-            TapeUtils.compress(fileToTape, getTarOutputStream(size, TapeUtils.toFilenameGZ(id)));
-
-
-
+            final String entryName = TapeUtils.toTimestampedFilename(id);
+            if (fileToTape.getName().endsWith(TapeUtils.GZ)){
+                long size;
+                size = fileToTape.length();
+                TapeUtils.copy(fileToTape,getTarOutputStream(size, entryName));
+            } else {
+                long size = TapeUtils.getLengthCompressed(fileToTape);
+                TapeUtils.compress(fileToTape, getTarOutputStream(size, entryName));
+            }
 
             index.addLocation(id, toCreate); //Update the index to the newly written entry
             newestTapeLength = newestTape.length();

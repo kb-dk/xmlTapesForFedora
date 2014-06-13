@@ -97,7 +97,7 @@ public class Taper extends TimerTask {
         tapingStore.testClosed();
         try {
             for (File tapingFile : tapingFiles) {
-                if (tapingFile.getName().endsWith(TapeUtils.DELETED)) {
+                if (isDeleteFile(tapingFile)) {
                     tapeTheTapingFileDeletion(tapingFile);
                 } else {
                     tapeTheTapingFileAddition(tapingFile);
@@ -106,6 +106,10 @@ public class Taper extends TimerTask {
         } finally {
             tapingLock.unlockForWriting();
         }
+    }
+
+    private boolean isDeleteFile(File tapingFile) {
+        return tapingFile.getName().endsWith(TapeUtils.DELETED) || tapingFile.getName().endsWith(TapeUtils.DELETED+TapeUtils.GZ);
     }
 
     protected void tapeTheTapingFileAddition(File fileToTape) throws IOException {

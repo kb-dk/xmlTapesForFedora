@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.common;
 
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
 
         File cacheFile = getDeferredFile(id);
         try {
-            return new FileInputStream(cacheFile);
+            return new GzipCompressorInputStream(new FileInputStream(cacheFile));
         } catch (FileNotFoundException e){
             return delegate.getInputStream(id);
         }
@@ -63,8 +64,8 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
     //TODO this method have grown in scope. Split, doc or do something
     public File getDeferredFile(URI id) throws IOException {
         try {
-            final String child = URLEncoder.encode(id.toString(), UTF_8);
-            final File file = new File(storeDir, child);
+            final String filename = TapeUtils.toFilename(id);
+            final File file = new File(storeDir, filename);
             final File fileNew = TapeUtils.toNewName(file);
             if (!file.exists() && fileNew.exists()) {
                 lockPool.lockForWriting();
@@ -116,7 +117,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
         try {
             File cacheFile = getDeferredFile(id);
             if (cacheFile.exists()) {
-                return cacheFile.length();
+                return TapeUtils.getLengthUncompressed(cacheFile);
             }
         } finally {
             lockPool.unlockForWriting();
@@ -222,7 +223,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
 
     protected File getTempFile(URI id, File temp_dir) throws IOException {
         temp_dir.mkdirs();
-        File tempfile = File.createTempFile(URLEncoder.encode(id.toString(), UTF_8), TEMP_PREFIX, temp_dir);
+        File tempfile = File.createTempFile(URLEncoder.encode(id.toString(), UTF_8), TapeUtils.GZ, temp_dir);
         tempfile.deleteOnExit();
         return tempfile;
     }
