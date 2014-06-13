@@ -39,6 +39,7 @@ public class TapeArchiveTest {
 
     @Before
     public void setUp() throws Exception {
+        //TODO this setup is duplicated for all the test classes. Simplify
         clean();
         File store = getPrivateStoreId();
         long tapeSize = 1024L * 1024;

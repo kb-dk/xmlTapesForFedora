@@ -13,11 +13,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * Created with IntelliJ IDEA.
- * User: abr
- * Date: 6/20/13
- * Time: 12:04 PM
- * To change this template use File | Settings | File Templates.
+ * This output stream writes the (gzipped) bits to the temp folder. When the stream is closed, the file is moved
+ * to the cache so that others can retrieve it
  */
 public class CacheOutputStream extends OutputStream {
 

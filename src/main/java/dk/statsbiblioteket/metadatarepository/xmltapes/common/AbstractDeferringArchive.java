@@ -130,11 +130,8 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
         try {
             handleNew_Files();
 
-
             cacheFiles = FileFilterUtils.filterList(FileFilterUtils.notFileFilter(FileFilterUtils.prefixFileFilter(TapeUtils.NEW_)), FileUtils.listFiles(getStoreDir(), null, false));
 
-
-            //TODO remove the _new files from this list
             // Sort them in last modified order
             Collections.sort(cacheFiles, new Comparator<File>() {
                 @Override
