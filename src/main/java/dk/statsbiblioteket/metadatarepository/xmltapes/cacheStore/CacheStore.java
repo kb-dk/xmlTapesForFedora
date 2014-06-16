@@ -2,6 +2,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AbstractDeferringArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +42,8 @@ public class CacheStore extends AbstractDeferringArchive<AkubraCompatibleArchive
     public OutputStream createNew(URI id, long estimatedSize) throws IOException {
         testClosed();
         log.debug("Calling createNew with arguments {}",id);
-        File tempFile = getTempFile(id,tempDir);
-        return new CacheOutputStream(tempFile, getDeferredFile(id), lockPool);
+        File tempFile = TapeUtils.makeTempFile(id, tempDir);
+        return new CacheOutputStream(tempFile, TapeUtils.getStoredFile(getStoreDir(),id), lockPool);
     }
 
 

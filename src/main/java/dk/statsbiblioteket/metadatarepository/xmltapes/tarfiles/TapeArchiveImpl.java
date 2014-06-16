@@ -1,6 +1,7 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.Closable;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.StreamUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
@@ -327,8 +328,8 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         try {
         TarEntry entry = tis.getNextEntry();
         while (entry != null) {
-            URI id = TapeUtils.toURI(entry);
-            if (entry.getSize() == 0 && entry.getName().endsWith(TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED)) {
+            URI id = TapeUtils.getIdFromTarEntry(entry);
+            if (entry.getSize() == 0 && TapeUtils.isDeleteEntry(entry)) {
                 index.remove(id);
             } else {
                 index.addLocation(id, new Entry(tape, offset));
@@ -463,8 +464,8 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         TarInputStream tapeInputstream = getTarInputStream(entry);
 
         TarEntry tarEntry = tapeInputstream.getNextEntry();
-        if (tarEntry != null && tarEntry.getName().startsWith(id.toString())){
-            if (tarEntry.getName().endsWith(TapeUtils.GZ)){
+        if (tarEntry != null && tarEntry.getName().startsWith(TapeUtils.encode(id))){
+            if (TapeUtils.isZipped(tarEntry)){
                 return new GzipCompressorInputStream(tapeInputstream);
             }
             return tapeInputstream;
@@ -519,7 +520,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             if (tapeFile == null) {
                 throw new FileNotFoundException();
             }
-            return TapeUtils.getLengthDirect(getContentInputStream(tapeFile,id));
+            return StreamUtils.countBytesDirect(getContentInputStream(tapeFile, id));
         } finally {
             writeLock.unlock(); //unlock the storage system, we are done
         }
@@ -537,22 +538,23 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
 
     @Override
     public  void tapeFile(URI id, File fileToTape) throws IOException {
-        testClosed();
-        testInitialised();
         getStoreWriteLock();
-        log.debug("Calling tapeFile with id {}",id);
         try {
+            testInitialised();
+            testClosed();
+            log.debug("Calling tapeFile with id {}", id);
+
             startNewTapeIfNessesary();
 
             Entry toCreate = new Entry(newestTape, newestTapeLength);
-            final String entryName = TapeUtils.toTimestampedFilename(id);
-            if (fileToTape.getName().endsWith(TapeUtils.GZ)){
+            final String entryName = TapeUtils.getTimestampedFilenameFromId(id);
+            if (TapeUtils.isZipped(fileToTape)){
                 long size;
                 size = fileToTape.length();
-                TapeUtils.copy(fileToTape,getTarOutputStream(size, entryName));
+                StreamUtils.copy(fileToTape, getTarOutputStream(size, entryName));
             } else {
-                long size = TapeUtils.getLengthCompressed(fileToTape);
-                TapeUtils.compress(fileToTape, getTarOutputStream(size, entryName));
+                long size = StreamUtils.compressAndCountBytes(fileToTape);
+                StreamUtils.compress(fileToTape, getTarOutputStream(size, entryName));
             }
 
             index.addLocation(id, toCreate); //Update the index to the newly written entry
@@ -587,7 +589,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
                 return;
             }
             startNewTapeIfNessesary();
-            TarOutputStream tarOutputStream = getTarOutputStream(0, TapeUtils.toDeleteFilename(id));
+            TarOutputStream tarOutputStream = getTarOutputStream(0, TapeUtils.getDeleteTimestampedFilenameFromId(id));
             tarOutputStream.close();
             index.remove(id); //Update the index to the newly written entry
             newestTapeLength = newestTape.length();

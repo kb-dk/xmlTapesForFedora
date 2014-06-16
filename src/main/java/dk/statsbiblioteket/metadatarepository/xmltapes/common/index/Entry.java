@@ -41,4 +41,12 @@ public class Entry {
     public long getOffset() {
         return offset;
     }
+
+    @Override
+    public String toString() {
+        return "Entry{" +
+               "tape=" + tape +
+               ", offset=" + offset +
+               '}';
+    }
 }

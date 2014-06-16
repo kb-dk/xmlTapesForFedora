@@ -11,9 +11,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,7 +31,6 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
     public static final String TEMP_PREFIX = "temp";
     private static final Logger log = LoggerFactory.getLogger(AbstractDeferringArchive.class);
 
-    public static final String UTF_8 = "UTF-8";
     private T delegate;
     private  File storeDir;
 
@@ -53,7 +50,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
         testClosed();
 
 
-        File cacheFile = getDeferredFile(id);
+        File cacheFile = TapeUtils.getStoredFile(storeDir, id);
         try {
             return new GzipCompressorInputStream(new FileInputStream(cacheFile));
         } catch (FileNotFoundException e){
@@ -61,38 +58,17 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
         }
     }
 
-    //TODO this method have grown in scope. Split, doc or do something
-    public File getDeferredFile(URI id) throws IOException {
-        final String filename = TapeUtils.toFilename(id);
-        final File file = new File(storeDir, filename);
-        final File fileNew = TapeUtils.toNewName(file);
-        if (!file.exists() && fileNew.exists()) {
-            return fileNew;
-        }
-        return file;
-    }
-
-    protected File getDeferredFileDeleted(URI id) {
-        try {
-            return new File(storeDir,
-                    URLEncoder.encode(id.toString()+ "#"+TapeUtils.DELETED, UTF_8));
-        } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
-        }
-
-    }
-
 
     @Override
     public boolean exist(URI id) throws IOException {
         testClosed();
 
-        File cacheFile = getDeferredFile(id);
+        File cacheFile = TapeUtils.getStoredFile(storeDir, id);
         if (cacheFile.exists()){
             return true;
         }
 
-        File deleted = getDeferredFileDeleted(id);
+        File deleted = TapeUtils.getStoredFileDeleted(storeDir, id);
         if (deleted.exists()){
             return false;
         }
@@ -104,9 +80,9 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
         testClosed();
         lockPool.lockForWriting();
         try {
-            File cacheFile = getDeferredFile(id);
+            File cacheFile = TapeUtils.getStoredFile(storeDir, id);
             if (cacheFile.exists()) {
-                return TapeUtils.getLengthUncompressed(cacheFile);
+                return StreamUtils.uncompressAndCountBytes(cacheFile);
             }
         } finally {
             lockPool.unlockForWriting();
@@ -222,16 +198,6 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
     public boolean isClosed(){
         return super.isClosed() && getDelegate().isClosed();
     }
-
-    protected File getTempFile(URI id, File temp_dir) throws IOException {
-        temp_dir.mkdirs();
-        File tempfile = File.createTempFile(URLEncoder.encode(id.toString(), UTF_8), TapeUtils.GZ, temp_dir);
-        tempfile.deleteOnExit();
-        return tempfile;
-    }
-
-
-
 }
 
 

@@ -97,7 +97,7 @@ public class Taper extends TimerTask {
         tapingStore.testClosed();
         try {
             for (File tapingFile : tapingFiles) {
-                if (isDeleteFile(tapingFile)) {
+                if (TapeUtils.isDeleteFile(tapingFile)) {
                     tapeTheTapingFileDeletion(tapingFile);
                 } else {
                     tapeTheTapingFileAddition(tapingFile);
@@ -108,15 +108,11 @@ public class Taper extends TimerTask {
         }
     }
 
-    private boolean isDeleteFile(File tapingFile) {
-        return tapingFile.getName().endsWith(TapeUtils.DELETED) || tapingFile.getName().endsWith(TapeUtils.DELETED+TapeUtils.GZ);
-    }
-
     protected void tapeTheTapingFileAddition(File fileToTape) throws IOException {
         log.debug("Taping addition of file {}", fileToTape.getName());
         tapingLock.lockForWriting();
         try {
-            URI id = TapeUtils.getIDfromFile(fileToTape);
+            URI id = TapeUtils.getIdfromFile(fileToTape);
             tapeArchive.tapeFile(id, fileToTape);
             FileUtils.deleteQuietly(fileToTape);
         } finally {
@@ -133,7 +129,7 @@ public class Taper extends TimerTask {
                 log.debug("File {} containted content, so add the content before deletion", fileToTape.getName());
                 tapeTheTapingFileAddition(fileToTape);
             }
-            URI id = TapeUtils.getIDfromFile(fileToTape);
+            URI id = TapeUtils.getIdfromFile(fileToTape);
             log.debug("Taping the file deletion {} for real this time", fileToTape.getName());
             tapeArchive.remove(id);
             FileUtils.deleteQuietly(fileToTape);

@@ -5,6 +5,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.common.AbstractDeferringA
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.NonDuplicatingIterator;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeUtils;
 import dk.statsbiblioteket.util.FileAlreadyExistsException;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -76,16 +77,15 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
 
     @Override
     public void remove(URI id) throws IOException {
-        testClosed();
-        //This is only called by cache.remove, and that method already locks the cache for writing
 
         while (true) {
             lockPool.lockForWriting();
             cache.lockPool.lockForWriting();
+            testClosed();
             try {
                 log.debug("Removing {}", id);
 
-                File tapingFile = getDeferredFileDeleted(id);
+                File tapingFile = TapeUtils.getStoredFileDeleted(getStoreDir(),id);
                 if (tapingFile.exists()) {
                     log.debug(
                             "{} is already scheduled for removal. Wait sleep for now and return later",
@@ -98,22 +98,22 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
                 //1. File is in cache
                 //2. File is not in cache, but in tapes
                 //3. File is not in cache or tapes
-                File cacheFile = cache.getDeferredFile(id);
+                File cacheFile = TapeUtils.getStoredFile(cache.getStoreDir(),id);
                 try { //Get file from cache
-
-                    log.debug("File {} is in cache, so copy the current version to {}", id, tapingFile);
 
                     //write this content to the tapingFile
                     FileUtils.moveFile(cacheFile, tapingFile);
+
                     //It is now in taping, so remove it from the cache
                     FileUtils.deleteQuietly(cacheFile);
+                    log.debug("File {} is in cache, so copy the current version to {}", cacheFile, tapingFile);
 
                 } catch (FileNotFoundException e) { //file was not in cache
                     if (getDelegate().exist(id)) {//but in tapes
-                        log.debug("File {} was not in cache, but is in tapes. Just mark it for deletion.", id);
+                        log.debug("File {} was not in cache, but is in tapes. Just mark it for deletion.", cacheFile);
                         FileUtils.touch(tapingFile);
                     } else { //nowhere, so ignore this delete
-                        log.debug("File {} was nowhere, so ignore this remove", id);
+                        log.debug("File {} was nowhere, so ignore this remove", cacheFile);
                     }
                 }
                 break;
@@ -153,8 +153,13 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
     @Override
     public Iterator<URI> listIds(String filterPrefix) throws IOException {
         log.debug("Calling listIDs with arguments {}",filterPrefix);
-        return new NonDuplicatingIterator(getDelegate().listIds(filterPrefix),
-                cache.getCacheIDs(filterPrefix),getCacheIDs(filterPrefix));
+        lockPool.lockForWriting();
+        try {
+            return new NonDuplicatingIterator(getDelegate().listIds(filterPrefix),
+                    cache.getCacheIDs(filterPrefix), getCacheIDs(filterPrefix));
+        } finally {
+            lockPool.unlockForWriting();
+        }
     }
 
 

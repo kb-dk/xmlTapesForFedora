@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -56,11 +55,10 @@ public class NonDuplicatingIterator implements Iterator<URI> {
             next = currentIterator.next();
             log.debug("Getting element {} from collection {}",next,currentCollection);
             //If the next element is deleted
-            if (next.toString().endsWith(TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED)){
+            log.debug("Found element {}",next.toString());
+            if (TapeUtils.isDelete(next)){
                 //Translate to a normal (nondeleted) id and add id to deletedIDs
-                next = URI.create(next.toString().replaceAll(Pattern.quote(
-                        TapeUtils.NAME_SEPARATOR+TapeUtils.DELETED),
-                        ""));
+                next = TapeUtils.stripDeleted(next);
                 deletedIDs.add(next);
             }
             //If the element is already marked as deleted
