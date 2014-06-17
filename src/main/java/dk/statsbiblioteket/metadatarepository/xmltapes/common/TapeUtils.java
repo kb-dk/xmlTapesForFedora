@@ -32,9 +32,21 @@ public class TapeUtils {
         String filename = entry.getName();
         int endIndex = filename.indexOf(NAME_SEPARATOR);
         if (endIndex < 0) {
-            endIndex = filename.length();
+            endIndex = filename.indexOf(GZ);
+            if (endIndex < 0){
+                endIndex = filename.length();
+            }
         }
-        return URI.create(filename.substring(0, endIndex));
+        return uri(filename.substring(0, endIndex));
+
+    }
+
+    private static URI uri(String name)  {
+        try {
+            return new URI(name);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Failed to parse '"+name+"' as uri",e);
+        }
     }
 
     /**
@@ -43,18 +55,13 @@ public class TapeUtils {
      * @return the canonical ID
      */
     public static URI getIdfromFile(File cacheFile) {
-        try {
-            String name = cacheFile.getName();
-            name = URLDecoder.decode(name, "UTF-8");
-            name = name.replaceAll(Pattern.quote(GZ) + "$", "");
-            name = name.replaceAll(Pattern.quote("#" + DELETED) + "$", "");
-            return new URI(name);
-        } catch (URISyntaxException e) {
-            return null;
-        } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
-        }
+        String name = cacheFile.getName();
+        name = decode(name);
+        name = name.replaceAll(Pattern.quote(GZ) + "$", "");
+        name = name.replaceAll(Pattern.quote(NAME_SEPARATOR + DELETED) + "$", "");
+        return uri(name);
     }
+
 
     /**
      * Get the semi canonical id of a file in the cache. The returned id will be the canonical id with an optional
@@ -63,16 +70,10 @@ public class TapeUtils {
      * @return the semi canonical id
      */
     protected static URI getIDfromFileWithDeleted(File cacheFile) {
-        try {
-            String name = cacheFile.getName();
-            name = URLDecoder.decode(name, "UTF-8");
-            name = name.replaceAll(Pattern.quote(GZ) + "$", "");
-            return new URI(name);
-        } catch (URISyntaxException e) {
-            return null;
-        } catch (UnsupportedEncodingException e) {
-            throw new Error(e);
-        }
+        String name = cacheFile.getName();
+        name = decode(name);
+        name = name.replaceAll(Pattern.quote(GZ) + "$", "");
+        return uri(name);
     }
 
 
@@ -92,20 +93,20 @@ public class TapeUtils {
 
 
     /**
-         * Convert the canonical id to a filename, suitable for one of the stages
+         * Convert the canonical id to a name, suitable for one of the stages
          * @param id the canonical ID
-         * @return the id as a filename
+         * @return the id as a name
          */
     public static String getFilenameFromId(URI id) {
         return encode(id) +  GZ;
     }
 
     /**
-     * Convert the canonical id to a filename, suitable for one of the stages
+     * Convert the canonical id to a name, suitable for one of the stages
      *
      * @param id the canonical ID
      *
-     * @return the id as a filename
+     * @return the id as a name
      */
     public static String getDeleteFilenameFromId(URI id) {
         return encode(id) + NAME_SEPARATOR + DELETED + GZ;
@@ -125,9 +126,17 @@ public class TapeUtils {
         }
     }
 
+    private static String decode(String name) {
+        try {
+            return URLDecoder.decode(name, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new Error("UTF-8 not known", e);
+        }
+    }
+
 
     /**
-     * Generate a file name with the new prefix from another filename
+     * Generate a file name with the new prefix from another name
      * @param file the file to "new"
      * @return the new_filename
      */
