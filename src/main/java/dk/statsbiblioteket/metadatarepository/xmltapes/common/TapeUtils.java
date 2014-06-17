@@ -93,20 +93,20 @@ public class TapeUtils {
 
 
     /**
-         * Convert the canonical id to a name, suitable for one of the stages
+         * Convert the canonical id to a filename, suitable for one of the stages
          * @param id the canonical ID
-         * @return the id as a name
+         * @return the id as a filename
          */
     public static String getFilenameFromId(URI id) {
         return encode(id) +  GZ;
     }
 
     /**
-     * Convert the canonical id to a name, suitable for one of the stages
+     * Convert the canonical id to a filename, suitable for one of the stages
      *
      * @param id the canonical ID
      *
-     * @return the id as a name
+     * @return the id as a filename
      */
     public static String getDeleteFilenameFromId(URI id) {
         return encode(id) + NAME_SEPARATOR + DELETED + GZ;
@@ -136,7 +136,7 @@ public class TapeUtils {
 
 
     /**
-     * Generate a file name with the new prefix from another name
+     * Generate a file name with the new prefix from another filename
      * @param file the file to "new"
      * @return the new_filename
      */
