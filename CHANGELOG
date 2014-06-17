@@ -1,4 +1,5 @@
 1.0.6
+ * Generalised a lot of the file handling to make the code more maintainable
  * Fixed the config file to be more Drift friendly
  * Reorganised the class names to make them more understandable
  * Zipping logic moved to TapeUtils
