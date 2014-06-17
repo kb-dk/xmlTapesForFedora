@@ -52,9 +52,9 @@ public class StreamUtils {
      */
     public static long compressAndCountBytes(File file) throws IOException {
         CountingOutputStream counter = new CountingOutputStream(new NullOutputStream());
-        GzipCompressorOutputStream uncompressor = new GzipCompressorOutputStream(counter);
+        GzipCompressorOutputStream compressor = new GzipCompressorOutputStream(counter);
         final InputStream input = new FileInputStream(file);
-        copy(input,uncompressor);
+        copy(input,compressor);
         return counter.getBytesWritten();
     }
 
@@ -66,8 +66,8 @@ public class StreamUtils {
      */
     public static long uncompressAndCountBytes(File file) throws IOException {
         CountingOutputStream counter = new CountingOutputStream(new NullOutputStream());
-        final InputStream input = new GzipCompressorInputStream(new FileInputStream(file));
-        copy(input,counter);
+        final InputStream uncompressor = new GzipCompressorInputStream(new FileInputStream(file));
+        copy(uncompressor,counter);
         return counter.getBytesWritten();
     }
 

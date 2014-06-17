@@ -93,7 +93,7 @@ public class TapeUtils {
 
 
     /**
-         * Convert the canonical id to a filename, suitable for one of the stages
+         * Convert the canonical id to a filename, suitable for the stages where the record is stored as a file
          * @param id the canonical ID
          * @return the id as a filename
          */
@@ -102,7 +102,7 @@ public class TapeUtils {
     }
 
     /**
-     * Convert the canonical id to a filename, suitable for one of the stages
+     * Convert the canonical id to a filename, suitable for the stages where the record is stored as a file
      *
      * @param id the canonical ID
      *
