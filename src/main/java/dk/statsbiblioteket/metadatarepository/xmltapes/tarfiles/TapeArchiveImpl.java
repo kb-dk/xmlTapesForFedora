@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -571,9 +572,10 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
 
     private TarOutputStream getTarOutputStream(long size, String entryName) throws IOException {
         long timestamp = System.currentTimeMillis();
-        final FileOutputStream fileOutputStream = new FileOutputStream(newestTape);
-        fileOutputStream.getChannel().position(newestTapeLength);
-        TarOutputStream tarOutputStream = new TarOutputStream(fileOutputStream, false);
+        RandomAccessFile tapeFile = new RandomAccessFile(newestTape, "rwd");
+
+        tapeFile.seek(newestTapeLength);
+        TarOutputStream tarOutputStream = new TarOutputStream(new FileOutputStream(tapeFile.getFD()),false);
         TarHeader tarHeader = TarHeader.createHeader(entryName,size,timestamp/1000,false);
         TarEntry entry = new TarEntry(tarHeader);
         tarOutputStream.putNextEntry(entry);
