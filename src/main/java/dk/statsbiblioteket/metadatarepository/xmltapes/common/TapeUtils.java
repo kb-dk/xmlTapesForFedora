@@ -30,6 +30,9 @@ public class TapeUtils {
      */
     public static URI getIdFromTarEntry(TarEntry entry) {
         String filename = entry.getName();
+        if (!filename.contains("/")) {
+            filename = decode(filename);
+        }
         int endIndex = filename.indexOf(NAME_SEPARATOR);
         if (endIndex < 0) {
             endIndex = filename.indexOf(GZ);
