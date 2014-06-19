@@ -1,3 +1,8 @@
+1.0.7
+ * The 1.0.6 release changed the names of the files inside the tar tapes to be url encoded. This was to ensure that
+ extraction would not cause filesystems problems. However, this broke the ability to read old tapes. This release allow
+ the system to read old tapes transparently, but will url encode the names of all new files added to tapes.
+
 1.0.6
  * Generalised a lot of the file handling to make the code more maintainable
  * Fixed the config file to be more Drift friendly
