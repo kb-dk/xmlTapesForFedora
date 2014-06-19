@@ -462,10 +462,9 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
      */
     private InputStream getContentInputStream(Entry entry, URI id) throws IOException {
         TarInputStream tapeInputstream = getTarInputStream(entry);
-
         TarEntry tarEntry = tapeInputstream.getNextEntry();
-        if (tarEntry != null && tarEntry.getName().startsWith(TapeUtils.encode(id))){
-            if (TapeUtils.isZipped(tarEntry)){
+        if (tarEntry != null && isEqual(id, tarEntry)) {
+            if (TapeUtils.isZipped(tarEntry)) {
                 return new GzipCompressorInputStream(tapeInputstream);
             }
             return tapeInputstream;
@@ -479,6 +478,11 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             }
             throw new IOException("Could not find entry for "+id+" in archive file");
         }
+    }
+
+    private boolean isEqual(URI id, TarEntry tarEntry) {
+        final String name = tarEntry.getName();
+        return name.startsWith(TapeUtils.encode(id)) || name.startsWith(id.toString());
     }
 
     /**
