@@ -568,7 +568,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
                 }
             } finally {
                 if (tarOutputStream != null) {
-                    tarOutputStream.close();
+                    IOUtils.closeQuietly(tarOutputStream);
                 }
             }
 
@@ -612,7 +612,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
                 newestTapeLength = newestTape.length();
             } finally {
                 if (tarOutputStream != null) {
-                    tarOutputStream.close();
+                    IOUtils.closeQuietly(tarOutputStream);
                 }
             }
         } finally {
