@@ -554,13 +554,22 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
 
             Entry toCreate = new Entry(newestTape, newestTapeLength);
             final String entryName = TapeUtils.getTimestampedFilenameFromId(id);
-            if (TapeUtils.isZipped(fileToTape)){
-                long size;
-                size = fileToTape.length();
-                StreamUtils.copy(fileToTape, getTarOutputStream(size, entryName));
-            } else {
-                long size = StreamUtils.compressAndCountBytes(fileToTape);
-                StreamUtils.compress(fileToTape, getTarOutputStream(size, entryName));
+            TarOutputStream tarOutputStream = null;
+            try {
+                if (TapeUtils.isZipped(fileToTape)) {
+                    long size;
+                    size = fileToTape.length();
+                    tarOutputStream = getTarOutputStream(size, entryName);
+                    StreamUtils.copy(fileToTape, tarOutputStream);
+                } else {
+                    long size = StreamUtils.compressAndCountBytes(fileToTape);
+                    tarOutputStream = getTarOutputStream(size, entryName);
+                    StreamUtils.compress(fileToTape, tarOutputStream);
+                }
+            } finally {
+                if (tarOutputStream != null) {
+                    tarOutputStream.close();
+                }
             }
 
             index.addLocation(id, toCreate); //Update the index to the newly written entry
@@ -596,10 +605,16 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
                 return;
             }
             startNewTapeIfNessesary();
-            TarOutputStream tarOutputStream = getTarOutputStream(0, TapeUtils.getDeleteTimestampedFilenameFromId(id));
-            tarOutputStream.close();
-            index.remove(id); //Update the index to the newly written entry
-            newestTapeLength = newestTape.length();
+            TarOutputStream tarOutputStream = null;
+            try {
+                tarOutputStream = getTarOutputStream(0, TapeUtils.getDeleteTimestampedFilenameFromId(id));
+                index.remove(id); //Update the index to the newly written entry
+                newestTapeLength = newestTape.length();
+            } finally {
+                if (tarOutputStream != null) {
+                    tarOutputStream.close();
+                }
+            }
         } finally {
             writeLock.unlock(); //unlock the storage system, we are done
         }
