@@ -1,3 +1,7 @@
+1.0.8
+ * Filenames of tar tapes is no longer url encoded since it caused trouble with long datastream names
+ * Ensure that open files are closed even upon errors
+
 1.0.7
  * The 1.0.6 release changed the names of the files inside the tar tapes to be url encoded. This was to ensure that
  extraction would not cause filesystems problems. However, this broke the ability to read old tapes. This release allow
@@ -17,22 +21,22 @@
  * Jedis can now be configured from spring. Reasonable defaults to prevent connection timeouts
 
 1.0.5
-Fixed bad and stupid bug about tape extentions. This means that the properties "tapeExtention", "tapePrefix" and "tapeTempPrefix" is now constructor params, rather than properties.
-The Timer thread is now a daemon, so the system should be able to shut down.
+ * Fixed bad and stupid bug about tape extentions. This means that the properties "tapeExtention", "tapePrefix" and "tapeTempPrefix" is now constructor params, rather than properties.
+ * The Timer thread is now a daemon, so the system should be able to shut down.
 
 1.0.4
-Fixed stupid bug regarding tape prefix
+ * Fixed stupid bug regarding tape prefix
 
 
 1.0.3
-Tape filename prefix and extension are now configurable
+ * Tape filename prefix and extension are now configurable
 
 
 1.0.2
-No longer nullPointerexceptions from DeferringTaper when trying to report errors.
+ * No longer nullPointerexceptions from DeferringTaper when trying to report errors.
 
 1.0.1
-Use 1.0 doms parent pom
+ * Use 1.0 doms parent pom
 
 1.0
-Initial release
+ * Initial release
