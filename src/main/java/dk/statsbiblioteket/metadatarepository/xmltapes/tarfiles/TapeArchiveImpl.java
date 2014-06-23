@@ -593,10 +593,16 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             TarEntry entry = new TarEntry(tarHeader);
             tarOutputStream.putNextEntry(entry);
             return tarOutputStream;
-        } catch (Exception e) {
+        } catch (IOException e) {
             if (tapeFile != null) {
                 IOUtils.closeQuietly(tapeFile);
             }
+            throw e;
+        } catch (RuntimeException e) {
+            if (tapeFile != null) {
+                IOUtils.closeQuietly(tapeFile);
+            }
+            throw e;
         }
     }
 
