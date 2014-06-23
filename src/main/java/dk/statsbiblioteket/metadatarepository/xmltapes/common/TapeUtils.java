@@ -86,11 +86,11 @@ public class TapeUtils {
      * @return the converted id
      */
     public static String getTimestampedFilenameFromId(URI id) {
-        return encode(id) + NAME_SEPARATOR + System.currentTimeMillis() + GZ;
+        return id.toString() + NAME_SEPARATOR + System.currentTimeMillis() + GZ;
     }
 
     public static String getDeleteTimestampedFilenameFromId(URI id) {
-        return encode(id) + NAME_SEPARATOR + System.currentTimeMillis() + NAME_SEPARATOR + DELETED + GZ;
+        return id.toString() + NAME_SEPARATOR + System.currentTimeMillis() + NAME_SEPARATOR + DELETED + GZ;
     }
 
 
