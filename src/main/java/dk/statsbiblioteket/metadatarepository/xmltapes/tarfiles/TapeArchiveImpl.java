@@ -582,14 +582,22 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
 
     private TarOutputStream getTarOutputStream(long size, String entryName) throws IOException {
         long timestamp = System.currentTimeMillis();
-        RandomAccessFile tapeFile = new RandomAccessFile(newestTape, "rwd");
 
-        tapeFile.seek(newestTapeLength);
-        TarOutputStream tarOutputStream = new TarOutputStream(Channels.newOutputStream(tapeFile.getChannel()),false);
-        TarHeader tarHeader = TarHeader.createHeader(entryName,size,timestamp/1000,false);
-        TarEntry entry = new TarEntry(tarHeader);
-        tarOutputStream.putNextEntry(entry);
-        return tarOutputStream;
+        RandomAccessFile tapeFile = null;
+        try {
+            tapeFile = new RandomAccessFile(newestTape, "rwd");
+
+            tapeFile.seek(newestTapeLength);
+            TarOutputStream tarOutputStream = new TarOutputStream(Channels.newOutputStream(tapeFile.getChannel()), false);
+            TarHeader tarHeader = TarHeader.createHeader(entryName, size, timestamp / 1000, false);
+            TarEntry entry = new TarEntry(tarHeader);
+            tarOutputStream.putNextEntry(entry);
+            return tarOutputStream;
+        } catch (Exception e) {
+            if (tapeFile != null) {
+                IOUtils.closeQuietly(tapeFile);
+            }
+        }
     }
 
 
