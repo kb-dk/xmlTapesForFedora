@@ -622,8 +622,9 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             TarOutputStream tarOutputStream = null;
             try {
                 tarOutputStream = getTarOutputStream(0, TapeUtils.getDeleteTimestampedFilenameFromId(id));
-                index.remove(id); //Update the index to the newly written entry
+                IOUtils.closeQuietly(tarOutputStream);
                 newestTapeLength = newestTape.length();
+                index.remove(id); //Update the index to the newly written entry
             } finally {
                 if (tarOutputStream != null) {
                     IOUtils.closeQuietly(tarOutputStream);
