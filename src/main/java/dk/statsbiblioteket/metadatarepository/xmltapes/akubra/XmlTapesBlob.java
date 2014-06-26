@@ -1,13 +1,13 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.akubra;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.StreamUtils;
 import org.akubraproject.Blob;
 import org.akubraproject.BlobStoreConnection;
 import org.akubraproject.DuplicateBlobException;
 import org.akubraproject.MissingBlobException;
 import org.akubraproject.impl.AbstractBlob;
 import org.akubraproject.impl.StreamManager;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,12 +100,7 @@ public class XmlTapesBlob extends AbstractBlob {
 
         OutputStream them = newBlob.openOutputStream(this.getSize(), true);
         InputStream my = openInputStream();
-        try {
-            IOUtils.copyLarge(my, them);
-        } finally {
-            them.close();
-            my.close();
-        }
+        StreamUtils.copy(my,them);
         this.delete();
         return newBlob;
     }
