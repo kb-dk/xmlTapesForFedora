@@ -14,10 +14,10 @@ public class Entry {
 
 
     public static final String SEPARATOR_CHAR = "@";
-    private File tape;
-    private long offset;
+    private final File tape;
+    private final long offset;
 
-    public Entry(File tape, long offset) {
+    public Entry(final File tape, final long offset) {
         this.tape = tape;
         this.offset = offset;
     }

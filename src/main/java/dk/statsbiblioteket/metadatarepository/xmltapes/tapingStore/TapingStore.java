@@ -16,7 +16,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Timer;
 
 /**
@@ -47,6 +50,22 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
         super();
         super.setStoreDir(tapingDir);
         timer = new Timer("Timer:tapingStore",true);
+    }
+
+    public static Collection<URI> getCacheIDs(String filterPrefix, List<File> cacheFiles) throws IOException {
+        //Get the cached files
+        ArrayList<URI> result = new ArrayList<URI>();
+        for (File cacheFile : cacheFiles) {
+            URI id = TapeUtils.getIDfromFileWithDeleted(cacheFile);
+            if (id == null){
+                continue;
+            }
+
+            if (filterPrefix != null && id.toString().startsWith(filterPrefix)){
+                result.add(id);
+            }
+        }
+        return result;
     }
 
 
@@ -156,7 +175,7 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
         lockPool.lockForWriting();
         try {
             return new NonDuplicatingIterator(getDelegate().listIds(filterPrefix),
-                    cache.getCacheIDs(filterPrefix), getCacheIDs(filterPrefix));
+                    getCacheIDs(filterPrefix, cache.getStoreFiles()), getCacheIDs(filterPrefix,this.getStoreFiles()));
         } finally {
             lockPool.unlockForWriting();
         }

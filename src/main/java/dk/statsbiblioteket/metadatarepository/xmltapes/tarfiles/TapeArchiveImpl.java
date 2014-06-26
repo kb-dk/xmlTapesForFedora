@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.URI;
 import java.nio.channels.Channels;
@@ -136,9 +137,8 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         if (!archiveTapes.isDirectory()){
             throw new IOException("Archive folder "+archiveTapes+" is not a directory");
         }
-            newestTape = createNewTape();
+        newestTape = createNewTape();
         log.debug("Newest tape is {}",newestTape);
-
     }
 
 
@@ -297,53 +297,62 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         testClosed();
         boolean indexedSoFar = true;
 
-        //Iterate through all but the newest tape
-        for (File tape : tapes) {
-            if (indexedSoFar && index.isIndexed(tape.getName())) {
-                log.debug("File {} have already been indexed so is skipped",tape);
-            } else {
-                log.debug("File {} should be reindexed",tape);
-                indexedSoFar = false;
-                indexTape(tape);
-                index.setIndexed(tape.getName());
-                log.info("File {} have been indexed", tape);
+        getStoreWriteLock();
+        try {
+            //Iterate through all but the newest tape
+            for (File tape : tapes) {
+                if (indexedSoFar && index.isIndexed(tape.getName())) {
+                    log.debug("File {} have already been indexed so is skipped", tape);
+                } else {
+                    log.debug("File {} should be reindexed", tape);
+                    indexedSoFar = false;
+                    indexTape(tape);
+                    index.setIndexed(tape.getName());
+                    log.info("File {} have been indexed", tape);
+                }
             }
+            log.debug("File {} should be reindexed", newestTape);
+            //Index the newest tape, but do not mark it as indexed
+            indexTape(newestTape);
+            log.debug("File {} have been indexed", newestTape);
+        } finally {
+            writeLock.unlock();
         }
-        log.debug("File {} should be reindexed",newestTape);
-        //Index the newest tape, but do not mark it as indexed
-        indexTape(newestTape);
-        log.debug("File {} have been indexed",newestTape);
+
     }
 
     /**
      * Index the tape
+     *
      * @param tape the tape to index
+     *
      * @throws IOException
      */
-    private  void indexTape(File tape) throws IOException {
+    private void indexTape(final File tape) throws IOException {
         testClosed();
         // Create a TarInputStream
-        CountingInputStream countingInputStream = new CountingInputStream(new BufferedInputStream(new FileInputStream(tape)));
+        CountingInputStream countingInputStream = new CountingInputStream(new BufferedInputStream(new FileInputStream(
+                tape)));
         TarInputStream tis = new TarInputStream(countingInputStream);
-
         long offset = 0;
         try {
-        TarEntry entry = tis.getNextEntry();
-        while (entry != null) {
-            URI id = TapeUtils.getIdFromTarEntry(entry);
-            if (entry.getSize() == 0 && TapeUtils.isDeleteEntry(entry)) {
-                index.remove(id);
-            } else {
-                index.addLocation(id, new Entry(tape, offset));
+            TarEntry entry = tis.getNextEntry();
+            while (entry != null) {
+                URI id = TapeUtils.getIdFromTarEntry(entry);
+                if (entry.getSize() == 0 && TapeUtils.isDeleteEntry(entry)) {
+                    index.remove(id);
+                } else {
+                    index.addLocation(id, new Entry(tape, offset));
+                }
+                entry = tis.getNextEntry();
+                offset = countingInputStream.getByteCount() - RECORDSIZE;
             }
-            entry = tis.getNextEntry();
-            offset = countingInputStream.getByteCount()-RECORDSIZE;
-        }
-        tis.close();
         } catch (IOException e) {
             log.warn("Failed to read entry at offset '" + offset + "' from tape '" + tape.getAbsolutePath() + "'. Any further entries in the tape is ignored",
                     e);
-    }
+        } finally {
+            IOUtils.closeQuietly(tis);
+        }
     }
 
 
@@ -355,7 +364,6 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
      */
     private File[] getTapes() {
         testClosed();
-        //TODO should we do this twice or store the result?
         // Find all the tapes in the tape folder
         File[] tapes = archiveTapes.listFiles(
                 new FilenameFilter() {
@@ -407,7 +415,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         try {
             log.debug("Closing the tape {} and starting a new one",newestTape);
             //close tape
-            TarOutputStream tarStream = new TarOutputStream(new FileOutputStream(newestTape, true));
+            TarOutputStream tarStream = new TarOutputStream(getAppendingOutputstream(),true);
             tarStream.close();
             index.setIndexed(newestTape.getName());
 
@@ -430,7 +438,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         try {
             newestTape = new File(archiveTapes, tapePrefix + System.currentTimeMillis() + tapeExtension);
             newestTape.createNewFile();
-            newestTapeLength = 0;
+            newestTapeLength = newestTape.length();
             log.debug("Starting the new tape {}",newestTape);
             return newestTape;
         } finally {
@@ -445,25 +453,12 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         testClosed();
         testInitialised();
         log.debug("Calling getInputStream for id {}",id);
+
         Entry newestFile = index.getLocation(id);
         if (newestFile == null) {
             throw new FileNotFoundException("File " + id.toString() + "not found");
         }
-
-        return getContentInputStream(newestFile, id);
-
-
-    }
-
-    /**
-     * Get the inputstream corresponding to the entry, without the tar header
-     *
-     * @param entry the index entry
-     * @return an inputstream to the data
-     * @throws IOException
-     */
-    private InputStream getContentInputStream(Entry entry, URI id) throws IOException {
-        TarInputStream tapeInputstream = getTarInputStream(entry);
+        TarInputStream tapeInputstream = getTarInputStream(newestFile);
         TarEntry tarEntry = tapeInputstream.getNextEntry();
         if (tarEntry != null && isEqual(id, tarEntry)) {
             if (TapeUtils.isZipped(tarEntry)) {
@@ -471,14 +466,13 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             }
             return tapeInputstream;
         } else {
-            String name = null;
             if (tarEntry != null) {
-                name = tarEntry.getName();
-                log.warn("Could not find entry {} for id {}, instead found {}", new Object[]{entry, id, name});
+                String name = tarEntry.getName();
+                log.warn("Could not find entry {} for id {}, instead found {}", new Object[]{newestFile, id, name});
             } else {
-                log.warn("Could not find entry {} for id {}", new Object[]{entry, id});
+                log.warn("Could not find entry {} for id {}", new Object[]{newestFile, id});
             }
-            throw new IOException("Could not find entry for "+id+" in archive file");
+            throw new IOException("Could not find entry for "+ id +" in archive file");
         }
     }
 
@@ -494,7 +488,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
      * @return
      * @throws IOException
      */
-    private TarInputStream getTarInputStream(Entry entry) throws IOException {
+    private TarInputStream getTarInputStream(final Entry entry) throws IOException {
         TarInputStream tapeInputstream = new TarInputStream(
                 new FileInputStream(
                         entry.getTape()));
@@ -503,6 +497,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         while (skipped < entry.getOffset()) {
             skipped += tapeInputstream.skip(entry.getOffset() - skipped);
         }
+        tapeInputstream.setDefaultSkip(false);
         return tapeInputstream;
     }
 
@@ -519,17 +514,8 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     public long getSize(URI id) throws IOException {
         testClosed();
         testInitialised();
-        getStoreWriteLock();
-        try {
-            log.debug("Calling getSize for id {}", id);
-            Entry tapeFile = index.getLocation(id);
-            if (tapeFile == null) {
-                throw new FileNotFoundException();
-            }
-            return StreamUtils.countBytesDirect(getContentInputStream(tapeFile, id));
-        } finally {
-            writeLock.unlock(); //unlock the storage system, we are done
-        }
+        log.debug("Calling getSize for id {}", id);
+        return StreamUtils.countBytesDirect(getInputStream(id));
     }
 
     /**
@@ -552,27 +538,22 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
 
             startNewTapeIfNessesary();
 
-            Entry toCreate = new Entry(newestTape, newestTapeLength);
             final String entryName = TapeUtils.getTimestampedFilenameFromId(id);
             TarOutputStream tarOutputStream = null;
             try {
                 if (TapeUtils.isZipped(fileToTape)) {
-                    long size;
-                    size = fileToTape.length();
-                    tarOutputStream = getTarOutputStream(size, entryName);
+                    long size = fileToTape.length();
+                    tarOutputStream = prepareTarOutputStream(size, entryName);
                     StreamUtils.copy(fileToTape, tarOutputStream);
                 } else {
                     long size = StreamUtils.compressAndCountBytes(fileToTape);
-                    tarOutputStream = getTarOutputStream(size, entryName);
+                    tarOutputStream = prepareTarOutputStream(size, entryName);
                     StreamUtils.compress(fileToTape, tarOutputStream);
                 }
             } finally {
-                if (tarOutputStream != null) {
-                    IOUtils.closeQuietly(tarOutputStream);
-                }
+                IOUtils.closeQuietly(tarOutputStream);
             }
-
-            index.addLocation(id, toCreate); //Update the index to the newly written entry
+            index.addLocation(id, new Entry(newestTape, newestTapeLength)); //Update the index to the newly written entry
             newestTapeLength = newestTape.length();
         } finally {
             writeLock.unlock(); //unlock the storage system, we are done
@@ -580,28 +561,33 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     }
 
 
-    private TarOutputStream getTarOutputStream(long size, String entryName) throws IOException {
-        long timestamp = System.currentTimeMillis();
+    private TarOutputStream prepareTarOutputStream(long size, String entryName) throws IOException {
+        final OutputStream newOutputStream = getAppendingOutputstream();
+        TarOutputStream tarOutputStream = new TarOutputStream(newOutputStream, false);
+        writeTarHeader(size, entryName, tarOutputStream);
+        return tarOutputStream;
 
+    }
+
+    private void writeTarHeader(long size, String entryName, TarOutputStream tarOutputStream) throws
+                                                                                                              IOException {
+        long timestamp = System.currentTimeMillis();
+        TarHeader tarHeader = TarHeader.createHeader(entryName, size, timestamp / 1000, false);
+        TarEntry entry = new TarEntry(tarHeader);
+        tarOutputStream.putNextEntry(entry);
+    }
+
+    private OutputStream getAppendingOutputstream() throws IOException {
         RandomAccessFile tapeFile = null;
         try {
             tapeFile = new RandomAccessFile(newestTape, "rwd");
-
             tapeFile.seek(newestTapeLength);
-            TarOutputStream tarOutputStream = new TarOutputStream(Channels.newOutputStream(tapeFile.getChannel()), false);
-            TarHeader tarHeader = TarHeader.createHeader(entryName, size, timestamp / 1000, false);
-            TarEntry entry = new TarEntry(tarHeader);
-            tarOutputStream.putNextEntry(entry);
-            return tarOutputStream;
-        } catch (IOException e) {
-            if (tapeFile != null) {
-                IOUtils.closeQuietly(tapeFile);
-            }
-            throw e;
-        } catch (RuntimeException e) {
-            if (tapeFile != null) {
-                IOUtils.closeQuietly(tapeFile);
-            }
+            return Channels.newOutputStream(tapeFile.getChannel());
+        } catch (IOException e){
+            IOUtils.closeQuietly(tapeFile);
+            throw  e;
+        } catch (RuntimeException e){
+            IOUtils.closeQuietly(tapeFile);
             throw e;
         }
     }
@@ -621,36 +607,27 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             startNewTapeIfNessesary();
             TarOutputStream tarOutputStream = null;
             try {
-                tarOutputStream = getTarOutputStream(0, TapeUtils.getDeleteTimestampedFilenameFromId(id));
-                IOUtils.closeQuietly(tarOutputStream);
-                newestTapeLength = newestTape.length();
-                index.remove(id); //Update the index to the newly written entry
+                tarOutputStream = prepareTarOutputStream(0, TapeUtils.getDeleteTimestampedFilenameFromId(id));
             } finally {
-                if (tarOutputStream != null) {
-                    IOUtils.closeQuietly(tarOutputStream);
-                }
+                IOUtils.closeQuietly(tarOutputStream);
             }
+            newestTapeLength = newestTape.length();
+            index.remove(id); //Update the index to the newly written entry
         } finally {
             writeLock.unlock(); //unlock the storage system, we are done
         }
     }
 
     private void startNewTapeIfNessesary() throws IOException {
-        if (calculateTarSize(newestTape) > SIZE_LIMIT) {
+        if (calculateTapeSize() > SIZE_LIMIT) {
             closeAndStartNewTape();
         }
     }
 
-    private long calculateTarSize(File newestTape) {
-
-        long fileSize = newestTape.length();
-        fileSize += EOFSIZE;
-        long blocks = fileSize / BLOCKSIZE;
-        if (fileSize % BLOCKSIZE > 0) {
-            blocks++;
-        }
+    private long calculateTapeSize() {
+        long fileSize = newestTapeLength + EOFSIZE;
+        long blocks = fileSize / BLOCKSIZE + (fileSize % BLOCKSIZE > 0 ? 1:0);
         return blocks * BLOCKSIZE;
-
     }
 
 

@@ -19,9 +19,12 @@ public class Taper extends TimerTask {
     private final LockPool tapingLock;
     private final LockPool cacheLock;
 
-    private TapingStore tapingStore;
+    private final TapingStore tapingStore;
     private final CacheStore cacheStore;
     private final TapeArchive tapeArchive;
+
+
+
     private boolean timerHaveRunAtLeastOnce = false;
 
     /**
@@ -64,6 +67,8 @@ public class Taper extends TimerTask {
         tapingLock.lockForWriting();
         try {
             tapingStore.testClosed();
+            final File tapingStoreDir = tapingStore.getStoreDir();
+
             //log.debug("Attempting to save all");
             //1
             tapeAll(tapingStore.getStoreFiles());
@@ -76,8 +81,8 @@ public class Taper extends TimerTask {
                 for (File cacheFile : cacheFiles) {
                     log.debug("Found file {} in caching folder", cacheFile.getName());
                     if (cacheFile.lastModified() + tapeDelay < now) {
-                        log.debug("File {} is old enough, move to {}", cacheFile.getName(), tapingStore.getStoreDir());
-                        FileUtils.moveFileToDirectory(cacheFile, tapingStore.getStoreDir(), true);
+                        log.debug("File {} is old enough, move to {}", cacheFile.getName(), tapingStoreDir);
+                        FileUtils.moveFileToDirectory(cacheFile, tapingStoreDir, true);
                     } else {
                         log.debug("File {} is to young, ignore", cacheFile);
                         continue;

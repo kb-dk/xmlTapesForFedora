@@ -12,8 +12,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -28,7 +26,6 @@ import java.util.List;
  */
 public abstract  class AbstractDeferringArchive<T extends Archive> extends Closable implements Archive{
 
-    public static final String TEMP_PREFIX = "temp";
     private static final Logger log = LoggerFactory.getLogger(AbstractDeferringArchive.class);
 
     private T delegate;
@@ -40,7 +37,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
 
 
     public AbstractDeferringArchive() {
-        lockPool = new LockPoolImpl();
+        lockPool = new LockPool();
     }
 
 
@@ -48,7 +45,6 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
     @Override
     public InputStream getInputStream(URI id) throws FileNotFoundException, IOException {
         testClosed();
-
 
         File cacheFile = TapeUtils.getStoredFile(storeDir, id);
         try {
@@ -78,18 +74,11 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
     @Override
     public long getSize(URI id) throws FileNotFoundException, IOException {
         testClosed();
-        lockPool.lockForWriting();
         try {
-            File cacheFile = TapeUtils.getStoredFile(storeDir, id);
-            if (cacheFile.exists()) {
-                return StreamUtils.uncompressAndCountBytes(cacheFile);
-            }
-        } finally {
-            lockPool.unlockForWriting();
+            return StreamUtils.uncompressAndCountBytes(TapeUtils.getStoredFile(storeDir, id));
+        } catch (FileNotFoundException e){
+            return delegate.getSize(id);
         }
-        return delegate.getSize(id);
-
-
     }
 
 
@@ -112,9 +101,7 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
             Collections.sort(cacheFiles, new Comparator<File>() {
                 @Override
                 public int compare(File o1, File o2) {
-                    long x = o1.lastModified();
-                    long y = o2.lastModified();
-                    return Long.valueOf(x).compareTo(y);
+                    return Long.valueOf(o1.lastModified()).compareTo(o2.lastModified());
                 }
             });
             return cacheFiles;
@@ -135,24 +122,6 @@ public abstract  class AbstractDeferringArchive<T extends Archive> extends Closa
             }
         }
     }
-
-    public Collection<URI> getCacheIDs(String filterPrefix) throws IOException {
-        //Get the cached files
-        List<File> cacheFiles = getStoreFiles();
-        ArrayList<URI> result = new ArrayList<URI>();
-        for (File cacheFile : cacheFiles) {
-            URI id = TapeUtils.getIDfromFileWithDeleted(cacheFile);
-            if (id == null){
-                continue;
-            }
-
-            if (filterPrefix != null && id.toString().startsWith(filterPrefix)){
-                result.add(id);
-            }
-        }
-        return result;
-    }
-
 
 
     @Override

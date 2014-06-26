@@ -8,6 +8,7 @@ import org.apache.commons.io.output.NullOutputStream;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -64,7 +65,7 @@ public class StreamUtils {
      * @return the number of bytes in the file after uncompressing
      * @throws java.io.IOException
      */
-    public static long uncompressAndCountBytes(File file) throws IOException {
+    public static long uncompressAndCountBytes(File file) throws FileNotFoundException, IOException {
         CountingOutputStream counter = new CountingOutputStream(new NullOutputStream());
         final InputStream uncompressor = new GzipCompressorInputStream(new FileInputStream(file));
         copy(uncompressor,counter);
