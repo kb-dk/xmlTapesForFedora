@@ -1,3 +1,6 @@
+1.0.9
+ * Fixed a bad bug that would instantly corrupt the tapes when an object/datastream was deleted
+
 1.0.8
  * Filenames of tar tapes is no longer url encoded since it caused trouble with long datastream names
  * Ensure that open files are closed even upon errors
