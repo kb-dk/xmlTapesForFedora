@@ -40,54 +40,60 @@ public class NonDuplicatingIterator implements Iterator<URI> {
         nextIterator();
     }
 
-    @Override
-    public synchronized boolean hasNext() {
-        try {
-            while (next == null){
-                //Check if the current iterator is empty
-                if (!currentIterator.hasNext()){
-                    //Are there any more iterators to do?
-                    if (! nextIterator()) {
-                          throw new NoSuchElementException();
-                    } else {
-                        continue;
-                    }
+    private void loopUntilNext(){
+        while (next == null){
+            //Check if the current iterator is empty
+            if (!currentIterator.hasNext()){
+                //Are there any more iterators to do?
+                if (! nextIterator()) {
+                      throw new NoSuchElementException();
+                } else {
+                    continue;
                 }
-                //Get the next element
-                next = currentIterator.next();
-                log.debug("Getting element {} from collection {}",next,currentCollection);
-                //If the next element is deleted
-                log.debug("Found element {}",next.toString());
-                if (TapeUtils.isDelete(next)){
-                    //Translate to a normal (nondeleted) id and add id to deletedIDs
-                    next = TapeUtils.stripDeleted(next);
-                    deletedIDs.add(next);
-                }
-                //If the element is already marked as deleted
-                if (deletedIDs.contains(next)){
-                    log.debug("Element {} was deleted, so skipping",next);
+            }
+            //Get the next element
+            next = currentIterator.next();
+            log.debug("Getting element {} from collection {}",next,currentCollection);
+            //If the next element is deleted
+            log.debug("Found element {}",next.toString());
+            if (TapeUtils.isDelete(next)){
+                //Translate to a normal (nondeleted) id and add id to deletedIDs
+                next = TapeUtils.stripDeleted(next);
+                deletedIDs.add(next);
+            }
+            //If the element is already marked as deleted
+            if (deletedIDs.contains(next)){
+                log.debug("Element {} was deleted, so skipping",next);
+                //skip it
+                next = null;
+                continue;
+            }
+            //For all the collections we already have done
+            for (int i = 0; i < currentCollection; i++){
+                //If it contains the element
+                if (collections[i].contains(next)){
                     //skip it
+                    log.debug("We already have returned element {} from a previous collection, so skip it",next);
                     next = null;
                     continue;
                 }
-                //For all the collections we already have done
-                for (int i = 0; i < currentCollection; i++){
-                    //If it contains the element
-                    if (collections[i].contains(next)){
-                        //skip it
-                        log.debug("We already have returned element {} from a previous collection, so skip it",next);
-                        next = null;
-                        continue;
-                    }
-                }
             }
+        }
+
+
+    }
+
+    @Override
+    public boolean hasNext() {
+        try {
+            loopUntilNext();
             return true;
         } catch (NoSuchElementException e){
             return false;
         }
     }
 
-    private synchronized boolean nextIterator() {
+    private boolean nextIterator() {
         currentCollection++;
         if (currentCollection > collections.length){
             return false;
@@ -103,7 +109,7 @@ public class NonDuplicatingIterator implements Iterator<URI> {
     }
 
     @Override
-    public synchronized URI next() {
+    public URI next() {
         if (hasNext()){
             URI temp = next;
             next = null;
@@ -114,7 +120,7 @@ public class NonDuplicatingIterator implements Iterator<URI> {
     }
 
     @Override
-    public synchronized void remove() {
+    public void remove() {
         throw new UnsupportedOperationException();
     }
 }

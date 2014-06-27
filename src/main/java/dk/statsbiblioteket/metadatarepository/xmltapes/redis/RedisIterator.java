@@ -56,11 +56,8 @@ public class RedisIterator implements Iterator<URI> {
         while (currentSortedSet == null || !currentSortedSet.hasNext()){
             log.debug("Time to read the next block from {} at offset ",currentBucket,currentOffset);
             Jedis jedis = jedisPool.getResource();
-            try {
-                currentSortedSet = jedis.zrange(currentBucket, currentOffset, currentOffset + bufferSize).iterator();
-            } finally {
-                jedisPool.returnResource(jedis);
-            }
+            currentSortedSet = jedis.zrange(currentBucket,currentOffset,currentOffset+bufferSize).iterator();
+            jedisPool.returnResource(jedis);
             currentOffset += bufferSize;
             if (!currentSortedSet.hasNext()){
                 log.debug("bucket {} is empty, getting content from the next",currentBucket);
@@ -80,14 +77,14 @@ public class RedisIterator implements Iterator<URI> {
 
 
     @Override
-    public synchronized boolean hasNext() {
+    public boolean hasNext() {
 
         while (currentValue == null || !currentValue.startsWith(filterPrefix)){
             boolean doesStillHaveMore = refreshSortedSet();
             if (doesStillHaveMore){
                 currentValue = currentSortedSet.next();
             } else {
-                return false;
+                return doesStillHaveMore;
             }
         }
         return true;
@@ -96,7 +93,7 @@ public class RedisIterator implements Iterator<URI> {
     }
 
     @Override
-    public synchronized URI next() {
+    public URI next() {
         if (!hasNext() || currentValue == null){
             throw new NoSuchElementException();
         }

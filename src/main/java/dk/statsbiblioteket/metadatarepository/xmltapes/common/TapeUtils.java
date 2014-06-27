@@ -21,7 +21,6 @@ public class TapeUtils {
     public static final String NAME_SEPARATOR = "#";
     public static final String DELETED = "DELETED";
     public static final String GZ = ".gz";
-    protected static final String GZ_END = Pattern.quote(GZ) + "$";
     protected static final String NEW_ = "new_";
 
     /**
@@ -61,7 +60,7 @@ public class TapeUtils {
     public static URI getIdfromFile(File cacheFile) {
         String name = cacheFile.getName();
         name = decode(name);
-        name = name.replaceAll(GZ_END, "");
+        name = name.replaceAll(Pattern.quote(GZ) + "$", "");
         name = name.replaceAll(Pattern.quote(NAME_SEPARATOR + DELETED) + "$", "");
         return uri(name);
     }
@@ -73,10 +72,10 @@ public class TapeUtils {
      * @param cacheFile the file in cache
      * @return the semi canonical id
      */
-    public static URI getIDfromFileWithDeleted(File cacheFile) {
+    protected static URI getIDfromFileWithDeleted(File cacheFile) {
         String name = cacheFile.getName();
         name = decode(name);
-        name = name.replaceAll(GZ_END, "");
+        name = name.replaceAll(Pattern.quote(GZ) + "$", "");
         return uri(name);
     }
 
