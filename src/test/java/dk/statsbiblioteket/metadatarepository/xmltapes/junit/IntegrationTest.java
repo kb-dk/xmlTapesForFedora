@@ -39,13 +39,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-/**
- * Created with IntelliJ IDEA.
- * User: abr
- * Date: 5/21/13
- * Time: 2:14 PM
- * To change this template use File | Settings | File Templates.
- */
 public class IntegrationTest {
 
     public static final String REDIS_HOST = "localhost";
@@ -399,15 +392,19 @@ public class IntegrationTest {
         assertThat(thread4.get(), is(nullValue()));
         c.close();
         archive.close();
+        //Here the archive is closed. Openarchive opens a new archive, which triggers a rebuild
         privateStore = openArchive();
         BlobStoreConnection c2 = openConnection();
         Iterator<URI> blobs = c2.listBlobIds("");
+        int i = 0;
         while (blobs.hasNext()) {
             URI next = blobs.next();
             assertThat(retrieve(c2, next), is(notNullValue()));
             delete(c2, next);
+            i++;
         }
-        assertThat(c2.listBlobIds("").hasNext(), is(false));
+        assertThat(i,is(40));//we found 40 records
+        assertThat(c2.listBlobIds("").hasNext(), is(false)); //they are all now deleted
         c2.close();
 
 
