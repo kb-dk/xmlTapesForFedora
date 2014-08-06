@@ -163,9 +163,13 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
 
     @Override
     public void close() throws IOException {
-
-        stopTimer();
-        super.close();
+        lockPool.lockForWriting();
+        try {
+            stopTimer();
+            super.close();
+        } finally {
+            lockPool.unlockForWriting();
+        }
     }
 
 
