@@ -137,8 +137,6 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
         if (!archiveTapes.isDirectory()){
             throw new IOException("Archive folder "+archiveTapes+" is not a directory");
         }
-        newestTape = createNewTape();
-        log.debug("Newest tape is {}",newestTape);
     }
 
 
@@ -167,11 +165,16 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     public void setup() throws IOException {
         testClosed();
         File[] tapes = getTapes();
-        if (isFixErrors()){ //Only fixErrors if explicitly told to
-            verifyAndFix(newestTape); //Only check and fix the newest tape
+        if (tapes.length > 0) {
+            newestTape = tapes[tapes.length - 1];
+            if (isFixErrors()) { //Only fixErrors if explicitly told to
+                verifyAndFix(newestTape); //Only check and fix the newest tape
+            }
+            // Iterate through all the tapes in sorted order to rebuild the index
+            rebuildWhatsNeeded(tapes);
         }
-        // Iterate through all the tapes in sorted order to rebuild the index
-        rebuildWhatsNeeded(tapes);
+        newestTape = createNewTape();
+        log.debug("Newest tape is {}", newestTape);
     }
 
     /**
@@ -248,17 +251,11 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
             IOUtils.closeQuietly(tarout);
 
             //move existing out of the way
-            File temp2 = File.createTempFile(tempTapePrefix, tapeExtension);
-            temp2.deleteOnExit();
+            File temp2 = new File(archiveTapes,"broken_"+tape.getName());
 
             FileUtils.moveFile(tape, temp2);
             FileUtils.moveFile(tempTape, tape);
-            FileUtils.deleteQuietly(temp2);
-            log.info("The broken tape {} have now been replaced with what could be recovered.",tape);
-
-            //And since we close the fixed tape now, we create a new one to hold further stuff
-            createNewTape();
-
+            log.info("The broken tape {} has now been replaced with what could be recovered.",tape);
         } finally {
             IOUtils.closeQuietly(tarstream);
             IOUtils.closeQuietly(tarout);
@@ -380,6 +377,7 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
                 return o1.getName().compareTo(o2.getName());
             }
         });
+
         return tapes;
     }
 
@@ -561,6 +559,14 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
     }
 
 
+    /**
+     * Open a new outputstream, ready to receive the content. First, an appending outputstream is opened on the tape.
+     * Then the tar header is written to this stream. The stream is now ready to receive data.
+     * @param size the size of the data you are going to write to the stream
+     * @param entryName the name of the entry you are going to write
+     * @return the new outputstream
+     * @throws IOException If the stream could not be opened or the tar header failed to write
+     */
     private TarOutputStream prepareTarOutputStream(long size, String entryName) throws IOException {
         final OutputStream newOutputStream = getAppendingOutputstream();
         TarOutputStream tarOutputStream = new TarOutputStream(newOutputStream, false);
