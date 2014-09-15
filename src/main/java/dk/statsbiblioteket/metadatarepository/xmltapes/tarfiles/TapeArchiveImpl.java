@@ -147,6 +147,9 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
      */
     @Override
     public synchronized void init() throws IOException {
+        if (initialised) {
+            return;
+        }
         testClosed();
         log.debug("Init called");
         if (rebuild){
