@@ -235,29 +235,32 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
                     tape);
 
             File tempTape = File.createTempFile(tempTapePrefix, tapeExtension);
-            tempTape.deleteOnExit();
-            tarout = new TarOutputStream(new FileOutputStream(tempTape));
-            //close and reopen
-            IOUtils.closeQuietly(tarstream);
-            tarstream = new TarInputStream(new FileInputStream(tape));
+            try {
+                tarout = new TarOutputStream(new FileOutputStream(tempTape));
+                //close and reopen
+                IOUtils.closeQuietly(tarstream);
+                tarstream = new TarInputStream(new FileInputStream(tape));
 
-            //fix
-            TarEntry entry;
-            while ((entry = tarstream.getNextEntry()) != null) {
-                if (equals(failedEntry, entry)) {
-                    break;
+                //fix
+                TarEntry entry;
+                while ((entry = tarstream.getNextEntry()) != null) {
+                    if (equals(failedEntry, entry)) {
+                        break;
+                    }
+                    tarout.putNextEntry(entry);
+                    IOUtils.copyLarge(tarstream, tarout, 0, entry.getSize());
                 }
-                tarout.putNextEntry(entry);
-                IOUtils.copyLarge(tarstream, tarout, 0, entry.getSize());
+                IOUtils.closeQuietly(tarstream);
+                IOUtils.closeQuietly(tarout);
+
+                //move existing out of the way
+                File temp2 = new File(archiveTapes, "broken_" + tape.getName());
+
+                FileUtils.moveFile(tape, temp2);
+                FileUtils.moveFile(tempTape, tape);
+            } finally {
+                FileUtils.deleteQuietly(tempTape);
             }
-            IOUtils.closeQuietly(tarstream);
-            IOUtils.closeQuietly(tarout);
-
-            //move existing out of the way
-            File temp2 = new File(archiveTapes,"broken_"+tape.getName());
-
-            FileUtils.moveFile(tape, temp2);
-            FileUtils.moveFile(tempTape, tape);
             log.info("The broken tape {} has now been replaced with what could be recovered.",tape);
         } finally {
             IOUtils.closeQuietly(tarstream);

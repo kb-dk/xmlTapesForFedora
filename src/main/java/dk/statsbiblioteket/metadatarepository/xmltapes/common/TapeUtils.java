@@ -153,7 +153,6 @@ public class TapeUtils {
         temp_dir.mkdirs();
         File tempfile = File.createTempFile(encode(id),
                 GZ, temp_dir);
-        tempfile.deleteOnExit();
         return tempfile;
     }
 
