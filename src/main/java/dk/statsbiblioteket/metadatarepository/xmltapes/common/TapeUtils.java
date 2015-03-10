@@ -149,6 +149,14 @@ public class TapeUtils {
     }
 
 
+    /**
+     * Create a temp file with the name id in the temp_dir. The file will be created with the GZ extension. Any nessesary folders are
+     * created as needed
+     * @param id the name of the file
+     * @param temp_dir the temp dir
+     * @return the new temp file
+     * @throws IOException
+     */
     public static File makeTempFile(URI id, File temp_dir) throws IOException {
         temp_dir.mkdirs();
         File tempfile = File.createTempFile(encode(id),

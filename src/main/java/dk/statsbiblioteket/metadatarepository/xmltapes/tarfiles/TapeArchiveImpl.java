@@ -205,9 +205,9 @@ public class TapeArchiveImpl extends Closable implements TapeArchive {
      * Verify and fix the specified tape.
      * The verification is done by reading through the tape. If all records can be read without IOExceptions, the
      * tape is regarded as valid.
-     * If an IOException occurs, the tape is copied, record for record, to a new temp tape. This copy will, of course,
+     * If an IOException occurs, the tape is copied, record for record, to a new temp tape. This copy will,of course,
      * stop when the IOException occurs. The invalid tape is then replaced with the temp tape, so the defect record
-     * and all following records are removed.
+     * and all following records are removed. The old tape is still saved, if you want to do further recovery
      * @param tape the tape to verify and fix
      * @throws IOException If writing the new tape failed.
      */
