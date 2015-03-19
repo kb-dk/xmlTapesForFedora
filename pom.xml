@@ -6,7 +6,7 @@
     <parent>
         <groupId>dk.statsbiblioteket.doms</groupId>
         <artifactId>doms</artifactId>
-        <version>1.1</version>
+        <version>1.2-SNAPSHOT</version>
     </parent>
 
     <groupId>dk.statsbiblioteket.metadatarepository</groupId>
@@ -88,7 +88,7 @@
         <dependency>
             <groupId>dk.statsbiblioteket.sbutil</groupId>
             <artifactId>sbutil-common</artifactId>
-            <version>0.5.13</version>
+            <version>0.5.29</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
