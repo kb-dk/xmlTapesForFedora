@@ -6,12 +6,12 @@
     <parent>
         <groupId>dk.statsbiblioteket.doms</groupId>
         <artifactId>doms</artifactId>
-        <version>1.2-SNAPSHOT</version>
+        <version>1.2</version>
     </parent>
 
     <groupId>dk.statsbiblioteket.metadatarepository</groupId>
     <artifactId>xmltapes</artifactId>
-    <version>1.0.14-SNAPSHOT</version>
+    <version>1.1</version>
 
     <properties>
         <akubra.version>0.4.0</akubra.version>
@@ -22,7 +22,7 @@
         <connection>scm:git:git@github.com:statsbiblioteket/xmlTapesForFedora.git</connection>
         <developerConnection>scm:git:git@github.com:statsbiblioteket/xmlTapesForFedora.git</developerConnection>
         <url>git@github.com:statsbiblioteket/xmlTapesForFedora.git</url>
-      <tag>HEAD</tag>
+      <tag>xmltapes-1.1</tag>
   </scm>
 
 
