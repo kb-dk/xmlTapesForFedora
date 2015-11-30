@@ -1,12 +1,10 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Record;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -14,13 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.UUID;
-
-import static junit.framework.TestCase.assertTrue;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Created with IntelliJ IDEA.
@@ -64,89 +56,6 @@ public class RedisIndexTest {
                                             .getResource("reindexTest/tape.tar")
                                             .toURI()).getParentFile();
         return archiveFolder;
-    }
-    @Ignore
-    @Test
-    public void testIterate() throws Exception {
-        int objects = 10;
-
-        HashSet<URI> ids = new HashSet<URI>();
-
-        for (int i = 0; i < objects; i++) {
-            addEntry();
-        }
-        Iterator<URI> idIterator = index.listIds(null);
-        int count = 0;
-
-
-        while (idIterator.hasNext()) {
-
-            URI next = idIterator.next();
-            count++;
-            ids.add(next);
-        }
-        assertThat(objects, is(count));
-
-        long iteratorKey = index.iterate(0);
-
-        count = 0;
-        long last = 0;
-        long halfway = 0;
-        int halfwaycount = 0;
-        while (true){
-            try {
-                Record record = index.getRecord(iteratorKey);
-                count++;
-                ids.remove(URI.create(record.getId()));
-                assertTrue(record.getTimestamp() >= last);
-                last = record.getTimestamp();
-                System.out.println(last);
-                if (count == objects/2){
-                    halfway = last;
-                    halfwaycount++;
-                    System.out.println("");
-                }
-                if (count > objects/2){
-                    halfwaycount++;
-                }
-
-            } catch (Exception e){
-                break;
-            }
-        }
-        assertThat(objects, is(count));
-        assertTrue(ids.isEmpty());
-
-
-        System.out.println("");
-
-
-        long iteratorKey2 = index.iterate(halfway);
-
-        count = 0;
-        last = 0;
-        while (true){
-            try {
-                Record record = index.getRecord(iteratorKey2);
-                count++;
-                assertTrue(record.getTimestamp() >= last);
-                last = record.getTimestamp();
-                System.out.println(last);
-            } catch (Exception e){
-                break;
-            }
-        }
-        assertThat(count, is(halfwaycount));
-    }
-
-
-    private void addEntry(){
-        URI uri = URI.create(UUID.randomUUID().toString());
-        index.addLocation(uri,getEntry(uri));
-    }
-
-    private Entry getEntry(URI uuid){
-        return new Entry(new File("/"),0);
     }
 
 

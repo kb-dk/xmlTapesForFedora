@@ -41,10 +41,4 @@ public interface Index {
 
 
     void clear();
-
-    public long iterate(long startTimestamp);
-
-    public Record getRecord(long iteratorKey);
-
-    public List<Record> getRecords(long iteratorKey, int amount);
 }

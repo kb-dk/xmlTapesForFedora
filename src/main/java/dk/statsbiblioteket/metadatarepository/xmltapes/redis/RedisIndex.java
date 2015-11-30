@@ -2,25 +2,18 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Record;
 import dk.statsbiblioteket.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.jedis.Response;
 import redis.clients.jedis.Transaction;
-import redis.clients.jedis.Tuple;
 
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Random;
 import java.util.Set;
 
 /**
@@ -161,61 +154,4 @@ public class RedisIndex implements Index {
         }
     }
 
-    @Override
-    public long iterate(long startTimestamp) {
-        String key = String.valueOf(new Random(startTimestamp).nextLong());
-        Jedis jedis = pool.getResource();
-        try {
-            //Set<String> buckets = jedis.smembers(BUCKETS);
-            jedis.zadd(key, 0, PLACEHOLDER);
-            jedis.expire(key, ITERATOR_LIFETIME);
-            //could be somewhat big
-
-/*  //This kills the redis instance
-        jedis.zunionstore(key,
-                new ArrayList<String>(buckets).toArray(new String[buckets.size()]));
-*/
-            jedis.zremrangeByScore(key, "-inf", "(" + startTimestamp);
-            return Long.valueOf(key);
-        } finally {
-            pool.returnResource(jedis);
-        }
-    }
-
-    @Override
-    public Record getRecord(long iteratorKey) {
-        List<Record> records = getRecords(iteratorKey, 1);
-        if (records.isEmpty()){
-            throw new NoSuchElementException();
-        }
-        return records.get(0);
-    }
-
-    private Record toRecord(String element, double score) {
-        return new Record(element, (long) score);
-    }
-
-    @Override
-    public List<Record> getRecords(long iteratorKey, int amount) {
-        String key = iteratorKey+"";
-        Jedis jedis = pool.getResource();
-        try {
-            Transaction multi = jedis.multi();
-            Response<Set<Tuple>> value = multi.zrangeWithScores(key, 0, amount - 1);
-            multi.zremrangeByRank(key, 0, amount - 1);
-            multi.exec();
-            Set<Tuple> recordsFound = value.get();
-            if (recordsFound.size() < amount) {
-                jedis.del(key);
-            }
-
-            List<Record> result = new ArrayList<Record>(recordsFound.size());
-            for (Tuple tuple : recordsFound) {
-                result.add(toRecord(tuple.getElement(), tuple.getScore()));
-            }
-            return result;
-        } finally {
-            pool.returnResource(jedis);
-        }
-    }
 }
