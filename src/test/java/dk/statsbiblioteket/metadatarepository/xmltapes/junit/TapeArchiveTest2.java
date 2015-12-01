@@ -3,6 +3,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
+import dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndex;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
@@ -60,7 +61,8 @@ public class TapeArchiveTest2 {
         //create the TapeArchive
         TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
         index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
-        tapeArchive.setIndex(index);
+        PostgresIndex postgresIndex = new PostgresIndex(PostgresTestSettings.getTestConfig());
+        tapeArchive.setIndex(postgresIndex);
         tapingStore.setDelegate(tapeArchive);
         Taper taper = new Taper(tapingStore, cacheStore, tapeArchive);
         taper.setTapeDelay(1000);

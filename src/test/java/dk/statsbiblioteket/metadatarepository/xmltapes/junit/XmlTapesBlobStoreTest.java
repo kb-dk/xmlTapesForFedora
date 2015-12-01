@@ -4,6 +4,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndex;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
@@ -81,7 +82,8 @@ public class XmlTapesBlobStoreTest {
         //create the TapeArchive
         TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
         RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
-        tapeArchive.setIndex(redis);
+        PostgresIndex postgresIndex = new PostgresIndex(PostgresTestSettings.getTestConfig());
+        tapeArchive.setIndex(postgresIndex);
         tapingStore.setDelegate(tapeArchive);
 
         Taper taper = new Taper(tapingStore, cacheStore, tapeArchive);

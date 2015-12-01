@@ -3,6 +3,8 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndex;
+import dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndexConfig;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
@@ -88,7 +90,8 @@ public class IntegrationTest {
         TapeArchiveImpl tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
         tapeArchive.setRebuild(true);
         RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
-        tapeArchive.setIndex(redis);
+        PostgresIndex postgresIndex = new PostgresIndex(PostgresTestSettings.getTestConfig());
+        tapeArchive.setIndex(postgresIndex);
         tapingStore.setDelegate(tapeArchive);
         Taper taper = new Taper(tapingStore, cacheStore, tapeArchive);
         taper.setTapeDelay(1000);
@@ -365,7 +368,7 @@ public class IntegrationTest {
         Runnable runner = new Runnable() {
             @Override
             public void run() {
-                for (int i = 0; i < 10; i++) {
+                for (int i = 0; i < 5; i++) {
                     URI blobId = URI.create("uuid:" + UUID.randomUUID().toString());
                     byte[] contents = new byte[1024 * 1024];
                     new Random(new Date().getTime()).nextBytes(contents);
@@ -403,7 +406,7 @@ public class IntegrationTest {
             delete(c2, next);
             i++;
         }
-        assertThat(i,is(40));//we found 40 records
+        assertThat(i,is(20));//we found 20 records
         assertThat(c2.listBlobIds("").hasNext(), is(false)); //they are all now deleted
         c2.close();
 
