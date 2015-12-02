@@ -18,6 +18,7 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
@@ -65,7 +66,7 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
                 result.add(id);
             }
         }
-        return result;
+        return Collections.unmodifiableCollection(result);
     }
 
 

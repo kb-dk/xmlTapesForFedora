@@ -22,6 +22,42 @@ public class XmlTapesConfig {
     private boolean fixErrorsOnRestart;
     private boolean rebuildIndexFromTapesOnRestart;
 
+    private String dbDriver;
+    private String jdbcUrl;
+    private String dbUser;
+    private String dbPass;
+    
+    public String getDbDriver() {
+        return dbDriver;
+    }
+
+    public void setDbDriver(String dbDriver) {
+        this.dbDriver = dbDriver;
+    }
+
+    public String getJdbcUrl() {
+        return jdbcUrl;
+    }
+
+    public void setJdbcUrl(String jdbcUrl) {
+        this.jdbcUrl = jdbcUrl;
+    }
+
+    public String getDbUser() {
+        return dbUser;
+    }
+
+    public void setDbUser(String dbUser) {
+        this.dbUser = dbUser;
+    }
+
+    public String getDbPass() {
+        return dbPass;
+    }
+
+    public void setDbPass(String dbPass) {
+        this.dbPass = dbPass;
+    }
 
     public long getTapeWaitBeforeStartInMS() {
         return tapeWaitBeforeStartInMS;

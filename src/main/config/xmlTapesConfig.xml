@@ -23,6 +23,10 @@
         <property name="redisHost" value="localhost"/>
         <property name="redisPort" value="6379"/>
         <property name="redisDB" value="0"/>
+        <property name="dbDriver" value="org.postgresql.Driver"/>
+        <property name="jdbcUrl" value="jdbc:postgresql:objects"/>
+        <property name="dbUser" value="CHANGEME"/>
+        <property name="dbPass" value="CHANGEME"/>
     </bean>
 
     <bean class="dk.statsbiblioteket.metadatarepository.xmltapes.common.XmlTapesConfig" id="tapeDatastreamConfig">
@@ -41,7 +45,10 @@
         <property name="redisHost" value="localhost"/>
         <property name="redisPort" value="6379"/>
         <property name="redisDB" value="1"/>
+        <property name="dbDriver" value="org.postgresql.Driver"/>
+        <property name="jdbcUrl" value="jdbc:postgresql:datastreams"/>
+        <property name="dbUser" value="CHANGEME"/>
+        <property name="dbPass" value="CHANGEME"/>
     </bean>
-
 
 </beans>

@@ -144,7 +144,8 @@
         <constructor-arg value="#{tapeObjectConfig.tapeSize}"/>
         <!--10 MB-->
         <!--This is the reference to the index-->
-        <property name="index" ref="redisIndex"/>
+        <property name="index" ref="postgresObjectIndex"/>
+        <!--  <property name="index" ref="redisIndex"/>-->
         <!--Remove broken records from the newest tape when initialising-->
         <property name="fixErrors" value="#{tapeObjectConfig.fixErrorsOnRestart}"/>
         <!--Reindex all the tape files when initialising-->
@@ -173,6 +174,26 @@
         <constructor-arg value="#{tapeObjectConfig.redisDB}" index="2"/>
     </bean>
 
+    <!--This is our Postgres index-->
+    <bean name="postgresObjectIndex" class="dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndex"
+            >
+        <constructor-arg type="dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndexConfig" 
+            ref="postgresObjectIndexConfig" index="0"/>
+    </bean>
+    
+    
+    <!--This is our Postgres index config-->
+    <bean name="postgresObjectIndexConfig" class="dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndexConfig"
+            >
+        <!-- database driver class -->
+        <constructor-arg value="#{tapeObjectConfig.dbDriver}" index="0"/>
+        <!--The jdbc url-->
+        <constructor-arg value="#{tapeObjectConfig.jdbcUrl}" index="1"/>
+        <!--The database username-->
+        <constructor-arg value="#{tapeObjectConfig.dbUser}" index="2"/>
+        <!--The database password-->
+        <constructor-arg value="#{tapeObjectConfig.dbPass}" index="3"/>
+    </bean>
 
     <!--This is the tape store Akubra Implementation-->
     <bean name="tapeDatastreamStore"
@@ -245,7 +266,8 @@
         <constructor-arg value="#{tapeDatastreamConfig.tapeSize}"/>
         <!--10 MB-->
         <!--This is the reference to the index-->
-        <property name="index" ref="redisDatastreamIndex"/>
+        <property name="index" ref="postgresDatastreamIndex"/>
+        <!-- <property name="index" ref="redisDatastreamIndex"/> -->
         <!--Remove broken records from the newest tape when initialising-->
         <property name="fixErrors" value="#{tapeDatastreamConfig.fixErrorsOnRestart}"/>
         <!--Reindex all the tape files when initialising-->
@@ -272,6 +294,27 @@
         <constructor-arg value="#{tapeDatastreamConfig.redisPort}" index="1"/>
         <!--The database name. Redis databases are always identified by integers-->
         <constructor-arg value="#{tapeDatastreamConfig.redisDB}" index="2"/>
+    </bean>
+
+    <!--This is our Postgres index-->
+    <bean name="postgresDatastreamIndex" class="dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndex"
+            >
+        <constructor-arg type="dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndexConfig" 
+            ref="postgresDatastreamIndexConfig" index="0"/>
+    </bean>
+    
+    
+    <!--This is our Postgres index config-->
+    <bean name="postgresDatastreamIndexConfig" class="dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndexConfig"
+            >
+        <!-- database driver class -->
+        <constructor-arg value="#{tapeDatastreamConfig.dbDriver}" index="0"/>
+        <!--The jdbc url-->
+        <constructor-arg value="#{tapeDatastreamConfig.jdbcUrl}" index="1"/>
+        <!--The database username-->
+        <constructor-arg value="#{tapeDatastreamConfig.dbUser}" index="2"/>
+        <!--The database password-->
+        <constructor-arg value="#{tapeDatastreamConfig.dbPass}" index="3"/>
     </bean>
 
 
