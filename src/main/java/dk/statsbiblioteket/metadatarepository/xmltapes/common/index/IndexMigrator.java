@@ -27,6 +27,7 @@ public class IndexMigrator {
     public void migrate() {
         long migratedEntries = 0;
         long tstart = System.currentTimeMillis();
+        long now = tstart;
         log.info("Starting migration");
         
         Set<String> indexedTapes = new HashSet<>();
@@ -36,7 +37,8 @@ public class IndexMigrator {
             URI currentID = ids.next();
             Entry entry = src.getLocation(currentID);
             File tape = entry.getTape();
-            if(src.isIndexed(tape.getName())) {
+            if(!indexedTapes.contains(tape.getName()) && src.isIndexed(tape.getName())) {
+                log.info("Found new indexed tape");
                 indexedTapes.add(tape.getName());
             }
             
@@ -44,7 +46,8 @@ public class IndexMigrator {
             migratedEntries++;
             if((migratedEntries % 10000) == 0) {
                 log.info("Migrated 10000 entries in {}, total migrated entries {}", 
-                        ((System.currentTimeMillis() - tstart)/1000), migratedEntries);
+                        ((System.currentTimeMillis() - now)/1000), migratedEntries);
+                now = System.currentTimeMillis();
             }
         }
         long tmigrationFinish = System.currentTimeMillis();
