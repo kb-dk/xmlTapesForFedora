@@ -1,6 +1,5 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.junit.After;
 import org.junit.Assert;
@@ -12,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.UUID;
 
 /**
  * Created with IntelliJ IDEA.

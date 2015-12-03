@@ -3,7 +3,6 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.common.index;
 
 import java.net.URI;
 import java.util.Iterator;
-import java.util.List;
 
 public interface Index {
 
