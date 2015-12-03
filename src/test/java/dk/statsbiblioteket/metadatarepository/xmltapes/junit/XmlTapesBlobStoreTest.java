@@ -82,7 +82,7 @@ public class XmlTapesBlobStoreTest {
         //create the TapeArchive
         TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
         RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
-        PostgresIndex postgresIndex = new PostgresIndex(PostgresTestSettings.getTestConfig());
+        PostgresIndex postgresIndex = PostgresTestSettings.getPostgreIndex();
         tapeArchive.setIndex(postgresIndex);
         tapingStore.setDelegate(tapeArchive);
 

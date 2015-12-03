@@ -177,14 +177,6 @@
     <!--This is our Postgres index-->
     <bean name="postgresObjectIndex" class="dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndex"
             >
-        <constructor-arg type="dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndexConfig" 
-            ref="postgresObjectIndexConfig" index="0"/>
-    </bean>
-    
-    
-    <!--This is our Postgres index config-->
-    <bean name="postgresObjectIndexConfig" class="dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndexConfig"
-            >
         <!-- database driver class -->
         <constructor-arg value="#{tapeObjectConfig.dbDriver}" index="0"/>
         <!--The jdbc url-->
@@ -299,14 +291,6 @@
     <!--This is our Postgres index-->
     <bean name="postgresDatastreamIndex" class="dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndex"
             >
-        <constructor-arg type="dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndexConfig" 
-            ref="postgresDatastreamIndexConfig" index="0"/>
-    </bean>
-    
-    
-    <!--This is our Postgres index config-->
-    <bean name="postgresDatastreamIndexConfig" class="dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndexConfig"
-            >
         <!-- database driver class -->
         <constructor-arg value="#{tapeDatastreamConfig.dbDriver}" index="0"/>
         <!--The jdbc url-->
@@ -316,6 +300,5 @@
         <!--The database password-->
         <constructor-arg value="#{tapeDatastreamConfig.dbPass}" index="3"/>
     </bean>
-
-
+    
 </beans>

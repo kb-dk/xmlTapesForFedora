@@ -24,22 +24,16 @@ public class PostgresIndex implements Index {
 
     private static final Logger log = LoggerFactory.getLogger(PostgresIndex.class);
     
-    private final PostgresIndexConfig config;
     private ComboPooledDataSource connectionPool = new ComboPooledDataSource();
     
-    public PostgresIndex(PostgresIndexConfig config) {
-        this.config = config;
-        initializeConnectionPool();
-    }
-    
-    private void initializeConnectionPool() {
+    public PostgresIndex(String dbDriver, String jdbcUrl, String dbUser, String dbPass) {
         try {
-            connectionPool.setDriverClass(config.getDatabaseDriver());
-            connectionPool.setJdbcUrl(config.getJdbcUrl());
-            connectionPool.setUser(config.getUser());
-            connectionPool.setPassword(config.getPassword());
+            connectionPool.setDriverClass(dbDriver);
+            connectionPool.setJdbcUrl(jdbcUrl);
+            connectionPool.setUser(dbUser);
+            connectionPool.setPassword(dbPass);
         } catch (Exception e) {
-            throw new IllegalStateException("Could not connect to the database '" +  config + "'", e);
+            throw new IllegalStateException("Could not connect to the database '" +  jdbcUrl + "'", e);
         }        
     }
 
