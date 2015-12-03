@@ -27,38 +27,7 @@ public class XmlTapesConfig {
     private String dbUser;
     private String dbPass;
     
-    public String getDbDriver() {
-        return dbDriver;
-    }
-
-    public void setDbDriver(String dbDriver) {
-        this.dbDriver = dbDriver;
-    }
-
-    public String getJdbcUrl() {
-        return jdbcUrl;
-    }
-
-    public void setJdbcUrl(String jdbcUrl) {
-        this.jdbcUrl = jdbcUrl;
-    }
-
-    public String getDbUser() {
-        return dbUser;
-    }
-
-    public void setDbUser(String dbUser) {
-        this.dbUser = dbUser;
-    }
-
-    public String getDbPass() {
-        return dbPass;
-    }
-
-    public void setDbPass(String dbPass) {
-        this.dbPass = dbPass;
-    }
-
+    
     public long getTapeWaitBeforeStartInMS() {
         return tapeWaitBeforeStartInMS;
     }
@@ -182,4 +151,48 @@ public class XmlTapesConfig {
     public void setTapingDir(File tapingDir) {
         this.tapingDir = tapingDir;
     }
+    
+    public String getDbDriver() {
+        return dbDriver;
+    }
+
+    public void setDbDriver(String dbDriver) {
+        this.dbDriver = dbDriver;
+    }
+
+    public String getJdbcUrl() {
+        return jdbcUrl;
+    }
+
+    public void setJdbcUrl(String jdbcUrl) {
+        this.jdbcUrl = jdbcUrl;
+    }
+
+    public String getDbUser() {
+        return dbUser;
+    }
+
+    public void setDbUser(String dbUser) {
+        this.dbUser = dbUser;
+    }
+
+    public String getDbPass() {
+        return dbPass;
+    }
+
+    public void setDbPass(String dbPass) {
+        this.dbPass = dbPass;
+    }
+
+    @Override
+    public String toString() {
+        return "XmlTapesConfig [tempDir=" + tempDir + ", cachingDir=" + cachingDir + ", tapingDir=" + tapingDir
+                + ", tapeDir=" + tapeDir + ", tapeWaitBeforeStartInMS=" + tapeWaitBeforeStartInMS
+                + ", minAgeToTapeInMS=" + minAgeToTapeInMS + ", tapeSize=" + tapeSize + ", tapeExtension="
+                + tapeExtension + ", tapePrefix=" + tapePrefix + ", tempTapePrefix=" + tempTapePrefix + ", redisHost="
+                + redisHost + ", redisPort=" + redisPort + ", redisDB=" + redisDB + ", fixErrorsOnRestart="
+                + fixErrorsOnRestart + ", rebuildIndexFromTapesOnRestart=" + rebuildIndexFromTapesOnRestart
+                + ", dbDriver=" + dbDriver + ", jdbcUrl=" + jdbcUrl + ", dbUser=" + dbUser + "]";
+    }
+    
 }
