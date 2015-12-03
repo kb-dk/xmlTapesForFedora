@@ -1,6 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresIndex;
+import dk.statsbiblioteket.metadatarepository.xmltapes.sqlindex.SQLIndex;
 
 public class PostgresTestSettings {
     public static final String POSTGRES_DRIVER = "org.postgresql.Driver";
@@ -9,7 +9,7 @@ public class PostgresTestSettings {
     public static final String POSTGRES_PASS = "foobar";
     
     
-    public static PostgresIndex getPostgreIndex() {
-        return new PostgresIndex(POSTGRES_DRIVER, JDBC_URL, POSTGRES_USER, POSTGRES_PASS);
+    public static SQLIndex getPostgreIndex() {
+        return new SQLIndex(POSTGRES_DRIVER, JDBC_URL, POSTGRES_USER, POSTGRES_PASS);
     }
 }

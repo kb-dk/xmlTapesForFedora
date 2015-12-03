@@ -1,61 +1,42 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.postgres;
+package dk.statsbiblioteket.metadatarepository.xmltapes.sqlindex;
 
 import java.net.URI;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.apache.commons.dbutils.DbUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PostgresIterator implements Iterator<URI> {
+public class SQLIterator implements Iterator<URI>, AutoCloseable {
     
-    private static final Logger log = LoggerFactory.getLogger(PostgresIterator.class);
+    private static final Logger log = LoggerFactory.getLogger(SQLIterator.class);
 
-    private final PreparedStatement ps;
-    private ResultSet rs = null;
-    private Connection conn = null;
-    private String currentValue = null;
+    private final ResultSet rs;
+    private URI currentValue = null;
             
-    public PostgresIterator(PreparedStatement ps) throws SQLException {
-        this.ps = ps;
-        initialize();
-    }
-
-    private void initialize() throws SQLException {
-        log.debug("Starting initialization");
-        
-        conn = ps.getConnection();
+    public SQLIterator(PreparedStatement ps) throws SQLException {
+        Connection conn = ps.getConnection();
+        // Set autocommit to false, to allow setting fetch size
         conn.setAutoCommit(false);
         ps.setFetchSize(100);
+        
         long tStart = System.currentTimeMillis();
         log.debug("Executing query to get resultset");
         rs = ps.executeQuery();
         log.debug("Finished executing issues query, it took: {} ms", (System.currentTimeMillis() - tStart));
     }
     
-    public void close() {
-        try {
-            if(rs != null) {
-               rs.close();
-               rs = null;
-            }
-            
-            if(ps != null) {
-                ps.close();
-            }
-            
-            if(conn != null) {
-                conn.setAutoCommit(true);
-                conn.close();
-                conn = null;
-            }
-        } catch (SQLException e) {
-            log.error("Failed to close iterator", e);
-        }
+    public void close() throws SQLException {
+        Statement s = rs.getStatement();
+        Connection conn = s.getConnection();
+        conn.setAutoCommit(true);
+        DbUtils.closeQuietly(conn, s, rs);
     }
 
     @Override
@@ -70,7 +51,7 @@ public class PostgresIterator implements Iterator<URI> {
         
         try {
             if(rs.next()) {
-                currentValue = rs.getString(1);
+                currentValue = URI.create(rs.getString(1));
                 return true;
             } else {
                 close();
@@ -88,7 +69,7 @@ public class PostgresIterator implements Iterator<URI> {
             throw new NoSuchElementException();
         }
 
-        URI result = URI.create(currentValue);
+        URI result = currentValue;
         currentValue = null;
         return result;
     }
@@ -96,5 +77,14 @@ public class PostgresIterator implements Iterator<URI> {
     @Override
     public void remove() {
         throw new UnsupportedOperationException();
+    }
+    
+    @Override
+    public void finalize() {
+        try {
+            close();
+        } catch (SQLException e) {
+            log.error("Failed to clean up.", e);
+        }
     }
 }

@@ -31,7 +31,7 @@ public class RedisIterator implements Iterator<URI> {
 
     private Iterator<String> currentSortedSet;
 
-    private String currentValue = null;
+    private URI currentValue = null;
 
 
     public RedisIterator(JedisPool jedis, Set<String> buckets, String filterPrefix) {
@@ -82,10 +82,10 @@ public class RedisIterator implements Iterator<URI> {
     @Override
     public synchronized boolean hasNext() {
 
-        while (currentValue == null || !currentValue.startsWith(filterPrefix)){
+        while (currentValue == null || !currentValue.toString().startsWith(filterPrefix)){
             boolean doesStillHaveMore = refreshSortedSet();
             if (doesStillHaveMore){
-                currentValue = currentSortedSet.next();
+                currentValue = URI.create(currentSortedSet.next());
             } else {
                 return false;
             }
@@ -101,7 +101,7 @@ public class RedisIterator implements Iterator<URI> {
             throw new NoSuchElementException();
         }
 
-        URI result = URI.create(currentValue);
+        URI result = currentValue;
         currentValue = null;
         return result;
     }

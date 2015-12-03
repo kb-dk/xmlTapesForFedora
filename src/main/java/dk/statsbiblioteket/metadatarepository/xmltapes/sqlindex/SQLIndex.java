@@ -1,5 +1,6 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.postgres;
+package dk.statsbiblioteket.metadatarepository.xmltapes.sqlindex;
 
+import java.beans.PropertyVetoException;
 import java.io.File;
 import java.net.URI;
 import java.sql.Connection;
@@ -15,26 +16,27 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.IndexErrorException;
 
 
 /**
  * Postgres backed index for XMLTapes 
  */
-public class PostgresIndex implements Index {
+public class SQLIndex implements Index {
 
-    private static final Logger log = LoggerFactory.getLogger(PostgresIndex.class);
+    private static final Logger log = LoggerFactory.getLogger(SQLIndex.class);
     
     private ComboPooledDataSource connectionPool = new ComboPooledDataSource();
     
-    public PostgresIndex(String dbDriver, String jdbcUrl, String dbUser, String dbPass) {
+    public SQLIndex(String dbDriver, String jdbcUrl, String dbUser, String dbPass) {
         try {
             connectionPool.setDriverClass(dbDriver);
             connectionPool.setJdbcUrl(jdbcUrl);
             connectionPool.setUser(dbUser);
             connectionPool.setPassword(dbPass);
-        } catch (Exception e) {
+        } catch (PropertyVetoException e) {
             throw new IllegalStateException("Could not connect to the database '" +  jdbcUrl + "'", e);
-        }        
+        }
     }
 
     @Override
@@ -56,8 +58,7 @@ public class PostgresIndex implements Index {
                 }
             }
         } catch (SQLException e) {
-            log.error("Caught exception while interacting with database", e);
-            throw new RuntimeException("Problem communicating with database", e);
+            throw new IndexErrorException("Problem communicating with database", e);
         }
     }
 
@@ -84,8 +85,7 @@ public class PostgresIndex implements Index {
             updatePs.execute();
             addPs.execute();
         } catch (SQLException e) {
-            log.error("Caught exception while interacting with database", e);
-            throw new RuntimeException("Problem communicating with database", e);
+            throw new IndexErrorException("Problem communicating with database", e);
         }
 
     }
@@ -98,34 +98,35 @@ public class PostgresIndex implements Index {
             PreparedStatement ps = conn.prepareStatement(removeSql);) {
         
             ps.setString(1, id.toString());
-            ps.executeUpdate();
+            ps.execute();
         } catch (SQLException e) {
-            log.error("Caught exception while interacting with database", e);
-            throw new RuntimeException("Problem communicating with database", e);
+            throw new IndexErrorException("Problem communicating with database", e);
         }
     }
 
     @Override
     public Iterator<URI> listIds(String filterPrefix) {
         String selectSql;
-        if(filterPrefix == null) {
+        String filter = null;
+        if(filterPrefix == null || filterPrefix.trim().isEmpty()) {
             selectSql = "SELECT id FROM storeIndex";    
         } else {
             selectSql = "SELECT id FROM storeIndex WHERE id like ?";
+            filter = filterPrefix + "%";
         }
         
         try {
             Connection conn = connectionPool.getConnection();
             PreparedStatement ps = conn.prepareStatement(selectSql);
-            if(filterPrefix != null) { 
-                ps.setString(1, filterPrefix + "%");
+
+            if(filter != null) { 
+                ps.setString(1, filter + "%");
             }
             
-            Iterator<URI> iterator = new PostgresIterator(ps);
+            Iterator<URI> iterator = new SQLIterator(ps);
             return iterator;
         } catch (SQLException e) {
-            log.error("Failed obtaining an iterator", e);
-            throw new RuntimeException("Failed obtaining an iterator for filterPrefix '" + filterPrefix + "'.", e);
+            throw new IndexErrorException("Failed obtaining an iterator for filterPrefix '" + filterPrefix + "'.", e);
         }
     }
 
@@ -136,18 +137,17 @@ public class PostgresIndex implements Index {
         try(Connection conn = connectionPool.getConnection();
             PreparedStatement ps = conn.prepareStatement(selectIndexedSql);) {
 
-            ps.setString(1, tapename.toString());
+            ps.setString(1, tapename);
             try(ResultSet rs = ps.executeQuery()) {
                 if(!rs.next()) {
                     return false;
                 } else {
                     String name = rs.getString("tapename");
-                    return (name == tapename); 
+                    return (name.equals(tapename)); 
                 }
             }
         } catch (SQLException e) {
-            log.error("Caught exception while interacting with database", e);
-            throw new RuntimeException("Problem communicating with database", e);
+            throw new IndexErrorException("Problem communicating with database", e);
         }
     }
 
@@ -170,8 +170,7 @@ public class PostgresIndex implements Index {
             updatePs.execute();
             setPs.execute();
         } catch (SQLException e) {
-            log.error("Caught exception while interacting with database", e);
-            throw new RuntimeException("Problem communicating with database", e);
+            throw new IndexErrorException("Problem communicating with database", e);
         }
 
     }
@@ -183,10 +182,9 @@ public class PostgresIndex implements Index {
         try(Connection conn = connectionPool.getConnection();
             PreparedStatement ps = conn.prepareStatement(clearIndexSql);) {
             
-            ps.executeUpdate();
+            ps.execute();
         } catch (SQLException e) {
-            log.error("Caught exception while interacting with database", e);
-            throw new RuntimeException("Problem communicating with database", e);
+            throw new IndexErrorException("Problem communicating with database", e);
         }
     }
 
