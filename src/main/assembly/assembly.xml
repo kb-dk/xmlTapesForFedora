@@ -22,9 +22,5 @@
             <outputDirectory>config</outputDirectory>
         </fileSet>
     
-        <fileSet>
-            <directory>src/main/resources/sql</directory>
-            <outputDirectory>sql</outputDirectory>
-        </fileSet>
     </fileSets>
 </assembly>
