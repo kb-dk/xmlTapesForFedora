@@ -45,7 +45,7 @@ public class IndexMigrator {
             dest.addLocation(currentID, entry);
             migratedEntries++;
             if((migratedEntries % 10000) == 0) {
-                log.info("Migrated 10000 entries in {}, total migrated entries {}", 
+                log.info("Migrated 10000 entries in {}s, total migrated entries {}", 
                         ((System.currentTimeMillis() - now)/1000), migratedEntries);
                 now = System.currentTimeMillis();
             }
