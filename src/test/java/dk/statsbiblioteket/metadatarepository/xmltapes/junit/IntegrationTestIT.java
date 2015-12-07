@@ -40,7 +40,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class IntegrationTest {
+public class IntegrationTestIT {
 
     public static final String REDIS_HOST = "localhost";
     public static final int REDIS_PORT = 6379;

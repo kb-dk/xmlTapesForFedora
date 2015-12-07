@@ -4,6 +4,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -36,6 +37,7 @@ public class RedisIndexTest {
     }
 
     @Test
+    @Ignore
     public void testRebuild() throws IOException, URISyntaxException {
         long tapeSize = 1024L * 1024;
         TapeArchiveImpl tapeArchive = new TapeArchiveImpl(getPrivateStoreId(), tapeSize, ".tar", "tape", "tempTape");

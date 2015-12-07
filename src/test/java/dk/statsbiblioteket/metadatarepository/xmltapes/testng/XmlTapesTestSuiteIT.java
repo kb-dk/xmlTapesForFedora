@@ -28,7 +28,7 @@ import java.net.URISyntaxException;
  * Time: 2:53 PM
  * To change this template use File | Settings | File Templates.
  */
-public class XmlTapesTestSuite extends TCKTestSuite {
+public class XmlTapesTestSuiteIT extends TCKTestSuite {
 
 
     public static final String REDIS_HOST = "localhost";
@@ -36,7 +36,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
     public static final int REDIS_DATABASE = 4;
     private static CacheStore archive;
 
-    public XmlTapesTestSuite() throws IOException, URISyntaxException {
+    public XmlTapesTestSuiteIT() throws IOException, URISyntaxException {
         super(getPrivateStore(), getPrivateStoreId(), false, false);
 
     }
@@ -70,7 +70,7 @@ public class XmlTapesTestSuite extends TCKTestSuite {
         cacheStore.setDelegate(tapingStore);
         //create the TapeArchive
         TapeArchive tapeArchive = new TapeArchiveImpl(getStoreLocation(), tapeSize, ".tar", "tape", "tempTape");
-        RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
+        //RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
         SQLIndex postgresIndex = PostgresTestSettings.getPostgreIndex();
         tapeArchive.setIndex(postgresIndex);
         //tapeArchive.setIndex(redis);

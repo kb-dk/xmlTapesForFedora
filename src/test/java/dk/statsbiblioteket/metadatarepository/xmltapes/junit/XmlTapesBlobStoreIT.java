@@ -37,7 +37,7 @@ import static org.junit.Assert.assertTrue;
  * Time: 2:14 PM
  * To change this template use File | Settings | File Templates.
  */
-public class XmlTapesBlobStoreTest {
+public class XmlTapesBlobStoreIT {
 
     public static final String REDIS_HOST = "localhost";
     public static final int REDIS_PORT = 6379;
@@ -81,7 +81,7 @@ public class XmlTapesBlobStoreTest {
 
         //create the TapeArchive
         TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
-        RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
+        //RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
         SQLIndex postgresIndex = PostgresTestSettings.getPostgreIndex();
         tapeArchive.setIndex(postgresIndex);
         tapingStore.setDelegate(tapeArchive);
