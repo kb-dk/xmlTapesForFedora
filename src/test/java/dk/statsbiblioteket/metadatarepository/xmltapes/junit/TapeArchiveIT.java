@@ -3,6 +3,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import dk.statsbiblioteket.metadatarepository.xmltapes.sqlindex.SQLIndex;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
@@ -34,6 +35,7 @@ public class TapeArchiveIT {
     public static final int REDIS_PORT = 6379;
     public static final int REDIS_DATABASE = 3;
     AkubraCompatibleArchive archive;
+    Index index;
 
     URI testFile1 = URI.create("testFile1");
     String contents = "testFile 1 is here now";
@@ -60,8 +62,8 @@ public class TapeArchiveIT {
         //create the TapeArchive
         TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
         //RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
-        SQLIndex postgresIndex = PostgresTestSettings.getPostgreIndex();
-        tapeArchive.setIndex(postgresIndex);
+        index = PostgresTestSettings.getPostgreIndex();
+        tapeArchive.setIndex(index);
         tapingStore.setDelegate(tapeArchive);
 
         Taper taper = new Taper(tapingStore, cacheStore, tapeArchive);
@@ -89,6 +91,9 @@ public class TapeArchiveIT {
         //Thread.sleep(5000);
         if (archive != null) {
             archive.close();
+        }
+        if(index != null) {
+            index.clear();
         }
         File archiveFolder = getPrivateStoreId();
         FileUtils.cleanDirectory(archiveFolder);

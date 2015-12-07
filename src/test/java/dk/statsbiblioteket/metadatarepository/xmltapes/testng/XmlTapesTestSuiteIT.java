@@ -3,6 +3,7 @@ package dk.statsbiblioteket.metadatarepository.xmltapes.testng;
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import dk.statsbiblioteket.metadatarepository.xmltapes.junit.PostgresTestSettings;
 import dk.statsbiblioteket.metadatarepository.xmltapes.junit.TestUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
@@ -35,6 +36,7 @@ public class XmlTapesTestSuiteIT extends TCKTestSuite {
     public static final int REDIS_PORT = 6379;
     public static final int REDIS_DATABASE = 4;
     private static CacheStore archive;
+    private static Index index;
 
     public XmlTapesTestSuiteIT() throws IOException, URISyntaxException {
         super(getPrivateStore(), getPrivateStoreId(), false, false);
@@ -71,8 +73,8 @@ public class XmlTapesTestSuiteIT extends TCKTestSuite {
         //create the TapeArchive
         TapeArchive tapeArchive = new TapeArchiveImpl(getStoreLocation(), tapeSize, ".tar", "tape", "tempTape");
         //RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
-        SQLIndex postgresIndex = PostgresTestSettings.getPostgreIndex();
-        tapeArchive.setIndex(postgresIndex);
+        index = PostgresTestSettings.getPostgreIndex();
+        tapeArchive.setIndex(index);
         //tapeArchive.setIndex(redis);
         tapingStore.setDelegate(tapeArchive);
         Taper taper = new Taper(tapingStore, cacheStore, tapeArchive);
@@ -92,6 +94,9 @@ public class XmlTapesTestSuiteIT extends TCKTestSuite {
         File archiveFolder = getStoreLocation();
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));
+        if(index != null ) {
+            index.clear();
+        }
     }
 
 

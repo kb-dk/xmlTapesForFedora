@@ -103,6 +103,9 @@ public class TapeArchiveIT2 {
         if (archive != null) {
             archive.close();
         }
+        if(index != null) {
+            index.clear();
+        }
         File archiveFolder = getPrivateStoreId();
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));
