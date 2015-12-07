@@ -148,15 +148,15 @@ public class RedisIndex implements Index {
     @Override 
     public Iterator<String> listIndexedTapes() {
         Jedis jedis = pool.getResource();
-        Set<String> tapes;
+        Set<String> results;
         try {
-            Set<String> results = jedis.smembers(TAPES_SET);
-            tapes = new HashSet<>(results);
+            results = jedis.smembers(TAPES_SET);
+            
         } finally {
             pool.returnResource(jedis);
         }
         
-        return tapes.iterator();
+        return results.iterator();
     }
 
     @Override
