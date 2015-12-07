@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import org.slf4j.Logger;
@@ -172,9 +174,28 @@ public class SQLIndex implements Index {
         } catch (SQLException e) {
             throw new IndexErrorException("Problem communicating with database", e);
         }
-
     }
-
+    
+    @Override
+    public Iterator<String> listIndexedTapes() {
+        String selectIndexedTapes = "SELECT tapename FROM indexed";
+        Collection<String> indexedTapes = new HashSet<>();
+        
+        try(Connection conn = connectionPool.getConnection();
+            PreparedStatement ps = conn.prepareStatement(selectIndexedTapes);) {
+            
+            try(ResultSet rs = ps.executeQuery()) {
+                while(rs.next()) {
+                    indexedTapes.add(rs.getString("tapename"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new IndexErrorException("Problem communicating with database", e);
+        }
+        
+        return indexedTapes.iterator();
+    }
+        
     @Override
     public void clear() {
         String clearIndexSql = "TRUNCATE storeIndex, indexed";

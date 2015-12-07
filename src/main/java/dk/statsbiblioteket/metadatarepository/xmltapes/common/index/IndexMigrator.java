@@ -1,10 +1,7 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.common.index;
 
-import java.io.File;
 import java.net.URI;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,28 +23,23 @@ public class IndexMigrator {
     
     public void migrate() {
         long migratedEntries = 0;
+        long indexedTapes = 0;
         long tstart = System.currentTimeMillis();
-        long now = tstart;
+        long lap = tstart;
         log.info("Starting migration");
         
-        Set<String> indexedTapes = new HashSet<>();
         Iterator<URI> ids = src.listIds(null);
         
         while(ids.hasNext()) {
             URI currentID = ids.next();
             Entry entry = src.getLocation(currentID);
-            File tape = entry.getTape();
-            if(!indexedTapes.contains(tape.getName()) && src.isIndexed(tape.getName())) {
-                log.info("Found new indexed tape");
-                indexedTapes.add(tape.getName());
-            }
-            
+
             dest.addLocation(currentID, entry);
             migratedEntries++;
             if((migratedEntries % 10000) == 0) {
                 log.info("Migrated 10000 entries in {}s, total migrated entries {}", 
-                        ((System.currentTimeMillis() - now)/1000), migratedEntries);
-                now = System.currentTimeMillis();
+                        ((System.currentTimeMillis() - lap)/1000), migratedEntries);
+                lap = System.currentTimeMillis();
             }
         }
         long tmigrationFinish = System.currentTimeMillis();
@@ -55,12 +47,17 @@ public class IndexMigrator {
                 migratedEntries, ((tmigrationFinish - tstart) / 1000));
         
         log.info("Starting setting tapes as indexed");
-        for(String tape : indexedTapes) {
+        Iterator<String> tapes = src.listIndexedTapes();
+        
+        while(tapes.hasNext()) {
+            String tape = tapes.next();
             dest.setIndexed(tape);
+            indexedTapes++;
         }
+        
         long tstop = System.currentTimeMillis();
         log.info("Finished setting tapes as indexed. {} tapes marked as indexed in {}s ", 
-                indexedTapes.size(), ((tstop - tmigrationFinish)/1000));
+                indexedTapes, ((tstop - tmigrationFinish)/1000));
     }
     
 }

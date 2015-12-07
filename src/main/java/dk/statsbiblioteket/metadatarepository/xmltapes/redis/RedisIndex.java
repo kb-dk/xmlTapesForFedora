@@ -13,6 +13,7 @@ import redis.clients.jedis.Transaction;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -142,6 +143,20 @@ public class RedisIndex implements Index {
             pool.returnResource(jedis);
         }
 
+    }
+    
+    @Override 
+    public Iterator<String> listIndexedTapes() {
+        Jedis jedis = pool.getResource();
+        Set<String> tapes;
+        try {
+            Set<String> results = jedis.smembers(TAPES_SET);
+            tapes = new HashSet<>(results);
+        } finally {
+            pool.returnResource(jedis);
+        }
+        
+        return tapes.iterator();
     }
 
     @Override
