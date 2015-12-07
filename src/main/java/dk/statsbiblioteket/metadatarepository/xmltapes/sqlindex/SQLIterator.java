@@ -33,10 +33,12 @@ public class SQLIterator implements Iterator<URI>, AutoCloseable {
     }
     
     public void close() throws SQLException {
-        Statement s = rs.getStatement();
-        Connection conn = s.getConnection();
-        conn.setAutoCommit(true);
-        DbUtils.closeQuietly(conn, s, rs);
+        if (!rs.isClosed()) {
+            Statement s = rs.getStatement();
+            Connection conn = s.getConnection();
+            conn.setAutoCommit(true);
+            DbUtils.closeQuietly(conn, s, rs);
+        }
     }
 
     @Override
