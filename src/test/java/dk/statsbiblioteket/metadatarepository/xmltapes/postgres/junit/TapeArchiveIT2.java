@@ -1,18 +1,6 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
+package dk.statsbiblioteket.metadatarepository.xmltapes.postgres.junit;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
-import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
-import dk.statsbiblioteket.metadatarepository.xmltapes.sqlindex.SQLIndex;
-import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
-import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import redis.clients.jedis.JedisPoolConfig;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +10,20 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
 
-import static org.junit.Assert.assertEquals;
+import org.apache.commons.io.FileUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
+import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
+import dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresTestSettings;
+import dk.statsbiblioteket.metadatarepository.xmltapes.sqlindex.SQLIndex;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 
 
 public class TapeArchiveIT2 {

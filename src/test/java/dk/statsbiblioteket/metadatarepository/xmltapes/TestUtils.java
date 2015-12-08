@@ -1,4 +1,4 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
+package dk.statsbiblioteket.metadatarepository.xmltapes;
 
 import java.io.File;
 

@@ -1,4 +1,4 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
+package dk.statsbiblioteket.metadatarepository.xmltapes.postgres;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.sqlindex.SQLIndex;
 

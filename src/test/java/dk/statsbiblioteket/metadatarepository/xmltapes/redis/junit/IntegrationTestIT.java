@@ -1,11 +1,11 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.junit;
+package dk.statsbiblioteket.metadatarepository.xmltapes.redis.junit;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
-import dk.statsbiblioteket.metadatarepository.xmltapes.sqlindex.SQLIndex;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
@@ -90,8 +90,7 @@ public class IntegrationTestIT {
         //create the TapeArchive
         TapeArchiveImpl tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
         tapeArchive.setRebuild(true);
-        //RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
-        index = PostgresTestSettings.getPostgreIndex();
+        index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
         tapeArchive.setIndex(index);
         tapingStore.setDelegate(tapeArchive);
         Taper taper = new Taper(tapingStore, cacheStore, tapeArchive);
