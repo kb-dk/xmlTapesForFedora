@@ -1,6 +1,19 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.postgres.junit;
+package dk.statsbiblioteket.metadatarepository.xmltapes.abstracts;
 
-import static org.junit.Assert.assertEquals;
+import dk.statsbiblioteket.metadatarepository.xmltapes.TestNamesListener;
+import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
+import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
+import org.apache.commons.io.FileUtils;
+import org.testng.annotations.Test;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,40 +23,23 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
-import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
-import dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresTestSettings;
-import dk.statsbiblioteket.metadatarepository.xmltapes.sqlindex.SQLIndex;
-import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
-import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
+import static org.junit.Assert.assertEquals;
 
 
-public class TapeArchiveIT2 {
-
-    public static final String REDIS_HOST = "localhost";
-    public static final int REDIS_PORT = 6379;
-    public static final int REDIS_DATABASE = 3;
-
+@Listeners(TestNamesListener.class)
+public abstract class AbstractTapeArchive2IT {
 
     URI testFile1 = URI.create("testFile1");
     URI testFile2 = URI.create("testFile2");
     URI testFile3 = URI.create("testFile3");
     String contents = "testFile 1 is here now";
-    SQLIndex index;
+    Index index;
 
     CacheStore archive;
     private TapeArchive underlyingTapeArchive;
 
 
-    @Before
+    @BeforeMethod
     public void setUp() throws Exception {
         clean();
         File store = getPrivateStoreId();
@@ -61,8 +57,7 @@ public class TapeArchiveIT2 {
         cacheStore.setDelegate(tapingStore);
         //create the TapeArchive
         TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
-        //index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
-        index = PostgresTestSettings.getPostgreIndex();
+        index = getIndex();
         tapeArchive.setIndex(index);
         tapingStore.setDelegate(tapeArchive);
         Taper taper = new Taper(tapingStore, cacheStore, tapeArchive);
@@ -92,6 +87,8 @@ public class TapeArchiveIT2 {
 
     }
 
+    protected abstract Index getIndex();
+
 
     private static File getPrivateStoreId() throws URISyntaxException {
         File archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile();
@@ -99,7 +96,7 @@ public class TapeArchiveIT2 {
     }
 
 
-    @After
+    @AfterMethod
     public void clean() throws URISyntaxException, IOException{
         if (archive != null) {
             archive.close();

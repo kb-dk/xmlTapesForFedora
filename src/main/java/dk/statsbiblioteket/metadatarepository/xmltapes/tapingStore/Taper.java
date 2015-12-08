@@ -24,6 +24,7 @@ public class Taper extends TimerTask {
     private final TapeArchive tapeArchive;
 
 
+    private boolean running;
 
     private boolean timerHaveRunAtLeastOnce = false;
 
@@ -43,12 +44,16 @@ public class Taper extends TimerTask {
 
     @Override
     public synchronized void run() {
+        tapingLock.lockForWriting();
         try {
-           saveAll();
+            running = true;
+            saveAll();
         } catch (Exception e) {
             log.error("Failed to save objects", e);
         } finally {
             timerHaveRunAtLeastOnce = true;
+            running = false;
+            tapingLock.unlockForWriting();
         }
     }
 
@@ -152,5 +157,9 @@ public class Taper extends TimerTask {
 
     public void setTapeDelay(long tapeDelay) {
         this.tapeDelay = tapeDelay;
+    }
+
+    public boolean isRunning() {
+        return running;
     }
 }

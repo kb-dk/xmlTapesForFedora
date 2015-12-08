@@ -89,8 +89,16 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
 
     private void stopTimer() {
         //Close the timer, THEN close the delegates. The other order would cause problems.
-        if ( task.cancel() && !task.isTimerHaveRunAtLeastOnce()) {
+
+        if ( task.cancel() && !task.isTimerHaveRunAtLeastOnce() && !task.isRunning()) {
             task.run();
+        }
+        while (task.isRunning()){
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {
+
+            }
         }
     }
 

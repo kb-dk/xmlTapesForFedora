@@ -1,5 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.redis;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
 import org.junit.After;
 import org.junit.Assert;
@@ -21,14 +22,12 @@ import java.net.URISyntaxException;
  * To change this template use File | Settings | File Templates.
  */
 public class RedisIndexTest {
-    public static final String REDIS_HOST = "localhost";
-    public static final int REDIS_PORT = 6379;
-    public static final int REDIS_DATABASE = 4;
-    RedisIndex index;
+
+    Index index;
 
     @Before
     public void setUp() throws Exception {
-        index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
+        index = RedisTestSettings.getIndex();
     }
 
     @After

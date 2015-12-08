@@ -28,7 +28,7 @@
 
     <profiles>
         <profile>
-            <id>dockerintegrationtests</id>
+            <id>PostgresIntegrationTests</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
@@ -43,29 +43,15 @@
                         </configuration>
                         <executions>
                             <execution>
+                                <id>test-postgres</id>
                                 <goals>
                                     <goal>integration-test</goal>
                                     <goal>verify</goal>
                                 </goals>
                                 <configuration>
-                                    <testNGArtifactName>none:none</testNGArtifactName>
-                                    <excludes>
-                                        <exclude>**/testng/*.java</exclude>
-                                    </excludes>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>test-testng</id>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                    <goal>verify</goal>
-                                </goals>
-                                <configuration>
-                                    <junitArtifactName>none:none</junitArtifactName>
-                                    <testNGArtifactName>org.testng:testng</testNGArtifactName>
-                                    <excludes>
-                                        <exclude>**/junit/*.java</exclude>
-                                    </excludes>
+                                    <includes>
+                                        <include>**/postgres/**/*IT.java</include>
+                                    </includes>
                                 </configuration>
                             </execution>
 
@@ -78,7 +64,7 @@
                         <version>1.4.0</version>
                         <executions>
                             <execution>
-                                <id>build docker image</id>
+                                <id>build Postgres docker image</id>
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>
@@ -90,12 +76,14 @@
                                         <argument>build</argument>
                                         <argument>-t</argument>
                                         <argument>eg_postgresql</argument>
+                                        <argument>-f</argument>
+                                        <argument>Postgres.Dockerfile</argument>
                                         <argument>.</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>remove existing docker container</id>
+                                <id>remove existing Postgres docker container</id>
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>
@@ -106,7 +94,7 @@
                                     <arguments>
                                         <argument>rm</argument>
                                         <argument>-f</argument>
-                                        <argument>updatetracker_postgres</argument>
+                                        <argument>xmltapes_postgres</argument>
                                     </arguments>
                                     <successCodes>
                                         <successCode>0</successCode>
@@ -115,7 +103,7 @@
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>start docker</id>
+                                <id>start Postgres docker</id>
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>
@@ -127,15 +115,15 @@
                                         <argument>run</argument>
                                         <argument>-d</argument>
                                         <argument>--name</argument>
-                                        <argument>updatetracker_postgres</argument>
+                                        <argument>xmltapes_postgres</argument>
                                         <argument>-p</argument>
-                                        <argument>:5432:5432</argument>
+                                        <argument>:15432:5432</argument>
                                         <argument>eg_postgresql</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>stop Docker</id>
+                                <id>stop Postgres Docker</id>
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>
@@ -145,12 +133,12 @@
                                     <workingDirectory>${project.basedir}</workingDirectory>
                                     <arguments>
                                         <argument>stop</argument>
-                                        <argument>updatetracker_postgres</argument>
+                                        <argument>xmltapes_postgres</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
                             <execution>
-                                <id>remove docker container</id>
+                                <id>remove Postgres docker container</id>
                                 <goals>
                                     <goal>exec</goal>
                                 </goals>
@@ -160,7 +148,7 @@
                                     <workingDirectory>${project.basedir}</workingDirectory>
                                     <arguments>
                                         <argument>rm</argument>
-                                        <argument>updatetracker_postgres</argument>
+                                        <argument>xmltapes_postgres</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -169,6 +157,117 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>RedisIntegrationTests</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>2.17</version>
+                        <configuration>
+                            <forkMode>never</forkMode>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>test-redis</id>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                <configuration>
+                                    <includes>
+                                        <include>**/redis/**/*IT.java</include>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.4.0</version>
+                        <executions>
+                            <execution>
+                                <id>remove existing Redis docker container</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>pre-integration-test</phase>
+                                <configuration>
+                                    <executable>docker</executable>
+                                    <workingDirectory>${project.basedir}</workingDirectory>
+                                    <arguments>
+                                        <argument>rm</argument>
+                                        <argument>-f</argument>
+                                        <argument>xmltapes_redis</argument>
+                                    </arguments>
+                                    <successCodes>
+                                        <successCode>0</successCode>
+                                        <successCode>1</successCode>
+                                    </successCodes>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>start Redis docker</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>pre-integration-test</phase>
+                                <configuration>
+                                    <executable>docker</executable>
+                                    <workingDirectory>${project.basedir}</workingDirectory>
+                                    <arguments>
+                                        <argument>run</argument>
+                                        <argument>-d</argument>
+                                        <argument>--name</argument>
+                                        <argument>xmltapes_redis</argument>
+                                        <argument>-p</argument>
+                                        <argument>:16379:6379</argument>
+                                        <argument>redis</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>stop Redis Docker</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>post-integration-test</phase>
+                                <configuration>
+                                    <executable>docker</executable>
+                                    <workingDirectory>${project.basedir}</workingDirectory>
+                                    <arguments>
+                                        <argument>stop</argument>
+                                        <argument>xmltapes_redis</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>remove Redis docker container</id>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <phase>post-integration-test</phase>
+                                <configuration>
+                                    <executable>docker</executable>
+                                    <workingDirectory>${project.basedir}</workingDirectory>
+                                    <arguments>
+                                        <argument>rm</argument>
+                                        <argument>xmltapes_redis</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
     </profiles>
 
 
@@ -181,34 +280,6 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.14.1</version>
-                <configuration>
-                    <testNGArtifactName>none:none</testNGArtifactName>
-                    <excludes>
-                        <exclude>**/testng/*.java</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>test-testng</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <configuration>
-                            <junitArtifactName>none:none</junitArtifactName>
-                            <testNGArtifactName>org.testng:testng</testNGArtifactName>
-                            <excludes>
-                                <exclude>**/junit/*.java</exclude>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.2.2</version>
@@ -349,6 +420,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.9.4</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -1,8 +1,19 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.postgres.junit;
+package dk.statsbiblioteket.metadatarepository.xmltapes.abstracts;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import dk.statsbiblioteket.metadatarepository.xmltapes.TestNamesListener;
+import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
+import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
+import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
+import org.apache.commons.io.FileUtils;
+import org.testng.annotations.Test;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -13,34 +24,20 @@ import java.io.OutputStreamWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
-import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
-import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
-import dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresTestSettings;
-import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
-import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
-import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
+@Listeners(TestNamesListener.class)
+public abstract class AbstractTapeArchiveIT {
 
-
-public class TapeArchiveIT {
-
-    public static final String REDIS_HOST = "localhost";
-    public static final int REDIS_PORT = 6379;
-    public static final int REDIS_DATABASE = 3;
     AkubraCompatibleArchive archive;
     Index index;
 
     URI testFile1 = URI.create("testFile1");
     String contents = "testFile 1 is here now";
 
-    @Before
+    @BeforeMethod
     public void setUp() throws Exception {
         //TODO this setup is duplicated for all the test classes. Simplify
         clean();
@@ -62,7 +59,7 @@ public class TapeArchiveIT {
         //create the TapeArchive
         TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
         //RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
-        index = PostgresTestSettings.getPostgreIndex();
+        index = getIndex();
         tapeArchive.setIndex(index);
         tapingStore.setDelegate(tapeArchive);
 
@@ -79,6 +76,7 @@ public class TapeArchiveIT {
 
     }
 
+    protected abstract Index getIndex();
 
     private static File getPrivateStoreId() throws URISyntaxException {
         File archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile();
@@ -86,7 +84,7 @@ public class TapeArchiveIT {
     }
 
 
-    @After
+    @AfterMethod
     public void clean() throws URISyntaxException, IOException, InterruptedException {
         //Thread.sleep(5000);
         if (archive != null) {

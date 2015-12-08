@@ -1,12 +1,12 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.redis.junit;
+package dk.statsbiblioteket.metadatarepository.xmltapes.abstracts;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.TestNamesListener;
 import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
-import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
@@ -15,10 +15,10 @@ import org.akubraproject.BlobStore;
 import org.akubraproject.BlobStoreConnection;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import redis.clients.jedis.JedisPoolConfig;
+import org.testng.annotations.Test;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,16 +38,14 @@ import static org.junit.Assert.assertTrue;
  * Time: 2:14 PM
  * To change this template use File | Settings | File Templates.
  */
-public class XmlTapesBlobStoreIT {
+@Listeners(TestNamesListener.class)
+public abstract class AbstractXmlTapesBlobStoreIT {
 
-    public static final String REDIS_HOST = "localhost";
-    public static final int REDIS_PORT = 6379;
-    public static final int REDIS_DATABASE = 5;
     BlobStoreConnection connection;
     private AkubraCompatibleArchive archive;
     private Index index;
 
-    @Before
+    @BeforeMethod
     public void setUp() throws Exception {
         connection = getPrivateStore().openConnection(null,null);
 
@@ -83,7 +81,8 @@ public class XmlTapesBlobStoreIT {
 
         //create the TapeArchive
         TapeArchive tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
-        index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
+        //RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
+        index = getIndex();
         tapeArchive.setIndex(index);
         tapingStore.setDelegate(tapeArchive);
 
@@ -98,7 +97,10 @@ public class XmlTapesBlobStoreIT {
         return xmlTapesBlobStore;
     }
 
-    @After
+    protected abstract Index getIndex();
+
+
+    @AfterMethod
     public void clean() throws IOException, URISyntaxException {
         if (connection != null){
             connection.close();

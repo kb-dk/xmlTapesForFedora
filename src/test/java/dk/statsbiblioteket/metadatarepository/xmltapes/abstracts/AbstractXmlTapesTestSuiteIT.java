@@ -1,11 +1,12 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.redis.testng;
+package dk.statsbiblioteket.metadatarepository.xmltapes.abstracts;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.TestNamesListener;
+import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.TapeArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
-import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
-import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
+import dk.statsbiblioteket.metadatarepository.xmltapes.postgres.PostgresTestSettings;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
@@ -13,7 +14,7 @@ import org.akubraproject.BlobStore;
 import org.akubraproject.tck.TCKTestSuite;
 import org.apache.commons.io.FileUtils;
 import org.testng.annotations.AfterSuite;
-import redis.clients.jedis.JedisPoolConfig;
+import org.testng.annotations.Listeners;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,17 +28,12 @@ import java.net.URISyntaxException;
  * Time: 2:53 PM
  * To change this template use File | Settings | File Templates.
  */
-public class XmlTapesTestSuiteIT extends TCKTestSuite {
+public class AbstractXmlTapesTestSuiteIT extends TCKTestSuite {
 
-
-    public static final String REDIS_HOST = "localhost";
-    public static final int REDIS_PORT = 6379;
-    public static final int REDIS_DATABASE = 4;
     private static CacheStore archive;
-    private static Index index;
 
-    public XmlTapesTestSuiteIT() throws IOException, URISyntaxException {
-        super(getPrivateStore(), getPrivateStoreId(), false, false);
+    public AbstractXmlTapesTestSuiteIT(Index index) throws IOException, URISyntaxException {
+        super(getPrivateStore(index), getPrivateStoreId(), false, false);
 
     }
 
@@ -51,10 +47,8 @@ public class XmlTapesTestSuiteIT extends TCKTestSuite {
         return name;
     }
 
-    public static BlobStore getPrivateStore() throws URISyntaxException, IOException {
-        cleanBefore();
-
-        URI privateStoreId = getPrivateStoreId();
+    public static BlobStore getPrivateStore(Index index) throws URISyntaxException, IOException {
+        cleanBefore(index);
 
         long tapeSize = 1024L * 1024;
 
@@ -70,9 +64,7 @@ public class XmlTapesTestSuiteIT extends TCKTestSuite {
         cacheStore.setDelegate(tapingStore);
         //create the TapeArchive
         TapeArchive tapeArchive = new TapeArchiveImpl(getStoreLocation(), tapeSize, ".tar", "tape", "tempTape");
-        index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
         tapeArchive.setIndex(index);
-        //tapeArchive.setIndex(redis);
         tapingStore.setDelegate(tapeArchive);
         Taper taper = new Taper(tapingStore, cacheStore, tapeArchive);
         taper.setTapeDelay(1000);
@@ -87,7 +79,8 @@ public class XmlTapesTestSuiteIT extends TCKTestSuite {
         return store;
     }
 
-    public static void cleanBefore() throws IOException, URISyntaxException {
+
+    public static void cleanBefore(Index index) throws IOException, URISyntaxException {
         File archiveFolder = getStoreLocation();
         FileUtils.cleanDirectory(archiveFolder);
         FileUtils.touch(new File(archiveFolder, "empty"));
@@ -96,18 +89,15 @@ public class XmlTapesTestSuiteIT extends TCKTestSuite {
         }
     }
 
-
     @AfterSuite
     public static void clean() throws IOException, URISyntaxException {
 
         if (archive != null){
             archive.close();
         }
-        cleanBefore();
+        cleanBefore(null);
 
     }
-
-
 
     @Override
     protected URI getInvalidId() {
@@ -118,19 +108,5 @@ public class XmlTapesTestSuiteIT extends TCKTestSuite {
     protected URI[] getAliases(URI uri) {
         return null;
     }
-
-
- /*   @Test( dependsOnGroups={ "post" })
-    public void testFinal(){
-
-        System.out.println("Final test");
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-
-    }*/
-
 
 }

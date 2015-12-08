@@ -1,11 +1,11 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.redis.junit;
+package dk.statsbiblioteket.metadatarepository.xmltapes.abstracts;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.TestNamesListener;
 import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
-import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.Taper;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tapingStore.TapingStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.tarfiles.TapeArchiveImpl;
@@ -14,11 +14,11 @@ import org.akubraproject.BlobStore;
 import org.akubraproject.BlobStoreConnection;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 import org.testng.Assert;
-import redis.clients.jedis.JedisPoolConfig;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -41,23 +41,31 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class IntegrationTestIT {
-
-    public static final String REDIS_HOST = "localhost";
-    public static final int REDIS_PORT = 6379;
-    public static final int REDIS_DATABASE = 5;
+@Listeners(TestNamesListener.class)
+public abstract class AbstractIntegrationTestIT {
 
     private AkubraCompatibleArchive archive;
-    private BlobStore privateStore;
     private Index index;
+    private BlobStore blobStore;
 
+    @BeforeMethod
+    public void startArchive() throws Exception {
+        clean();
+        blobStore = openArchive();
+    }
 
-    public BlobStoreConnection openConnection() throws Exception {
-        if (privateStore == null){
-            clean();
-            privateStore = openArchive();
+    @AfterMethod
+    public void clean() throws IOException, URISyntaxException {
+        if (archive != null) {
+            archive.close();
         }
-        return privateStore.openConnection(null, null);
+        if(index != null) {
+            index.clear();
+        }
+
+        File archiveFolder = getPrivateStoreId();
+        FileUtils.cleanDirectory(archiveFolder);
+        FileUtils.touch(new File(archiveFolder, "empty"));
     }
 
 
@@ -71,7 +79,6 @@ public class IntegrationTestIT {
 
 
     public BlobStore openArchive() throws URISyntaxException, IOException {
-        //clean();
         File store = getPrivateStoreId();
         long tapeSize = 1024L * 1024*10;
         //Create the blobstore
@@ -90,7 +97,8 @@ public class IntegrationTestIT {
         //create the TapeArchive
         TapeArchiveImpl tapeArchive = new TapeArchiveImpl(store, tapeSize, ".tar", "tape", "tempTape");
         tapeArchive.setRebuild(true);
-        index = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
+        //RedisIndex redis = new RedisIndex(REDIS_HOST, REDIS_PORT, REDIS_DATABASE, new JedisPoolConfig());
+        index = getIndex();
         tapeArchive.setIndex(index);
         tapingStore.setDelegate(tapeArchive);
         Taper taper = new Taper(tapingStore, cacheStore, tapeArchive);
@@ -102,26 +110,14 @@ public class IntegrationTestIT {
         return xmlTapesBlobStore;
     }
 
-    @After
-    public void clean() throws IOException, URISyntaxException {
-        if (archive != null) {
-            archive.close();
-        }
-        if(index != null) {
-            index.clear();
-        }
-        
-        File archiveFolder = getPrivateStoreId();
-        FileUtils.cleanDirectory(archiveFolder);
-        FileUtils.touch(new File(archiveFolder, "empty"));
+    protected abstract Index getIndex();
+
+
+    public BlobStoreConnection openConnection() throws Exception {
+        return blobStore.openConnection(null, null);
     }
 
 
-    @Before
-    public void setUp() throws Exception {
-        clean();
-        privateStore = openArchive();
-    }
 
     @Test
     public void testPutAndGetBlob() throws Exception {
@@ -318,6 +314,7 @@ public class IntegrationTestIT {
             }
         } finally {
             c1.close();
+            c2.close();
         }
     }
 
@@ -398,9 +395,10 @@ public class IntegrationTestIT {
         assertThat(thread3.get(), is(nullValue()));
         assertThat(thread4.get(), is(nullValue()));
         c.close();
-        archive.close();
+
         //Here the archive is closed. Openarchive opens a new archive, which triggers a rebuild
-        privateStore = openArchive();
+        startArchive();
+
         BlobStoreConnection c2 = openConnection();
         Iterator<URI> blobs = c2.listBlobIds("");
         int i = 0;
@@ -415,8 +413,8 @@ public class IntegrationTestIT {
         c2.close();
 
 
-        archive.close();
-        privateStore = openArchive();
+        startArchive();
+
         BlobStoreConnection c3 = openConnection();
         assertThat(c3.listBlobIds("").hasNext(), is(false));
         c3.close();
