@@ -87,21 +87,6 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
         timer.schedule(task, 0, delay);
     }
 
-    private void stopTimer() {
-        //Close the timer, THEN close the delegates. The other order would cause problems.
-
-        if ( task.cancel() && !task.isTimerHaveRunAtLeastOnce() && !task.isRunning()) {
-            task.run();
-        }
-        while (task.isRunning()){
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ignored) {
-
-            }
-        }
-    }
-
 
     @Override
     public void remove(URI id) throws IOException {
@@ -172,13 +157,13 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
 
     @Override
     public void close() throws IOException {
-        lockPool.lockForWriting();
-        try {
-            stopTimer();
-            super.close();
-        } finally {
-            lockPool.unlockForWriting();
+        //Close the timer, THEN close the delegates. The other order would cause problems.
+        timer.cancel();
+        task.cancel();
+        if ( !task.isTimerHaveRunAtLeastOnce() && !task.isRunning()) {
+            task.run();
         }
+        super.close();
     }
 
 

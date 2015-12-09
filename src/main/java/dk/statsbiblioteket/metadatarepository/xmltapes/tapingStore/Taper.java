@@ -24,7 +24,6 @@ public class Taper extends TimerTask {
     private final TapeArchive tapeArchive;
 
 
-    private boolean running;
 
     private boolean timerHaveRunAtLeastOnce = false;
 
@@ -32,6 +31,7 @@ public class Taper extends TimerTask {
      * The maximum allowed age of a file before it will be taped
      */
     private long tapeDelay;
+    private boolean running;
 
 
     public Taper(TapingStore tapingStore,CacheStore cacheStore, TapeArchive tapeArchive) {
@@ -44,7 +44,6 @@ public class Taper extends TimerTask {
 
     @Override
     public synchronized void run() {
-        tapingLock.lockForWriting();
         try {
             running = true;
             saveAll();
@@ -53,7 +52,6 @@ public class Taper extends TimerTask {
         } finally {
             timerHaveRunAtLeastOnce = true;
             running = false;
-            tapingLock.unlockForWriting();
         }
     }
 
