@@ -22,12 +22,12 @@ public class IntegrationTestImmediateReporter implements ITestListener {
 
     @Override
     public void onTestSuccess(ITestResult result) {
-        System.out.println("Ending in Success: " + result.getTestClass().getName() + "#" + result.getName());
+        System.out.println("Ending in Success: " + result.getTestClass().getName() + "#" + result.getName() + "\n");
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
-        System.out.println("Ending in Failure: " + result.getTestClass().getName() + "#" + result.getName());
+        System.out.println("Ending in Failure: " + result.getTestClass().getName() + "#" + result.getName() + "\n");
     }
 
     @Override
