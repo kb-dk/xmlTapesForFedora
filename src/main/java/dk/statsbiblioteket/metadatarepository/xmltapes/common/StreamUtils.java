@@ -16,7 +16,9 @@ import java.io.OutputStream;
 public class StreamUtils {
     public static void copy(InputStream in, OutputStream out) throws IOException {
         try {
-            IOUtils.copyLarge(in, out);
+            byte[] buffer = new byte[10*1024*1024]; // 10MB
+            // As the outputstream is sync'ed with the storage medium, a big buffer speeds up the copy A LOT
+            IOUtils.copyLarge(in, out,buffer);
         } finally {
             IOUtils.closeQuietly(in);
             IOUtils.closeQuietly(out);
