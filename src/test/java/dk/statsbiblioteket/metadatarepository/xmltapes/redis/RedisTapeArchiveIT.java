@@ -5,7 +5,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.abstracts.AbstractTapeArc
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisTestSettings;
 
 
-public class TapeArchiveIT extends AbstractTapeArchiveIT {
+public class RedisTapeArchiveIT extends AbstractTapeArchiveIT {
 
     @Override
     protected Index getIndex() {

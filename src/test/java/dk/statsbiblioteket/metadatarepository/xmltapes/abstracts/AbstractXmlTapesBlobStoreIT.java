@@ -1,6 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.abstracts;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.TestNamesListener;
+import dk.statsbiblioteket.metadatarepository.xmltapes.IntegrationTestImmediateReporter;
 import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
@@ -38,7 +38,7 @@ import static org.junit.Assert.assertTrue;
  * Time: 2:14 PM
  * To change this template use File | Settings | File Templates.
  */
-@Listeners(TestNamesListener.class)
+@Listeners(IntegrationTestImmediateReporter.class)
 public abstract class AbstractXmlTapesBlobStoreIT {
 
     BlobStoreConnection connection;
@@ -52,11 +52,12 @@ public abstract class AbstractXmlTapesBlobStoreIT {
     }
 
 
-    private static File getPrivateStoreId() throws URISyntaxException {
+    private  File getPrivateStoreId() throws URISyntaxException {
         File archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile();
+        archiveFolder = new File(archiveFolder,getClass().getSimpleName());
+        archiveFolder.mkdirs();
         return archiveFolder;
     }
-
 
     public BlobStore getPrivateStore() throws URISyntaxException, IOException {
         clean();

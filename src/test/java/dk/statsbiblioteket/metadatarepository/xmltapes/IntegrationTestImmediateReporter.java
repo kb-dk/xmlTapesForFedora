@@ -2,38 +2,32 @@ package dk.statsbiblioteket.metadatarepository.xmltapes;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.IInvokedMethod;
-import org.testng.IInvokedMethodListener;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
-import org.testng.ITestNGListener;
 import org.testng.ITestResult;
-import org.testng.internal.ConstructorOrMethod;
 
 /**
  * Created by abr on 08-12-15.
  */
-public class TestNamesListener implements ITestListener {
+public class IntegrationTestImmediateReporter implements ITestListener {
 
-    private static final Logger log = LoggerFactory.getLogger(TestNamesListener.class);
+    private static final Logger log = LoggerFactory.getLogger(IntegrationTestImmediateReporter.class);
 
     @Override
     public void onTestStart(ITestResult result) {
-            ConstructorOrMethod constructorOrMethod = result.getMethod().getConstructorOrMethod();
-            log.warn("Running " + constructorOrMethod.toString());
+        //extra spaces to align output
+        System.out.println("Running test:      " + result.getTestClass().getName() + "#" + result.getName());
 
     }
 
     @Override
     public void onTestSuccess(ITestResult result) {
-        ConstructorOrMethod constructorOrMethod = result.getMethod().getConstructorOrMethod();
-        log.warn("Ending " + constructorOrMethod.toString());
+        System.out.println("Ending in Success: " + result.getTestClass().getName() + "#" + result.getName());
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
-        ConstructorOrMethod constructorOrMethod = result.getMethod().getConstructorOrMethod();
-        log.warn("Ending " + constructorOrMethod.toString());
+        System.out.println("Ending in Failure: " + result.getTestClass().getName() + "#" + result.getName());
     }
 
     @Override

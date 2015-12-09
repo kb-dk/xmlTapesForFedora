@@ -19,7 +19,7 @@
         </encoder>
     </appender>
 
-    <logger name="dk.statsbiblioteket" level="WARN">
+    <logger name="dk.statsbiblioteket" level="DEBUG">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="LOGFILE"/>
     </logger>

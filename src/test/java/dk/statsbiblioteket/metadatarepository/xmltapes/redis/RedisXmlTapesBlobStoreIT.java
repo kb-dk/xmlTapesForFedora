@@ -11,7 +11,7 @@ import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisTestSettings;
  * Time: 2:14 PM
  * To change this template use File | Settings | File Templates.
  */
-public class XmlTapesBlobStoreIT extends AbstractXmlTapesBlobStoreIT {
+public class RedisXmlTapesBlobStoreIT extends AbstractXmlTapesBlobStoreIT {
 
     @Override
     protected Index getIndex() {

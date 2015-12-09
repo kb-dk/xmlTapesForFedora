@@ -1,6 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.abstracts;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.TestNamesListener;
+import dk.statsbiblioteket.metadatarepository.xmltapes.IntegrationTestImmediateReporter;
 import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.common.AkubraCompatibleArchive;
@@ -28,7 +28,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-@Listeners(TestNamesListener.class)
+@Listeners(IntegrationTestImmediateReporter.class)
 public abstract class AbstractTapeArchiveIT {
 
     AkubraCompatibleArchive archive;
@@ -78,8 +78,10 @@ public abstract class AbstractTapeArchiveIT {
 
     protected abstract Index getIndex();
 
-    private static File getPrivateStoreId() throws URISyntaxException {
+    private  File getPrivateStoreId() throws URISyntaxException {
         File archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile();
+        archiveFolder = new File(archiveFolder,getClass().getSimpleName());
+        archiveFolder.mkdirs();
         return archiveFolder;
     }
 

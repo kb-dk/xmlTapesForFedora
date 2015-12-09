@@ -30,9 +30,16 @@ import java.net.URISyntaxException;
  * Time: 2:53 PM
  * To change this template use File | Settings | File Templates.
  */
-public class XmlTapesTestSuiteIT extends AbstractXmlTapesTestSuiteIT {
+public class RedisXmlTapesTestSuiteIT extends AbstractXmlTapesTestSuiteIT {
 
-    public XmlTapesTestSuiteIT() throws IOException, URISyntaxException {
-        super(RedisTestSettings.getIndex());
+    public RedisXmlTapesTestSuiteIT() throws IOException, URISyntaxException {
+        super(RedisTestSettings.getIndex(),getStoreLocation());
+    }
+
+    private static File getStoreLocation() throws URISyntaxException {
+        File archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile();
+        archiveFolder = new File(archiveFolder,RedisXmlTapesTestSuiteIT.class.getSimpleName());
+        archiveFolder.mkdirs();
+        return archiveFolder;
     }
 }

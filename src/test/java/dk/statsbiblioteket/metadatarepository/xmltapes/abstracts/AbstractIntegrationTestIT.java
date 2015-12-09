@@ -1,6 +1,6 @@
 package dk.statsbiblioteket.metadatarepository.xmltapes.abstracts;
 
-import dk.statsbiblioteket.metadatarepository.xmltapes.TestNamesListener;
+import dk.statsbiblioteket.metadatarepository.xmltapes.IntegrationTestImmediateReporter;
 import dk.statsbiblioteket.metadatarepository.xmltapes.TestUtils;
 import dk.statsbiblioteket.metadatarepository.xmltapes.akubra.XmlTapesBlobStore;
 import dk.statsbiblioteket.metadatarepository.xmltapes.cacheStore.CacheStore;
@@ -41,7 +41,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@Listeners(TestNamesListener.class)
+@Listeners(IntegrationTestImmediateReporter.class)
 public abstract class AbstractIntegrationTestIT {
 
     private AkubraCompatibleArchive archive;
@@ -68,12 +68,10 @@ public abstract class AbstractIntegrationTestIT {
         FileUtils.touch(new File(archiveFolder, "empty"));
     }
 
-
-    private static File getPrivateStoreId() throws URISyntaxException {
-        File archiveFolder = new File(Thread.currentThread()
-                                            .getContextClassLoader()
-                                            .getResource("archive/empty")
-                                            .toURI()).getParentFile();
+    private  File getPrivateStoreId() throws URISyntaxException {
+        File archiveFolder = new File(Thread.currentThread().getContextClassLoader().getResource("archive/empty").toURI()).getParentFile();
+        archiveFolder = new File(archiveFolder,getClass().getSimpleName());
+        archiveFolder.mkdirs();
         return archiveFolder;
     }
 
@@ -397,7 +395,9 @@ public abstract class AbstractIntegrationTestIT {
         c.close();
 
         //Here the archive is closed. Openarchive opens a new archive, which triggers a rebuild
-        startArchive();
+        archive.close();
+        index.clear();
+        blobStore = openArchive();
 
         BlobStoreConnection c2 = openConnection();
         Iterator<URI> blobs = c2.listBlobIds("");
@@ -413,12 +413,13 @@ public abstract class AbstractIntegrationTestIT {
         c2.close();
 
 
-        startArchive();
+        archive.close();
+        index.clear();
+        blobStore = openArchive();
 
         BlobStoreConnection c3 = openConnection();
         assertThat(c3.listBlobIds("").hasNext(), is(false));
         c3.close();
-        clean();
     }
 
 
