@@ -1,4 +1,5 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.common.index;
+package dk.statsbiblioteket.metadatarepository.xmltapes.migrator;
+
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,6 +9,7 @@ import java.util.Properties;
 
 import dk.statsbiblioteket.metadatarepository.xmltapes.redis.RedisIndex;
 import dk.statsbiblioteket.metadatarepository.xmltapes.sqlindex.SQLIndex;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
 import redis.clients.jedis.JedisPoolConfig;
 
 public class IndexMigratorRunnable {

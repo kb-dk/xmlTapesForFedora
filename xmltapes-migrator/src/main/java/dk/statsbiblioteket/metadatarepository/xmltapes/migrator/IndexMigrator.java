@@ -1,4 +1,5 @@
-package dk.statsbiblioteket.metadatarepository.xmltapes.common.index;
+package dk.statsbiblioteket.metadatarepository.xmltapes.migrator;
+
 
 import java.net.URI;
 import java.util.Iterator;
@@ -6,6 +7,8 @@ import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Index;
+import dk.statsbiblioteket.metadatarepository.xmltapes.common.index.Entry;
 /**
  * Class for migrating from one index to another 
  */
