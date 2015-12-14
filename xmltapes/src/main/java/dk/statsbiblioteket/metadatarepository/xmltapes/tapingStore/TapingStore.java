@@ -37,7 +37,7 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
     protected CacheStore cache;
 
     private Taper task;
-    private Timer timer;
+    private final Timer timer;
 
 
     /**
@@ -155,14 +155,16 @@ public class TapingStore extends AbstractDeferringArchive<TapeArchive> implement
 
 
 
+
+    /**
+     * Close the timer and task. If the task is running, wait for it to complete. If the task has never been run, run it
+     * and wait for it to complete.
+    */
     @Override
     public void close() throws IOException {
         //Close the timer, THEN close the delegates. The other order would cause problems.
         timer.cancel();
-        task.cancel();
-        if ( !task.isTimerHaveRunAtLeastOnce() && !task.isRunning()) {
-            task.run();
-        }
+        task.close();
         super.close();
     }
 

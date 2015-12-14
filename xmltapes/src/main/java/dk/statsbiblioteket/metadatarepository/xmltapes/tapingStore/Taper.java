@@ -8,13 +8,14 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.TimerTask;
 
-public class Taper extends TimerTask {
+public class Taper extends TimerTask implements Closeable {
     private final Logger log = LoggerFactory.getLogger(Taper.class);
     private final LockPool tapingLock;
     private final LockPool cacheLock;
@@ -31,7 +32,6 @@ public class Taper extends TimerTask {
      * The maximum allowed age of a file before it will be taped
      */
     private long tapeDelay;
-    private boolean running;
 
 
     public Taper(TapingStore tapingStore,CacheStore cacheStore, TapeArchive tapeArchive) {
@@ -45,16 +45,28 @@ public class Taper extends TimerTask {
     @Override
     public synchronized void run() {
         try {
-            running = true;
             saveAll();
         } catch (Exception e) {
             log.error("Failed to save objects", e);
         } finally {
             timerHaveRunAtLeastOnce = true;
-            running = false;
         }
     }
 
+    /**
+     * This method is synchronized, like the run method. This way, we can use the java locking system to
+     * ensure that we will wait however long is nessesary for the locks to be released.
+     * @see #run()
+     */
+    @Override
+    public void close() throws IOException {
+        this.cancel(); //This should happen before the synchronize as we want to ensure that no further executions take place
+        synchronized (this) {
+            if (!timerHaveRunAtLeastOnce){
+                run();
+            }
+        }
+    }
 
 
     /**
@@ -62,7 +74,7 @@ public class Taper extends TimerTask {
      *
      * @throws java.io.IOException
      */
-    private void saveAll() throws IOException {
+    private synchronized void saveAll() throws IOException {
         //1. Tape all the files in the tapingDir (getStoreFiles)
         //2. lock cache for writes
         //3. Move all acceptable files from cache to taping dir
@@ -100,7 +112,7 @@ public class Taper extends TimerTask {
         }
     }
 
-    private void tapeAll(List<File> tapingFiles) throws IOException {
+    private synchronized void tapeAll(List<File> tapingFiles) throws IOException {
         tapingLock.lockForWriting();
         tapingStore.testClosed();
         try {
@@ -116,7 +128,7 @@ public class Taper extends TimerTask {
         }
     }
 
-    protected void tapeTheTapingFileAddition(File fileToTape) throws IOException {
+    private synchronized void tapeTheTapingFileAddition(File fileToTape) throws IOException {
         log.debug("Taping addition of file {}", fileToTape.getName());
         tapingLock.lockForWriting();
         try {
@@ -129,7 +141,7 @@ public class Taper extends TimerTask {
     }
 
 
-    protected synchronized void tapeTheTapingFileDeletion(File fileToTape) throws IOException {
+    private synchronized void tapeTheTapingFileDeletion(File fileToTape) throws IOException {
         log.debug("Begin taping of the deletion of file {}", fileToTape.getName());
         tapingLock.lockForWriting();
         try {
@@ -157,7 +169,4 @@ public class Taper extends TimerTask {
         this.tapeDelay = tapeDelay;
     }
 
-    public boolean isRunning() {
-        return running;
-    }
 }
