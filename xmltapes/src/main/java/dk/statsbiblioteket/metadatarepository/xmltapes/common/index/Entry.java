@@ -49,4 +49,23 @@ public class Entry {
                ", offset=" + offset +
                '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Entry)) return false;
+
+        Entry entry = (Entry) o;
+
+        if (getOffset() != entry.getOffset()) return false;
+        return getTape().equals(entry.getTape());
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getTape().hashCode();
+        result = 31 * result + (int) (getOffset() ^ (getOffset() >>> 32));
+        return result;
+    }
 }

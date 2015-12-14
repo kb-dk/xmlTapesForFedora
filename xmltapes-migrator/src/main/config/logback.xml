@@ -17,6 +17,8 @@
         </encoder>
     </appender>
 
+
+    <logger name="com.mchange" level="WARN" additivity="false"/>
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="LOG-FILE"/>
