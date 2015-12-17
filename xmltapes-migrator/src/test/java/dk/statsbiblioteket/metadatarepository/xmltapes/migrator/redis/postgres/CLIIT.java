@@ -83,7 +83,7 @@ public class CLIIT {
         populateIndex(asSet(tape1, tape2, tape3),ImmutableMap.of(blob1ID,entry1,blob2ID,entry2,blob3ID,entry3), redis);
 
         //Run the migration
-        ProcessRunner migrator = new ProcessRunner("bash","-c","bin/migrate.sh redis-to-postgres");
+        ProcessRunner migrator = new ProcessRunner("bash","-c","bin/migrate.sh $PWD/config/ redis-to-postgres");
         migrator.setStartingDir(new File(getTargetDirectory(),"xmltapes-migrator-"+getVersion()));
         migrator.run();
         assertEquals(migrator.getReturnCode(),0,migrator.getProcessErrorAsString());
