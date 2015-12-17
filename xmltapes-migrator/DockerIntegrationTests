@@ -1,0 +1,1 @@
+Marker file to only make the maven integration tests profiles run docker tests in modules with this file
