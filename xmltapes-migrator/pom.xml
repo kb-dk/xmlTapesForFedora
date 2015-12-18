@@ -5,7 +5,7 @@
     <parent>
         <groupId>dk.statsbiblioteket.metadatarepository</groupId>
         <artifactId>xmltapes-parent</artifactId>
-        <version>1.2-SNAPSHOT</version>
+        <version>1.2</version>
     </parent>
 
     <artifactId>xmltapes-migrator</artifactId>

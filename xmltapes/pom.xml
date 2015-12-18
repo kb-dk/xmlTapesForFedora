@@ -5,7 +5,7 @@
     <parent>
         <groupId>dk.statsbiblioteket.metadatarepository</groupId>
         <artifactId>xmltapes-parent</artifactId>
-        <version>1.2-SNAPSHOT</version>
+        <version>1.2</version>
     </parent>
 
     <artifactId>xmltapes</artifactId>
@@ -14,7 +14,7 @@
         <connection>scm:git:git@github.com:statsbiblioteket/xmlTapesForFedora.git</connection>
         <developerConnection>scm:git:git@github.com:statsbiblioteket/xmlTapesForFedora.git</developerConnection>
         <url>git@github.com:statsbiblioteket/xmlTapesForFedora.git</url>
-      <tag>HEAD</tag>
+      <tag>xmltapes-parent-1.2</tag>
   </scm>
 
 
