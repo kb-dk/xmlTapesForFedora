@@ -1,8 +1,15 @@
+1.2
+ * Created an index migrator which migrates between postgres and Redis
+ * Speed up the disk writes with a buffer of 10MB. This gives a 10x speedup for the tests
+ * Created dockerized tests for both the postgres Index and the Redis Index
+ * Added postgres as an alternative Index implementation (instead of Redis)
+
 1.1
  * Use newest SBUtil
 
 1.0.13
  * Do not register temp files with DeleteOnExit, as this will cause an java heap space OOM eventually
+
 1.0.12
  * Do not initialise tapes twice
 
